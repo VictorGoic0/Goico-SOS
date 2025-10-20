@@ -1,0 +1,111 @@
+graph TB
+    subgraph "React Native App - Expo"
+        subgraph "Zustand State Management"
+            LS[Local Store<br/>- pendingMessages<br/>- drafts<br/>Status: sending]
+            PS[Presence Store<br/>- presenceData<br/>- isOnline<br/>- lastSeen]
+            FS[Firebase Store<br/>- currentUser<br/>- users/usersMap<br/>- conversations<br/>- messages<br/>Status: sent/delivered/read]
+        end
+        
+        subgraph "Screens"
+            AUTH[Auth Screens<br/>Signup/Login<br/>ProfileSetup]
+            HOME[Home Screen<br/>User List<br/>Presence Display]
+            CHAT[Chat Screen<br/>1-on-1 & Groups<br/>Message Status]
+            PROFILE[Profile Screen<br/>Edit Profile]
+            GROUP[Group Screens<br/>Create/Info]
+            AI[AI Chat Screen<br/>Assistant]
+        end
+        
+        subgraph "Components"
+            MSG[MessageBubble<br/>Status Icons]
+            USER[UserListItem<br/>Online Indicator]
+        end
+        
+        AUTH --> FS
+        HOME --> FS
+        HOME --> PS
+        CHAT --> LS
+        CHAT --> FS
+        CHAT --> PS
+        PROFILE --> FS
+        GROUP --> FS
+        AI --> AISERVICE[AI Service]
+        
+        MSG --> LS
+        MSG --> FS
+        USER --> PS
+    end
+    
+    subgraph "Firebase Backend"
+        subgraph "Firebase Auth"
+            FAUTH[Authentication<br/>Email/Password<br/>User Sessions]
+        end
+        
+        subgraph "Firestore Database"
+            USERS[users collection<br/>- userId<br/>- username<br/>- displayName<br/>- imageURL<br/>- bio<br/>- status<br/>- pushToken]
+            CONVS[conversations collection<br/>- conversationId<br/>- participants<br/>- isGroup<br/>- groupName<br/>- lastMessage]
+            MSGS[messages subcollection<br/>- messageId<br/>- senderId<br/>- text<br/>- timestamp<br/>- status]
+            
+            CONVS --> MSGS
+        end
+        
+        subgraph "Realtime Database"
+            PRESENCE[presence node<br/>- userId<br/>  - isOnline<br/>  - lastSeen<br/>Auto-disconnect]
+        end
+        
+        subgraph "Firebase Storage"
+            PHOTOS[profile_photos/<br/>group_photos/]
+        end
+        
+        subgraph "Cloud Functions"
+            NOTIF[sendMessageNotification<br/>Trigger on new message<br/>Send via Expo Push]
+        end
+    end
+    
+    subgraph "External Services"
+        EXPO[Expo Push Notifications<br/>Push Tokens<br/>Notification Delivery]
+        OPENAI[OpenAI API<br/>GPT-4<br/>Chat Completions]
+    end
+    
+    AUTH -->|signUp/signIn/signOut| FAUTH
+    HOME -->|fetch users| USERS
+    PROFILE -->|update profile| USERS
+    PROFILE -->|upload photo| PHOTOS
+    
+    CHAT -->|create conversation| CONVS
+    CHAT -->|send message| MSGS
+    CHAT -->|onSnapshot| MSGS
+    
+    LS -->|optimistic write| MSGS
+    MSGS -->|onSnapshot updates| FS
+    MSGS -->|status: sent| FS
+    CHAT -->|mark delivered| MSGS
+    
+    HOME -->|onValue listener| PRESENCE
+    CHAT -->|read presence| PRESENCE
+    AUTH -->|set online| PRESENCE
+    PRESENCE -->|updates| PS
+    
+    MSGS -->|onCreate trigger| NOTIF
+    NOTIF -->|send push| EXPO
+    EXPO -->|deliver to device| AUTH
+    
+    AUTH -->|save pushToken| USERS
+    
+    AISERVICE -->|API call| OPENAI
+    OPENAI -->|response| AISERVICE
+    
+    style LS fill:#FFE4B5
+    style PS fill:#B0E0E6
+    style FS fill:#90EE90
+    style FAUTH fill:#FFA500
+    style USERS fill:#4285F4
+    style CONVS fill:#4285F4
+    style MSGS fill:#4285F4
+    style PRESENCE fill:#34A853
+    style PHOTOS fill:#FBBC04
+    style NOTIF fill:#EA4335
+    style EXPO fill:#9370DB
+    style OPENAI fill:#00D4AA
+    
+    classDef storeStyle fill:#F0F8FF,stroke:#333,stroke-width:2px
+    class LS,PS,FS storeStyle
