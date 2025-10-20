@@ -1,55 +1,72 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **Planning Complete - Ready to Begin Implementation**
+## Current Status: **Foundation Complete - PR #4 Done**
 
-### Overall Progress: 5% Complete
+### Overall Progress: 35% Complete (4/12 PRs)
 
 - ✅ **Planning Phase**: 100% Complete
-- ⏳ **Foundation Phase**: 0% Complete
+- ✅ **Foundation Phase**: 100% Complete (PRs #1-4)
 - ⏳ **Core Features**: 0% Complete
 - ⏳ **Advanced Features**: 0% Complete
 - ⏳ **Polish & Deployment**: 0% Complete
 
 ## What Works (Completed)
 
-### Memory Bank Documentation
+### PR #1: React Native Setup & Environment Configuration ✅
 
-- ✅ **Project Brief**: Comprehensive requirements and success metrics defined
-- ✅ **Product Context**: User experience goals and value propositions established
-- ✅ **System Patterns**: 3-store architecture and data flow patterns documented
-- ✅ **Technical Context**: Technology stack and development environment specified
-- ✅ **Active Context**: Current work focus and next steps identified
-- ✅ **Implementation Tasks**: Complete 12-PR breakdown with detailed subtasks
+- ✅ Created Expo project with blank template
+- ✅ Installed dependencies: Firebase, Zustand, React Navigation, expo-image-picker
+- ✅ Created project structure (screens, components, stores, utils, config)
+- ✅ Set up .env with EXPO*PUBLIC* prefix
+- ✅ Git initialized with proper .gitignore
 
-### Project Analysis
+### PR #2: Firebase Configuration & Zustand Stores ✅
 
-- ✅ **Requirements Analysis**: PRD.md reviewed and understood
-- ✅ **Task Breakdown**: 12 PR implementation plan analyzed
-- ✅ **Architecture Review**: Mermaid diagram and system patterns studied
-- ✅ **Design System**: Existing components (Button, Card, Input) analyzed
-- ✅ **Dependencies**: Package.json and required libraries identified
+- ✅ Firebase project created with all services (Auth, Firestore, Realtime DB, Storage)
+- ✅ firebase.js config with offline persistence
+- ✅ localStore.js - Optimistic updates (pending messages, drafts)
+- ✅ presenceStore.js - Real-time presence data
+- ✅ firebaseStore.js - Source of truth (users, conversations, messages)
+- ✅ helpers.js with utility functions (timestamp formatting, validation, etc.)
 
-### Planning Deliverables
+### PR #3: Authentication (Signup & Login) ✅
 
-- ✅ **Implementation Strategy**: Sequential PR approach with clear checkpoints
-- ✅ **Risk Assessment**: Key risks identified with mitigation strategies
-- ✅ **Success Metrics**: MVP, Checkpoint 2, and Final success criteria defined
-- ✅ **Timeline**: 7-day sprint with daily milestones established
+- ✅ Design system tokens adapted to React Native (colors, typography, spacing)
+- ✅ Button component with variants, sizes, loading states
+- ✅ Input component with validation, error states, password toggle
+- ✅ Card component with variants and padding options
+- ✅ SignupScreen with email/password validation
+- ✅ LoginScreen with authentication
+- ✅ auth.js utility functions (signUp, signIn, signOut, error messages)
+- ✅ AppNavigator with auth state listener
+
+### PR #4: Profile Setup & User Creation in Firestore ✅
+
+- ✅ ProfileSetupScreen with username, display name, bio, profile picture
+- ✅ Username validation (required, 3-20 chars, alphanumeric + underscore, unique)
+- ✅ Profile image picker with expo-image-picker
+- ✅ Profile image upload to Firebase Storage
+- ✅ profile.js utilities (createUserProfile, getUserProfile, updateUserProfile)
+- ✅ Username uniqueness checking in Firestore
+- ✅ Firestore user document creation with full user data
+- ✅ AppNavigator updated with username-gating logic
+- ✅ Loading screen while checking profile
+- ✅ Navigation flow: no username → ProfileSetupScreen, has username → Home
 
 ## What's Left to Build
 
 ### Phase 1: Foundation (Day 1 - Hours 0-8)
 
-**Status**: Not Started
+**Status**: ✅ Complete
 
-- [ ] **React Native Setup**: Create Expo project and install dependencies
-- [ ] **Firebase Configuration**: Set up Firebase project with all services
-- [ ] **Zustand Stores**: Create 3-store architecture (local, presence, firebase)
-- [ ] **Authentication**: Implement signup and login flows
-- [ ] **Profile Setup**: Create profile completion screen
-- [ ] **Navigation**: Set up React Navigation with auth/main stacks
-- [ ] **User Creation**: Create Firestore user documents on signup
-- [ ] **Presence Initialization**: Set up Realtime Database presence tracking
+- ✅ **React Native Setup**: Expo project created with all dependencies
+- ✅ **Firebase Configuration**: Firebase project with Auth, Firestore, Realtime DB, Storage
+- ✅ **Zustand Stores**: 3-store architecture implemented (local, presence, firebase)
+- ✅ **Authentication**: Signup and login flows working
+- ✅ **Profile Setup**: ProfileSetupScreen with username, display name, bio, photo
+- ✅ **Navigation**: React Navigation with auth/main/profile stacks
+- ✅ **User Creation**: Firestore user documents created on profile setup
+- ⏳ **Presence Initialization**: Will be implemented in PR #5
 
 ### Phase 2: User Profiles & Presence (Day 1 - Hours 8-16)
 

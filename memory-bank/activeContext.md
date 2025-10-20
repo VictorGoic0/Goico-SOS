@@ -2,37 +2,83 @@
 
 ## Current Work Focus
 
-### Project Status: **Planning Phase**
+### Project Status: **Development Phase - Profile Setup Complete (PR #4)**
 
-The project is currently in the initial planning and setup phase. The memory bank has been established with comprehensive documentation covering project requirements, technical architecture, and implementation strategy.
+The project has completed PRs #1-4, establishing the foundation with authentication, profile setup, and the username-gating pattern.
+
+### Completed PRs
+
+1. ✅ **PR #1**: React Native Setup & Environment Configuration
+2. ✅ **PR #2**: Firebase Configuration & Zustand Stores
+3. ✅ **PR #3**: Authentication (Signup & Login)
+4. ✅ **PR #4**: Profile Setup & User Creation in Firestore
 
 ### Immediate Next Steps
 
-1. **PR #1**: React Native Setup & Environment Configuration
-2. **PR #2**: Firebase Configuration & Zustand Stores
-3. **PR #3**: Authentication (Signup & Login)
-4. **PR #4**: Profile Setup & User Creation in Firestore
-5. **PR #5**: User List & Presence Tracking
+1. **PR #5**: User List & Presence Tracking
+2. **PR #6**: One-on-One Messaging & Chat Screen
+3. **PR #7**: Message Status Tracking & Offline Support
 
 ## Recent Changes
 
-### Memory Bank Initialization
+### PR #4: Profile Setup & User Creation (Just Completed)
 
-- ✅ Created comprehensive project brief with MVP requirements
-- ✅ Documented product context and user experience goals
-- ✅ Established system patterns with 3-store architecture
-- ✅ Defined technical context and development environment
-- ✅ Analyzed existing design system components (Button, Card, Input)
+**What was built:**
 
-### Project Analysis
+- ✅ ProfileSetupScreen with username, display name, bio, and profile picture upload
+- ✅ Profile utility functions (createUserProfile, getUserProfile, updateUserProfile)
+- ✅ Profile image upload to Firebase Storage
+- ✅ Username validation and uniqueness checking
+- ✅ Firestore user document creation with full user data
+- ✅ Updated AppNavigator with username-gating logic
 
-- ✅ Reviewed PRD.md with detailed implementation requirements
-- ✅ Examined tasks.md with 12 PR breakdown and timeline
-- ✅ Analyzed architecture.mermaid diagram
-- ✅ Studied existing design system components
-- ✅ Identified package.json with basic project structure
+**Key Implementation Details:**
+
+- Username is **REQUIRED** (unique, lowercase, 3-20 characters, alphanumeric + underscore)
+- Display name is **OPTIONAL** (defaults to username if not provided)
+- Profile picture is **OPTIONAL** (uploaded to Firebase Storage if provided)
+- Bio is **OPTIONAL** (max 200 characters)
+
+**Navigation Flow:**
+
+1. User logs in → Check Firestore for username
+2. No username → ProfileSetupScreen (one-time only)
+3. Has username → Home screen
+4. Loading screen shown while checking profile
+
+**Files Created/Modified:**
+
+- 📄 NEW: `src/screens/ProfileSetupScreen.js` - Profile setup UI
+- 📄 NEW: `src/utils/profile.js` - Profile management utilities
+- ✏️ MODIFIED: `src/navigation/AppNavigator.js` - Added username gating logic
+
+### Previous Completed Work
+
+**PR #1-3:**
+
+- ✅ React Native setup with Expo
+- ✅ Firebase configuration (Auth, Firestore, Realtime DB, Storage)
+- ✅ 3 Zustand stores (local, presence, firebase)
+- ✅ Authentication screens (Login, Signup)
+- ✅ Design system components (Button, Input, Card)
+- ✅ Auth utility functions with error handling
 
 ## Active Decisions and Considerations
+
+### New: Username-Gating Pattern
+
+**Decision:** Username is the single source of truth for profile completion
+
+- **Check:** On auth state change, fetch Firestore user document
+- **Gate:** If no username exists, show ProfileSetupScreen
+- **Flow:** ProfileSetupScreen → creates user document with username → Home screen
+- **Future Enhancement:** Strict gating to prevent access to other screens (will add in later PR)
+
+**Rationale:**
+
+- Username is unique and permanent (cannot be changed)
+- Simple boolean check: has username = profile complete
+- Display name and profile picture are optional enhancements
 
 ### Architecture Decisions
 
@@ -40,6 +86,7 @@ The project is currently in the initial planning and setup phase. The memory ban
 - **Firebase Services**: Firestore for data, Realtime Database for presence, Storage for images
 - **Expo Managed Workflow**: Chosen for simplified development and deployment
 - **Manual Testing**: No automated tests for MVP timeline
+- **Username as Profile Gate**: Username existence = profile completion check
 
 ### Technical Priorities
 
@@ -77,24 +124,23 @@ The project is currently in the initial planning and setup phase. The memory ban
 
 ## Next Implementation Phase
 
-### Phase 1: Foundation (Day 1 - Hours 0-8)
+### Phase 2: User List & Presence Tracking (PR #5)
 
-**Goal**: Get authentication and basic navigation working
+**Goal**: Display all users with real-time online/offline status
 
 **Immediate Tasks**:
 
-- [ ] Set up React Native project with Expo (`npx create-expo-app`)
-- [ ] Install dependencies: Zustand, Firebase, React Navigation
-- [ ] Set up Firebase project (Auth + Firestore + Realtime Database + Storage)
-- [ ] Create 3 Zustand stores (localStore, presenceStore, firebaseStore)
-- [ ] Implement signup flow (email + password only)
-- [ ] Implement profile setup screen (username, displayName, optional photo/bio)
-- [ ] Implement login flow
-- [ ] Create user profile document on signup (Firestore)
-- [ ] Create presence entry on login (Realtime Database)
-- [ ] Basic navigation (Auth screens ↔ Home screen)
+- [ ] Create HomeScreen (User List)
+- [ ] Fetch all users from Firestore on app load
+- [ ] Listen to Realtime Database `/presence` node
+- [ ] Create UserListItem component with presence indicator
+- [ ] Initialize presence on login (set isOnline: true)
+- [ ] Update presence on app state changes (foreground/background)
+- [ ] Implement `.onDisconnect()` for auto-offline
+- [ ] Display "Last seen" timestamp for offline users
+- [ ] Test presence with multiple devices
 
-**Checkpoint**: Users can sign up, complete profile, log in, and see Home screen
+**Checkpoint**: Home screen shows all users with accurate presence status
 
 ### Phase 2: User Profiles & Presence (Day 1 - Hours 8-16)
 

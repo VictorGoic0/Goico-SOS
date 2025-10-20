@@ -94,8 +94,16 @@ export const colors = {
   text: {
     primary: "rgba(0, 0, 0, 0.87)",
     secondary: "rgba(0, 0, 0, 0.6)",
+    tertiary: "rgba(0, 0, 0, 0.5)",
     disabled: "rgba(0, 0, 0, 0.38)",
     hint: "rgba(0, 0, 0, 0.38)",
+  },
+
+  // Border colors
+  border: {
+    main: "rgba(0, 0, 0, 0.12)",
+    light: "rgba(0, 0, 0, 0.08)",
+    dark: "rgba(0, 0, 0, 0.24)",
   },
 
   // Divider
