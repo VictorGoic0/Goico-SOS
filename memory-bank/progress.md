@@ -1,12 +1,12 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **Foundation Complete - PR #4 Done**
+## Current Status: **User List & Presence Complete - PR #5 Done**
 
-### Overall Progress: 35% Complete (4/12 PRs)
+### Overall Progress: 42% Complete (5/12 PRs)
 
 - ✅ **Planning Phase**: 100% Complete
 - ✅ **Foundation Phase**: 100% Complete (PRs #1-4)
-- ⏳ **Core Features**: 0% Complete
+- ⏳ **Core Features**: 20% Complete (PR #5 done, PRs #6-7 remaining)
 - ⏳ **Advanced Features**: 0% Complete
 - ⏳ **Polish & Deployment**: 0% Complete
 
@@ -52,6 +52,24 @@
 - ✅ AppNavigator updated with username-gating logic
 - ✅ Loading screen while checking profile
 - ✅ Navigation flow: no username → ProfileSetupScreen, has username → Home
+
+### PR #5: User List & Presence Tracking ✅
+
+- ✅ HomeScreen with FlatList of all users
+- ✅ Real-time user data from Firestore (onSnapshot)
+- ✅ UserListItem component with avatar, name, username, presence
+- ✅ Avatar placeholders with colored initials
+- ✅ Presence utilities (initializePresence, updatePresence, listenToPresence)
+- ✅ Realtime Database integration for presence
+- ✅ Online/offline indicators (green = online, gray = offline)
+- ✅ "Last seen" timestamps for offline users
+- ✅ Presence initialized on login
+- ✅ AppState listener for foreground/background updates
+- ✅ Auto-disconnect handling (.onDisconnect)
+- ✅ Set offline on sign out
+- ✅ Pull-to-refresh functionality
+- ✅ Current user appears in list
+- ✅ Firebase Auth persistence with AsyncStorage
 
 ## What's Left to Build
 

@@ -5,6 +5,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
+import { setUserOffline } from "./presence";
 
 /**
  * Sign up a new user with email and password
@@ -52,6 +53,14 @@ export const signInUser = async (email, password) => {
  */
 export const signOutUser = async () => {
   try {
+    // Get current user ID before signing out
+    const currentUser = useFirebaseStore.getState().currentUser;
+
+    // Set user as offline before signing out
+    if (currentUser?.uid) {
+      await setUserOffline(currentUser.uid);
+    }
+
     await signOut(auth);
     // Clear Firebase store on sign out
     useFirebaseStore.getState().clearStore();

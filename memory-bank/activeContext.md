@@ -2,9 +2,9 @@
 
 ## Current Work Focus
 
-### Project Status: **Development Phase - Profile Setup Complete (PR #4)**
+### Project Status: **Development Phase - User List & Presence Complete (PR #5)**
 
-The project has completed PRs #1-4, establishing the foundation with authentication, profile setup, and the username-gating pattern.
+The project has completed PRs #1-5, establishing the foundation with authentication, profile setup, and real-time presence tracking.
 
 ### Completed PRs
 
@@ -12,16 +12,52 @@ The project has completed PRs #1-4, establishing the foundation with authenticat
 2. ✅ **PR #2**: Firebase Configuration & Zustand Stores
 3. ✅ **PR #3**: Authentication (Signup & Login)
 4. ✅ **PR #4**: Profile Setup & User Creation in Firestore
+5. ✅ **PR #5**: User List & Presence Tracking
 
 ### Immediate Next Steps
 
-1. **PR #5**: User List & Presence Tracking
-2. **PR #6**: One-on-One Messaging & Chat Screen
-3. **PR #7**: Message Status Tracking & Offline Support
+1. **PR #6**: One-on-One Messaging & Chat Screen
+2. **PR #7**: Message Status Tracking & Offline Support
+3. **PR #8**: Group Chats
 
 ## Recent Changes
 
-### PR #4: Profile Setup & User Creation (Just Completed)
+### PR #5: User List & Presence Tracking (Just Completed)
+
+**What was built:**
+
+- ✅ HomeScreen with FlatList showing all users
+- ✅ UserListItem component with avatar, name, username, presence indicator
+- ✅ Presence utilities (initializePresence, updatePresence, listenToPresence, setUserOffline)
+- ✅ Real-time presence tracking with Realtime Database
+- ✅ Online/offline indicators (green dot = online, gray = offline)
+- ✅ "Last seen" timestamps for offline users
+- ✅ App state handling (foreground/background updates presence)
+- ✅ Current user appears in the list
+- ✅ Auto-disconnect handling (sets offline when connection lost)
+- ✅ Pull-to-refresh functionality
+- ✅ Sign out button (temporary, will move to Profile screen later)
+
+**Key Implementation Details:**
+
+- Presence stored in Realtime Database at `/presence/{userId}`
+- Presence initialized on login after profile check
+- AppState listener updates presence when app goes to background/foreground
+- Sign out sets user offline before logging out
+- Users see themselves in the list with real-time presence
+- Avatar placeholders with colored initials when no profile picture
+
+**Files Created/Modified:**
+
+- 📄 NEW: `src/screens/HomeScreen.js` - User list with real-time data
+- 📄 NEW: `src/components/UserListItem.js` - User row component
+- 📄 NEW: `src/utils/presence.js` - Presence management utilities
+- ✏️ MODIFIED: `src/navigation/AppNavigator.js` - Added presence initialization and listeners
+- ✏️ MODIFIED: `src/utils/auth.js` - Set offline on sign out
+- ✏️ MODIFIED: `src/config/firebase.js` - Added AsyncStorage persistence
+- ✏️ MODIFIED: `src/styles/tokens.js` - Added missing color tokens
+
+### PR #4: Profile Setup & User Creation
 
 **What was built:**
 

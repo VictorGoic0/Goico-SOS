@@ -4,9 +4,9 @@ import { onAuthStateChanged } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  AppState,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { auth } from "../config/firebase";
@@ -17,33 +17,17 @@ import LoginScreen from "../screens/LoginScreen";
 import ProfileSetupScreen from "../screens/ProfileSetupScreen";
 import SignupScreen from "../screens/SignupScreen";
 
+// Main Screens
+import HomeScreen from "../screens/HomeScreen";
+
 // Utils
 import { colors, spacing, typography } from "../styles/tokens";
-import { signOutUser } from "../utils/auth";
+import {
+  initializePresence,
+  listenToPresence,
+  updatePresence,
+} from "../utils/presence";
 import { getUserProfile } from "../utils/profile";
-
-// Temporary Home Screen placeholder
-function HomeScreen() {
-  const handleSignOut = async () => {
-    try {
-      await signOutUser();
-    } catch (error) {
-      console.error("Sign out error:", error);
-    }
-  };
-
-  return (
-    <View style={styles.placeholderContainer}>
-      <Text style={styles.placeholderTitle}>🎉 You're logged in!</Text>
-      <Text style={styles.placeholderText}>
-        Home screen will be built in PR #5
-      </Text>
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-        <Text style={styles.signOutText}>Sign Out</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
 
 const Stack = createNativeStackNavigator();
 
@@ -52,6 +36,20 @@ export default function AppNavigator() {
   const setCurrentUser = useFirebaseStore((state) => state.setCurrentUser);
   const [isCheckingProfile, setIsCheckingProfile] = useState(true);
   const [hasUsername, setHasUsername] = useState(false);
+
+  // Update hasUsername when currentUser.username changes
+  // Also initialize presence when username is first set (profile creation)
+  useEffect(() => {
+    if (currentUser?.username) {
+      // Only initialize presence if we just got the username (profile was just created)
+      if (!hasUsername) {
+        initializePresence(currentUser.uid);
+      }
+      setHasUsername(true);
+    } else if (currentUser && !currentUser.username) {
+      setHasUsername(false);
+    }
+  }, [currentUser?.username, currentUser?.uid, hasUsername]);
 
   // Listen to auth state changes and check for username
   useEffect(() => {
@@ -74,6 +72,9 @@ export default function AppNavigator() {
               ...userProfile,
             });
             setHasUsername(true);
+
+            // Initialize presence for this user
+            await initializePresence(user.uid);
           } else {
             // User needs to complete profile setup
             console.log("⚠️ User profile not found or missing username");
@@ -98,6 +99,33 @@ export default function AppNavigator() {
 
     return unsubscribe;
   }, [setCurrentUser]);
+
+  // Listen to presence changes in Realtime Database
+  useEffect(() => {
+    const unsubscribe = listenToPresence();
+    return unsubscribe;
+  }, []);
+
+  // Handle app state changes (foreground/background)
+  useEffect(() => {
+    if (!currentUser?.uid || !hasUsername) {
+      return;
+    }
+
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        // App came to foreground
+        updatePresence(currentUser.uid, true);
+      } else if (nextAppState === "background" || nextAppState === "inactive") {
+        // App went to background
+        updatePresence(currentUser.uid, false);
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [currentUser, hasUsername]);
 
   // Show loading screen while checking profile
   if (currentUser && isCheckingProfile) {
@@ -170,36 +198,5 @@ const styles = StyleSheet.create({
     marginTop: spacing[4],
     fontSize: typography.fontSize.base,
     color: colors.text.secondary,
-  },
-  placeholderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: spacing[6],
-    backgroundColor: colors.background.default,
-  },
-  placeholderTitle: {
-    fontSize: typography.fontSize["3xl"],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
-    marginBottom: spacing[4],
-    textAlign: "center",
-  },
-  placeholderText: {
-    fontSize: typography.fontSize.lg,
-    color: colors.text.secondary,
-    textAlign: "center",
-    marginBottom: spacing[8],
-  },
-  signOutButton: {
-    backgroundColor: colors.error.main,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[8],
-    borderRadius: 8,
-  },
-  signOutText: {
-    color: colors.neutral.white,
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
   },
 });
