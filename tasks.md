@@ -282,37 +282,38 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Firebase Connection:**
 
-- [ ] In `App.js`, import firebase config
-- [ ] Add console.log to verify Firebase initialized
-- [ ] Run app, check console for Firebase initialization message
-- [ ] No errors in console
+- [x] In `App.js`, import firebase config
+- [x] Add console.log to verify Firebase initialized
+- [x] Run app, check console for Firebase initialization message
+- [x] No errors in console
 
 **Create Utility Functions:**
 
-- [ ] File: `src/utils/helpers.js`
-- [ ] Function: `generateId()` - generates unique message/conversation IDs
-- [ ] Function: `formatTimestamp(timestamp)` - formats timestamps for display
+- [x] File: `src/utils/helpers.js`
+- [x] Function: `generateId()` - generates unique message/conversation IDs
+- [x] Function: `formatTimestamp(timestamp)` - formats timestamps for display
+- [x] Added bonus functions: formatLastSeen, formatMessageTime, validation helpers, avatar helpers
 
 **Files Created:**
 
-- `src/config/firebase.js`
-- `src/stores/localStore.js`
-- `src/stores/presenceStore.js`
-- `src/stores/firebaseStore.js`
-- `src/utils/helpers.js`
+- `src/config/firebase.js` ✅
+- `src/stores/localStore.js` ✅
+- `src/stores/presenceStore.js` ✅
+- `src/stores/firebaseStore.js` ✅
+- `src/utils/helpers.js` ✅
 
 **Files Modified:**
 
-- `.env`
-- `App.js` (test Firebase connection)
+- `.env` ✅
+- `App.js` (test Firebase connection) ✅
 
 **Test Before Merge:**
 
-- [ ] Firebase initializes without errors
-- [ ] All three Zustand stores are accessible
-- [ ] Can import stores in components
-- [ ] No console errors
-- [ ] App still runs on phone
+- [x] Firebase initializes without errors
+- [x] All three Zustand stores are accessible
+- [x] Can import stores in components
+- [x] No console errors
+- [x] App still runs on phone
 
 ---
 

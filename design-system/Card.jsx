@@ -1,4 +1,4 @@
-import { colors, spacing, borderRadius, shadows, transitions } from '../../styles/tokens';
+import { borderRadius, colors, shadows, spacing, transitions } from '../src/styles/tokens';
 
 /**
  * Card Component

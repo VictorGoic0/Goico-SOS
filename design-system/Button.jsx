@@ -1,4 +1,4 @@
-import { colors, typography, spacing, borderRadius, shadows, transitions } from '../../styles/tokens';
+import { borderRadius, colors, shadows, spacing, transitions, typography } from '../src/styles/tokens';
 
 /**
  * Button Component

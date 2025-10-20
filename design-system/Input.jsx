@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { colors, typography, spacing, borderRadius, transitions } from '../../styles/tokens';
+import { borderRadius, colors, spacing, transitions, typography } from '../src/styles/tokens';
 
 /**
  * Input Component
