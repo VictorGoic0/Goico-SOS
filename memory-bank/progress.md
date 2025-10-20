@@ -1,12 +1,12 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **User List & Presence Complete - PR #5 Done**
+## Current Status: **One-on-One Messaging Complete - PR #6 Done**
 
-### Overall Progress: 42% Complete (5/12 PRs)
+### Overall Progress: 50% Complete (6/12 PRs)
 
 - ✅ **Planning Phase**: 100% Complete
 - ✅ **Foundation Phase**: 100% Complete (PRs #1-4)
-- ⏳ **Core Features**: 20% Complete (PR #5 done, PRs #6-7 remaining)
+- ✅ **Core Features**: 67% Complete (PRs #5-6 done, PR #7 remaining)
 - ⏳ **Advanced Features**: 0% Complete
 - ⏳ **Polish & Deployment**: 0% Complete
 
@@ -70,6 +70,24 @@
 - ✅ Pull-to-refresh functionality
 - ✅ Current user appears in list
 - ✅ Firebase Auth persistence with AsyncStorage
+
+### PR #6: One-on-One Messaging & Chat Screen ✅
+
+- ✅ ChatScreen with FlatList message display
+- ✅ MessageBubble component with sent/received styling
+- ✅ Message input with send button
+- ✅ Conversation utilities (getOrCreateConversation, sendMessage, getConversationId)
+- ✅ Auto-create conversations on first message
+- ✅ Consistent conversation IDs (sorted user IDs)
+- ✅ Optimistic updates (messages appear instantly)
+- ✅ LocalStore integration for pending messages
+- ✅ Real-time message listener (Firestore onSnapshot)
+- ✅ Message timestamps with formatMessageTime
+- ✅ Status indicators (🕐 sending, ✓ sent, ✓✓ delivered)
+- ✅ Navigation from HomeScreen to ChatScreen
+- ✅ KeyboardAvoidingView for input
+- ✅ Auto-scroll to latest message
+- ✅ Last message tracking in conversation document
 
 ## What's Left to Build
 

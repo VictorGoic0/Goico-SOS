@@ -11,6 +11,10 @@ const useLocalStore = create((set, get) => ({
   pendingMessages: {}, // { conversationId: [messages with status: "sending"] }
   drafts: {}, // { conversationId: "draft text..." }
 
+  // UI State
+  isSending: {}, // { conversationId: boolean }
+  isLoadingConversation: {}, // { conversationId: boolean }
+
   // Actions
   addPendingMessage: (conversationId, message) =>
     set((state) => ({
@@ -57,6 +61,23 @@ const useLocalStore = create((set, get) => ({
   getDraft: (conversationId) => {
     return get().drafts[conversationId] || "";
   },
+
+  // UI State Actions
+  setIsSending: (conversationId, sending) =>
+    set((state) => ({
+      isSending: {
+        ...state.isSending,
+        [conversationId]: sending,
+      },
+    })),
+
+  setIsLoadingConversation: (conversationId, loading) =>
+    set((state) => ({
+      isLoadingConversation: {
+        ...state.isLoadingConversation,
+        [conversationId]: loading,
+      },
+    })),
 }));
 
 export default useLocalStore;

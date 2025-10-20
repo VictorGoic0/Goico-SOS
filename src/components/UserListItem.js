@@ -8,8 +8,9 @@ import { formatLastSeen, getAvatarColor, getInitials } from "../utils/helpers";
  * UserListItem - Display a user in a list with presence indicator
  * @param {Object} user - User object
  * @param {Function} onPress - Callback when user is pressed
+ * @param {boolean} isCurrentUser - Whether this is the current logged-in user
  */
-export default function UserListItem({ user, onPress }) {
+export default function UserListItem({ user, onPress, isCurrentUser = false }) {
   const isOnline = usePresenceStore((state) => state.isUserOnline(user.userId));
   const presenceData = usePresenceStore(
     (state) => state.presenceData[user.userId]
@@ -20,9 +21,10 @@ export default function UserListItem({ user, onPress }) {
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, isCurrentUser && styles.currentUserContainer]}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={isCurrentUser ? 1 : 0.7}
+      disabled={isCurrentUser}
     >
       {/* Avatar */}
       <View style={styles.avatarContainer}>
@@ -50,9 +52,12 @@ export default function UserListItem({ user, onPress }) {
 
       {/* User info */}
       <View style={styles.userInfo}>
-        <Text style={styles.displayName} numberOfLines={1}>
-          {user.displayName || user.username}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.displayName} numberOfLines={1}>
+            {user.displayName || user.username}
+          </Text>
+          {isCurrentUser && <Text style={styles.youBadge}>You</Text>}
+        </View>
         <Text style={styles.username} numberOfLines={1}>
           @{user.username}
         </Text>
@@ -68,8 +73,8 @@ export default function UserListItem({ user, onPress }) {
         )}
       </View>
 
-      {/* Chevron */}
-      <Text style={styles.chevron}>›</Text>
+      {/* Chevron - hidden for current user */}
+      {!isCurrentUser && <Text style={styles.chevron}>›</Text>}
     </TouchableOpacity>
   );
 }
@@ -82,6 +87,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.paper,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
+  },
+  currentUserContainer: {
+    opacity: 0.6,
   },
   avatarContainer: {
     position: "relative",
@@ -119,11 +127,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing[1],
+  },
   displayName: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary,
-    marginBottom: spacing[1],
+  },
+  youBadge: {
+    marginLeft: spacing[2],
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary.main,
+    backgroundColor: colors.primary.lighter,
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    borderRadius: 8,
   },
   username: {
     fontSize: typography.fontSize.sm,

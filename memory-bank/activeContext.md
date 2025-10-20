@@ -2,9 +2,9 @@
 
 ## Current Work Focus
 
-### Project Status: **Development Phase - User List & Presence Complete (PR #5)**
+### Project Status: **Development Phase - One-on-One Messaging Complete (PR #6)**
 
-The project has completed PRs #1-5, establishing the foundation with authentication, profile setup, and real-time presence tracking.
+The project has completed PRs #1-6, establishing core messaging functionality with real-time chat and optimistic updates.
 
 ### Completed PRs
 
@@ -13,16 +13,52 @@ The project has completed PRs #1-5, establishing the foundation with authenticat
 3. ✅ **PR #3**: Authentication (Signup & Login)
 4. ✅ **PR #4**: Profile Setup & User Creation in Firestore
 5. ✅ **PR #5**: User List & Presence Tracking
+6. ✅ **PR #6**: One-on-One Messaging & Chat Screen
 
 ### Immediate Next Steps
 
-1. **PR #6**: One-on-One Messaging & Chat Screen
-2. **PR #7**: Message Status Tracking & Offline Support
-3. **PR #8**: Group Chats
+1. **PR #7**: Message Status Tracking & Offline Support
+2. **PR #8**: Group Chats
+3. **PR #9**: Push Notifications
 
 ## Recent Changes
 
-### PR #5: User List & Presence Tracking (Just Completed)
+### PR #6: One-on-One Messaging & Chat Screen (Just Completed)
+
+**What was built:**
+
+- ✅ ChatScreen with real-time message list
+- ✅ MessageBubble component (sent vs received styling)
+- ✅ Message input with send button
+- ✅ Conversation utilities (getOrCreateConversation, sendMessage)
+- ✅ Optimistic updates with localStore (messages show instantly)
+- ✅ Real-time message listener (Firestore onSnapshot)
+- ✅ Message timestamps and status indicators (✓ = sent, ✓✓ = delivered, 🕐 = sending)
+- ✅ Navigation from UserListItem to ChatScreen
+- ✅ Automatic conversation creation on first message
+- ✅ Consistent conversation IDs (same ID regardless of user order)
+- ✅ Keyboard handling (KeyboardAvoidingView)
+- ✅ Auto-scroll to latest message
+
+**Key Implementation Details:**
+
+- Conversations auto-created when users first message each other
+- Conversation ID format: `{userId1}_{userId2}` (sorted alphabetically)
+- Messages stored in subcollection: `/conversations/{conversationId}/messages`
+- Optimistic updates show "sending" status immediately
+- Real-time sync removes pending messages when confirmed
+- Message bubbles: Blue for sent, Gray for received
+- Last message updates in conversation document
+
+**Files Created/Modified:**
+
+- 📄 NEW: `src/screens/ChatScreen.js` - Chat interface with message list
+- 📄 NEW: `src/components/MessageBubble.js` - Message display component
+- 📄 NEW: `src/utils/conversation.js` - Conversation management utilities
+- ✏️ MODIFIED: `src/screens/HomeScreen.js` - Navigate to chat on user tap
+- ✏️ MODIFIED: `src/navigation/AppNavigator.js` - Added Chat screen to stack
+
+### PR #5: User List & Presence Tracking
 
 **What was built:**
 

@@ -58,8 +58,13 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleUserPress = (user) => {
-    // TODO: Navigate to chat screen with this user (PR #6)
-    console.log("User pressed:", user.username);
+    // Don't allow chatting with yourself
+    if (user.userId === currentUser.uid) {
+      return;
+    }
+
+    // Navigate to chat screen with this user
+    navigation.navigate("Chat", { otherUser: user });
   };
 
   const handleSignOut = async () => {
@@ -70,9 +75,16 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const renderUser = ({ item }) => (
-    <UserListItem user={item} onPress={() => handleUserPress(item)} />
-  );
+  const renderUser = ({ item }) => {
+    const isCurrentUser = item.userId === currentUser.uid;
+    return (
+      <UserListItem
+        user={item}
+        onPress={() => handleUserPress(item)}
+        isCurrentUser={isCurrentUser}
+      />
+    );
+  };
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>

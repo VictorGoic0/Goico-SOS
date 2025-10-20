@@ -18,6 +18,7 @@ import ProfileSetupScreen from "../screens/ProfileSetupScreen";
 import SignupScreen from "../screens/SignupScreen";
 
 // Main Screens
+import ChatScreen from "../screens/ChatScreen";
 import HomeScreen from "../screens/HomeScreen";
 
 // Utils
@@ -159,6 +160,14 @@ export default function AppNavigator() {
               options={{
                 title: "Messaging App",
                 headerShown: true,
+              }}
+            />
+            <Stack.Screen
+              name="Chat"
+              component={ChatScreen}
+              options={{
+                headerShown: true,
+                headerBackTitle: "Back",
               }}
             />
           </Stack.Navigator>
