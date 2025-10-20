@@ -27,15 +27,24 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Expo Project:**
 
-- [ ] Run: `npx create-expo-app messaging-app` (or work directly in root)
-- [ ] Verify project structure exists in root directory:
+- [x] ✅ Expo project created with blank template
+- [x] ✅ Verify project structure exists in root directory:
   ```
-  (root directory)/
-  ├── App.js
-  ├── package.json
-  ├── app.json
-  ├── assets/
-  └── src/ (to be created)
+  Week 2 - Mobile Messaging App/
+  ├── App.js              ← Expo entry point (already exists)
+  ├── index.js            ← Expo wrapper (already exists)
+  ├── package.json        ← Project config (already exists)
+  ├── app.json            ← Expo config (already exists)
+  ├── .gitignore          ← Git ignore file (already exists)
+  ├── assets/             ← Images folder (already exists)
+  ├── node_modules/       ← Will be created after npm install
+  └── src/                ← CREATE THIS - your code goes here
+      ├── screens/
+      ├── components/
+      ├── stores/
+      ├── config/
+      ├── utils/
+      └── navigation/
   ```
 
 **Install Expo Go on Phone:**
@@ -70,11 +79,33 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Project Structure Setup:**
 
-- [ ] Create folder structure:
+- [ ] Create folder structure (run these commands in PowerShell from root directory):
+
+  ```powershell
+  # Create all directories
+  New-Item -ItemType Directory -Path src
+  New-Item -ItemType Directory -Path src\screens
+  New-Item -ItemType Directory -Path src\components
+  New-Item -ItemType Directory -Path src\stores
+  New-Item -ItemType Directory -Path src\config
+  New-Item -ItemType Directory -Path src\utils
+  New-Item -ItemType Directory -Path src\navigation
+
+  # Create empty files
+  New-Item -ItemType File -Path src\stores\localStore.js
+  New-Item -ItemType File -Path src\stores\presenceStore.js
+  New-Item -ItemType File -Path src\stores\firebaseStore.js
+  New-Item -ItemType File -Path src\config\firebase.js
+  New-Item -ItemType File -Path src\navigation\AppNavigator.js
+  New-Item -ItemType File -Path src\utils\helpers.js
+  ```
+
+  Final structure:
+
   ```
   src/
-  ├── screens/
-  ├── components/
+  ├── screens/           (empty folder for now)
+  ├── components/        (empty folder for now)
   ├── stores/
   │   ├── localStore.js
   │   ├── presenceStore.js
@@ -82,6 +113,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   ├── config/
   │   └── firebase.js
   ├── utils/
+  │   └── helpers.js
   └── navigation/
       └── AppNavigator.js
   ```
@@ -89,45 +121,58 @@ Since you've never used React Native, this PR focuses on getting your developmen
 **Environment Variables:**
 
 - [ ] Create `.env` file in root directory (will add Firebase keys later)
-- [ ] Verify `.env` is in `.gitignore` (Expo should have added it)
-- [ ] Note: Expo uses `EXPO_PUBLIC_` prefix for environment variables (no need for dotenv)
+
+  ```bash
+  # Windows PowerShell:
+  New-Item .env -ItemType File
+
+  # Or manually create .env file in root
+  ```
+
+- [x] ✅ `.env*` is already in `.gitignore` (line 33)
+- [ ] Note: Expo uses `EXPO_PUBLIC_` prefix for environment variables (no need for dotenv package)
 
 **Git Setup:**
 
-- [ ] Git should already be initialized (check existing `.git` folder)
-- [ ] Verify `.gitignore` exists and includes:
+- [x] ✅ Git already initialized (`.git` folder exists)
+- [x] ✅ `.gitignore` exists and includes all necessary patterns:
   ```
-  node_modules/
-  .expo/
-  .expo-shared/
-  *.jks
-  *.p8
-  *.p12
-  *.key
-  *.mobileprovision
-  .env
+  .env* (line 33)
+  node_modules/ (line 49)
+  .expo/ (line 52)
+  *.jks, *.p8, *.p12, *.key, *.mobileprovision (lines 60-64)
   ```
-- [ ] Commit PR #1 changes: `git add .` and `git commit -m "PR #1: React Native setup and environment configuration"`
+- [ ] Commit PR #1 changes when complete:
+  ```bash
+  git add .
+  git commit -m "PR #1: React Native setup and environment configuration"
+  ```
 
 **Documentation:**
 
-- [ ] Create `README.md` in root directory:
-  - Project name and description
-  - Prerequisites (Node.js v18+, Expo Go app)
+- [ ] Update existing `README.md` with project information:
+  - Project name: "Mobile Messaging App"
+  - Description: Real-time messaging app with Firebase and AI features
+  - Prerequisites: Node.js v18+, Expo Go app on phone
   - How to run: `npx expo start`
-  - How to test on phone (scan QR code)
-  - Folder structure explanation (src/ directory)
+  - How to test: Scan QR code with phone camera (iOS) or Expo Go app (Android)
+  - Folder structure: Explain src/ directory organization
+  - Firebase setup instructions (add in PR #2)
 
-**Files Created:**
+**Files to Create:**
 
-- `src/stores/localStore.js` (empty for now)
-- `src/stores/presenceStore.js` (empty for now)
-- `src/stores/firebaseStore.js` (empty for now)
-- `src/config/firebase.js` (empty for now)
-- `src/navigation/AppNavigator.js` (empty for now)
-- `.env`
-- `README.md`
-- `.gitignore`
+- `src/` folder and all subfolders (screens/, components/, stores/, config/, utils/, navigation/)
+- `src/stores/localStore.js` (empty file for now, will implement in PR #2)
+- `src/stores/presenceStore.js` (empty file for now, will implement in PR #2)
+- `src/stores/firebaseStore.js` (empty file for now, will implement in PR #2)
+- `src/config/firebase.js` (empty file for now, will implement in PR #2)
+- `src/navigation/AppNavigator.js` (empty file for now, will implement in PR #3)
+- `src/utils/helpers.js` (empty file for now, will implement in PR #2)
+- `.env` file (empty for now, will add keys in PR #2)
+
+**Files Already Exist:**
+
+- ✅ `App.js`, `package.json`, `app.json`, `.gitignore`, `README.md`
 
 **Test Before Merge:**
 
