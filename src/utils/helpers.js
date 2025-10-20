@@ -67,7 +67,21 @@ export const formatLastSeen = (timestamp) => {
   if (!timestamp) return "Unknown";
 
   const now = Date.now();
-  const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+
+  // Handle Firestore Timestamp objects (have .seconds property)
+  let date;
+  if (timestamp instanceof Date) {
+    date = timestamp;
+  } else if (timestamp.seconds) {
+    // Firestore Timestamp
+    date = new Date(timestamp.seconds * 1000);
+  } else if (typeof timestamp === "number") {
+    // Unix timestamp in milliseconds
+    date = new Date(timestamp);
+  } else {
+    return "Unknown";
+  }
+
   const diff = now - date.getTime();
 
   switch (true) {
@@ -101,7 +115,20 @@ export const formatLastSeen = (timestamp) => {
 export const formatMessageTime = (timestamp) => {
   if (!timestamp) return "";
 
-  const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+  // Handle Firestore Timestamp objects (have .seconds property)
+  let date;
+  if (timestamp instanceof Date) {
+    date = timestamp;
+  } else if (timestamp.seconds) {
+    // Firestore Timestamp
+    date = new Date(timestamp.seconds * 1000);
+  } else if (typeof timestamp === "number") {
+    // Unix timestamp in milliseconds
+    date = new Date(timestamp);
+  } else {
+    return "";
+  }
+
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
 
