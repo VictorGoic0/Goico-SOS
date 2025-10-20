@@ -1,50 +1,177 @@
-# Welcome to your Expo app 👋
+# Mobile Messaging App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A real-time messaging application built with React Native and Expo, featuring Firebase backend integration, user presence tracking, and AI-powered assistance.
 
-## Get started
+## 🚀 Features
 
-1. Install dependencies
+- **Real-time Messaging**: One-on-one and group conversations with instant delivery
+- **User Presence**: Live online/offline status tracking
+- **Message Status**: Track message delivery (sending → sent → delivered → read)
+- **Offline Support**: Messages queue automatically and sync when reconnected
+- **Profile Management**: Customizable user profiles with photos
+- **Push Notifications**: Stay connected even when the app is closed
+- **AI Assistant**: Context-aware chat assistance and conversation summaries
+
+## 📋 Prerequisites
+
+- **Node.js**: v18 or later ([Download](https://nodejs.org))
+- **Expo Go App**: Install on your phone
+  - [iOS App Store](https://apps.apple.com/app/expo-go/id982107779)
+  - [Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent)
+
+## 🛠️ Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd "Week 2 - Mobile Messaging App"
+   ```
+
+2. **Install dependencies**
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Set up Firebase** (Required for full functionality)
+   - Create a Firebase project at https://console.firebase.google.com
+   - Enable Authentication, Firestore, Realtime Database, and Storage
+   - Copy your Firebase config to `.env` file (see `.env.example`)
+
+## 🚀 Running the App
+
+1. **Start the Expo development server**
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+2. **Open on your device**
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   - **iOS**: Scan the QR code with your iPhone camera
+   - **Android**: Scan the QR code in the Expo Go app
+   - **Emulator**: Press `a` for Android or `i` for iOS (Mac only)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+3. **See changes live**
+   - Edit any file and save
+   - Changes appear instantly on your device (hot reload)
 
-## Get a fresh project
+## 📁 Project Structure
 
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+Week 2 - Mobile Messaging App/
+├── App.js                    # Main app entry point
+├── app.json                  # Expo configuration
+├── package.json              # Dependencies and scripts
+├── .env                      # Environment variables (Firebase config)
+├── assets/                   # Images, icons, splash screens
+└── src/                      # Application source code
+    ├── screens/              # Screen components (Login, Chat, etc.)
+    ├── components/           # Reusable UI components
+    ├── stores/               # Zustand state management (3-store pattern)
+    │   ├── localStore.js     # Local/optimistic updates
+    │   ├── presenceStore.js  # User presence data
+    │   └── firebaseStore.js  # Firebase data (source of truth)
+    ├── config/
+    │   └── firebase.js       # Firebase initialization
+    ├── utils/                # Helper functions
+    │   ├── auth.js           # Authentication utilities
+    │   ├── messaging.js      # Message sending/receiving
+    │   ├── presence.js       # Presence tracking
+    │   └── helpers.js        # General utilities
+    └── navigation/
+        └── AppNavigator.js   # Navigation configuration
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🏗️ Architecture
 
-## Learn more
+This app uses a **3-store Zustand architecture** for optimal real-time performance:
 
-To learn more about developing your project with Expo, look at the following resources:
+- **Local Store**: Optimistic updates, pending messages (instant UI feedback)
+- **Presence Store**: Real-time user online/offline status (Realtime Database)
+- **Firebase Store**: Source of truth for all data (Firestore)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🔧 Tech Stack
 
-## Join the community
+- **Frontend**: React Native, Expo
+- **State Management**: Zustand (3-store pattern)
+- **Backend**: Firebase
+  - Authentication (email/password)
+  - Firestore (messages, profiles, conversations)
+  - Realtime Database (user presence)
+  - Storage (profile photos)
+  - Cloud Functions (push notifications)
+- **Navigation**: React Navigation
+- **AI**: Vercel AI SDK with OpenAI GPT-4
 
-Join our community of developers creating universal apps.
+## 📱 Development Tips
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Testing on Physical Device (Recommended)
+
+- Provides real-world performance testing
+- Test push notifications and camera features
+- See actual network conditions
+
+### Testing Offline Mode
+
+- Enable airplane mode on your device
+- Send messages (they'll show "sending" status)
+- Disable airplane mode
+- Messages automatically sync to Firebase
+
+### Debugging
+
+- Shake your device to open the debug menu
+- View console logs in terminal where `npx expo start` is running
+- Use React DevTools for component inspection
+
+## 🚢 Building for Production
+
+```bash
+# Install EAS CLI
+npm install -g eas-cli
+
+# Login to Expo
+eas login
+
+# Configure build
+eas build:configure
+
+# Build for Android
+eas build --platform android
+
+# Build for iOS
+eas build --platform ios
+```
+
+## 📖 Implementation Progress
+
+- ✅ **PR #1**: React Native Setup & Environment Configuration
+- ⏳ **PR #2**: Firebase Configuration & Zustand Stores
+- ⏳ **PR #3**: Authentication (Signup & Login)
+- ⏳ **PR #4**: Profile Setup & User Creation
+- ⏳ **PR #5**: User List & Presence Tracking
+- ⏳ **PR #6**: One-on-One Messaging - Basic Chat UI
+- ⏳ **PR #7**: Message Sending with 3-Store Architecture
+- ⏳ **PR #8**: Profile Screen & Edit Profile
+- ⏳ **PR #9**: Group Chats
+- ⏳ **PR #10**: Push Notifications
+- ⏳ **PR #11**: AI Agent - Basic Integration
+- ⏳ **PR #12**: AI Agent - Advanced Features & Polish
+
+## 🤝 Contributing
+
+This is a learning project following a structured 12-PR implementation plan. See `tasks.md` for detailed task breakdown.
+
+## 📄 License
+
+This project is for educational purposes.
+
+## 🔗 Resources
+
+- [Expo Documentation](https://docs.expo.dev/)
+- [React Native Documentation](https://reactnative.dev/)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [Zustand Documentation](https://github.com/pmndrs/zustand)
+- [React Navigation](https://reactnavigation.org/)

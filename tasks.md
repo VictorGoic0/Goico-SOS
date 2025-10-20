@@ -21,9 +21,9 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Install Prerequisites:**
 
-- [ ] Install Node.js (v18 or later) from nodejs.org
-- [ ] Verify installation: `node --version` and `npm --version`
-- [ ] Install Expo CLI globally: `npm install -g expo-cli`
+- [x] Install Node.js (v18 or later) from nodejs.org
+- [x] Verify installation: `node --version` and `npm --version`
+- [x] Install Expo CLI globally: `npm install -g expo-cli`
 
 **Create Expo Project:**
 
