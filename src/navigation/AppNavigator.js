@@ -132,7 +132,7 @@ export default function AppNavigator() {
   if (currentUser && isCheckingProfile) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary.main} />
+        <ActivityIndicator size="large" color={colors.primary.base} />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );

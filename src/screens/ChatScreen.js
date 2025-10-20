@@ -1,4 +1,11 @@
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  updateDoc,
+} from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -88,11 +95,46 @@ export default function ChatScreen({ route, navigation }) {
 
     const unsubscribe = onSnapshot(
       q,
-      (snapshot) => {
+      async (snapshot) => {
         const messagesData = snapshot.docs.map((doc) => ({
           messageId: doc.id,
           ...doc.data(),
         }));
+
+        // Mark messages from other users as "delivered" if they're not already
+        const deliveryPromises = snapshot.docChanges().map(async (change) => {
+          if (change.type === "added") {
+            const message = {
+              messageId: change.doc.id,
+              ...change.doc.data(),
+            };
+
+            // If message is from other user and status is "sent", mark as "delivered"
+            if (
+              message.senderId !== currentUser.uid &&
+              message.status === "sent"
+            ) {
+              try {
+                const messageRef = doc(
+                  db,
+                  "conversations",
+                  conversationId,
+                  "messages",
+                  change.doc.id
+                );
+                await updateDoc(messageRef, { status: "delivered" });
+                console.log("✅ Message marked as delivered:", change.doc.id);
+              } catch (error) {
+                console.error("Error marking message as delivered:", error);
+              }
+            }
+          }
+        });
+
+        // Wait for all delivery updates (non-blocking)
+        Promise.all(deliveryPromises).catch((err) =>
+          console.error("Error in delivery updates:", err)
+        );
 
         setMessages(conversationId, messagesData);
         console.log("✅ Messages loaded:", messagesData.length);
@@ -103,7 +145,7 @@ export default function ChatScreen({ route, navigation }) {
     );
 
     return () => unsubscribe();
-  }, [conversationId, setMessages]);
+  }, [conversationId, setMessages, currentUser.uid]);
 
   // Set navigation title
   useEffect(() => {
@@ -200,7 +242,7 @@ export default function ChatScreen({ route, navigation }) {
   if (isLoading || !conversationId) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary.main} />
+        <ActivityIndicator size="large" color={colors.primary.base} />
         <Text style={styles.loadingText}>Loading conversation...</Text>
       </View>
     );

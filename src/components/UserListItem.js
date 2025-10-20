@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing[2],
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.main,
+    color: colors.primary.base,
     backgroundColor: colors.primary.lighter,
     paddingHorizontal: spacing[2],
     paddingVertical: spacing[1],

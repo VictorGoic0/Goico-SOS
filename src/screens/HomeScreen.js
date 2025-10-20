@@ -107,7 +107,7 @@ export default function HomeScreen({ navigation }) {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary.main} />
+        <ActivityIndicator size="large" color={colors.primary.base} />
         <Text style={styles.loadingText}>Loading users...</Text>
       </View>
     );
@@ -125,8 +125,8 @@ export default function HomeScreen({ navigation }) {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={[colors.primary.main]}
-            tintColor={colors.primary.main}
+            colors={[colors.primary.base]}
+            tintColor={colors.primary.base}
           />
         }
         contentContainerStyle={users.length === 0 ? styles.emptyList : null}

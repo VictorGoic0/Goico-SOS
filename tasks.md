@@ -799,13 +799,13 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Before Merge:**
 
-- [ ] Tap user in Home screen → navigates to Chat screen
-- [ ] Chat header shows other user's info and online status
-- [ ] Messages display correctly (if any exist)
-- [ ] Message bubbles styled correctly (left/right alignment, colors)
-- [ ] Timestamps display below messages
-- [ ] Back button returns to Home screen
-- [ ] Test with placeholder messages in Firestore
+- [x] Tap user in Home screen → navigates to Chat screen
+- [x] Chat header shows other user's info and online status
+- [x] Messages display correctly (if any exist)
+- [x] Message bubbles styled correctly (left/right alignment, colors)
+- [x] Timestamps display below messages
+- [x] Back button returns to Home screen
+- [x] Test with placeholder messages in Firestore
 
 ---
 
@@ -817,8 +817,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Implement Send Message Function:**
 
-- [ ] File: `src/utils/messaging.js`
-- [ ] Function: `sendMessage(conversationId, text, senderId, senderUsername)`
+- [x] File: `src/utils/conversation.js` (used instead of messaging.js)
+- [x] Function: `sendMessage(conversationId, text, senderId, senderUsername)`
   - Generate messageId with `generateId()`
   - Create message object for LOCAL store (status: "sending")
   - Add to LOCAL store:
@@ -848,79 +848,64 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Connect Send Button to Function:**
 
-- [ ] In `ChatScreen.js`:
-- [ ] Add state for input text: `const [inputText, setInputText] = useState('')`
-- [ ] Enable send button when inputText is not empty
-- [ ] On send button press:
+- [x] In `ChatScreen.js`:
+- [x] Using Zustand drafts instead of local useState for better DevTools visibility
+- [x] Enable send button when inputText is not empty
+- [x] On send button press:
   - Call `sendMessage(conversationId, inputText, currentUserId, currentUsername)`
-  - Clear input: `setInputText('')`
+  - Clear input via `clearDraft(conversationId)`
 
 **Merge LOCAL + FIREBASE Messages:**
 
-- [ ] In `ChatScreen.js`:
-- [ ] Get pending messages from LOCAL store:
+- [x] In `ChatScreen.js`:
+- [x] Get pending messages from LOCAL store
+- [x] Get confirmed messages from FIREBASE store
+- [x] Merge for display:
   ```javascript
-  const pendingMessages = useLocalStore(
-    (s) => s.pendingMessages[conversationId] || []
-  );
+  const allMessages = [
+    ...(messages[conversationId] || []),
+    ...(pendingMessages[conversationId] || []),
+  ];
   ```
-- [ ] Get confirmed messages from FIREBASE store:
-  ```javascript
-  const confirmedMessages = useFirebaseStore(
-    (s) => s.messages[conversationId] || []
-  );
-  ```
-- [ ] Merge for display:
-  ```javascript
-  const allMessages = [...pendingMessages, ...confirmedMessages];
-  ```
-- [ ] Sort by timestamp
+- [x] Sort by timestamp (handling both Firestore Timestamp and Date.now() formats)
 
 **Add Message Status Indicators:**
 
-- [ ] In `MessageBubble.js`:
-- [ ] If message is from current user, show status icon:
-  - "sending": Gray clock icon or "..." animation
+- [x] In `MessageBubble.js`:
+- [x] If message is from current user, show status icon:
+  - "sending": Clock emoji 🕐
   - "sent": Single checkmark ✓
   - "delivered": Double checkmark ✓✓
-  - "read": Blue double checkmark ✓✓ (bonus, implement later)
-- [ ] Position status icon at bottom-right of message bubble
+  - "read": Blue double checkmark ✓✓ (for future PR)
+- [x] Position status icon at bottom-right of message bubble with timestamp
 
 **Handle Delivered Status Update:**
 
-- [ ] In `ChatScreen.js`, in the onSnapshot listener:
-- [ ] When a new message is added and it's not from current user:
-  - Update message status to "delivered":
-    ```javascript
-    await updateDoc(messageRef, { status: "delivered" });
-    ```
+- [x] In `ChatScreen.js`, in the onSnapshot listener:
+- [x] When a new message is added and it's not from current user:
+  - Update message status to "delivered" in Firestore
+  - Uses `docChanges()` to detect new messages
+  - Only marks as delivered if status is currently "sent"
 
 **Update Firebase Store on Status Changes:**
 
-- [ ] In `ChatScreen.js`, in the onSnapshot listener:
-- [ ] When message is modified (status changed):
-  - Update message in FIREBASE store:
-    ```javascript
-    useFirebaseStore
-      .getState()
-      .updateMessageStatus(conversationId, messageId, newStatus);
-    ```
+- [x] `updateMessageStatus` function exists in firebaseStore
+- [x] Messages automatically update in store via onSnapshot listener
+- [x] Status changes propagate to UI in real-time
 
 **Handle Keyboard Behavior:**
 
-- [ ] Import `KeyboardAvoidingView` from React Native
-- [ ] Wrap ChatScreen content in KeyboardAvoidingView:
-  - `behavior="padding"` (iOS) or `behavior="height"` (Android)
-  - `keyboardVerticalOffset` to account for header
+- [x] Import `KeyboardAvoidingView` from React Native
+- [x] Wrap ChatScreen content in KeyboardAvoidingView
+- [x] Platform-specific behavior: "padding" for iOS, undefined for Android
+- [x] `keyboardVerticalOffset={90}` for iOS header compensation
 
 **Auto-Scroll to Bottom:**
 
-- [ ] In `ChatScreen.js`:
-- [ ] Use FlatList ref
-- [ ] When new message arrives, scroll to end:
-  ```javascript
-  flatListRef.current?.scrollToEnd({ animated: true });
-  ```
+- [x] In `ChatScreen.js`:
+- [x] Use FlatList ref
+- [x] Scroll to end on content size change and layout
+- [x] Scroll to end after sending message (with 100ms delay for smooth animation)
 
 **Test with Firestore Offline Persistence:**
 
@@ -930,21 +915,64 @@ Since you've never used React Native, this PR focuses on getting your developmen
 - [ ] Messages sync to Firestore (status: "sent")
 - [ ] Verify in Firebase console
 
+**Future Enhancement - Persist Pending Messages Across App Restarts:**
+
+> **Note**: Documented for future implementation, not included in this PR.
+
+- [ ] Use Zustand's `persist` middleware to save `localStore` to AsyncStorage
+- [ ] Configuration:
+
+  ```javascript
+  import { create } from "zustand";
+  import { persist, createJSONStorage } from "zustand/middleware";
+  import AsyncStorage from "@react-native-async-storage/async-storage";
+
+  const useLocalStore = create(
+    persist(
+      (set, get) => ({
+        // ... existing store implementation
+      }),
+      {
+        name: "local-storage", // unique key for AsyncStorage
+        storage: createJSONStorage(() => AsyncStorage),
+        // Optional: only persist certain fields
+        partialize: (state) => ({
+          pendingMessages: state.pendingMessages,
+          drafts: state.drafts,
+        }),
+      }
+    )
+  );
+  ```
+
+- [ ] Benefits:
+  - Pending messages survive app restarts/crashes
+  - Draft messages preserved when user closes app
+  - Automatic rehydration on app launch
+  - Seamless sync when network reconnects
+- [ ] Implementation considerations:
+  - Add retry logic for failed messages on app restart
+  - Clear old pending messages after certain time (e.g., 24 hours)
+  - Handle edge cases where message was sent but client didn't receive confirmation
+
 **Files Created:**
 
-- `src/utils/messaging.js`
+- `src/components/CompactInput.js` (design system component for chat input)
+- Note: Using `src/utils/conversation.js` instead of separate messaging.js file
 
 **Files Modified:**
 
-- `src/screens/ChatScreen.js`
-- `src/components/MessageBubble.js`
-- `src/stores/localStore.js` (if any adjustments needed)
-- `src/stores/firebaseStore.js` (if any adjustments needed)
+- `src/screens/ChatScreen.js` - Added delivered status tracking, CompactInput
+- `src/components/MessageBubble.js` - Status indicators
+- `src/stores/localStore.js` - Added UI state (isSending, isLoadingConversation)
+- `src/stores/firebaseStore.js` - updateMessageStatus already existed
+- `src/screens/HomeScreen.js` - Current user no longer clickable
+- `src/components/UserListItem.js` - "You" badge, disabled state for current user
 
 **Test Before Merge:**
 
 - [ ] Can type message and tap send button
-- [ ] Message appears instantly with "sending" status
+- [ ] Message appears instantly with "sending" status (🕐)
 - [ ] Status changes to "sent ✓" after Firestore confirms
 - [ ] Open second device as other user → message appears
 - [ ] Second device marks message as "delivered ✓✓"
@@ -952,6 +980,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 - [ ] Offline test: send messages in airplane mode → sync when reconnected
 - [ ] Keyboard doesn't cover input field
 - [ ] FlatList auto-scrolls to new messages
+- [ ] Draft messages persist when navigating away and back
+- [ ] Current user visible in user list but not clickable (shows "You" badge)
 
 ---
 

@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   sentBubble: {
-    backgroundColor: colors.primary.main,
+    backgroundColor: colors.primary.base,
     borderBottomRightRadius: 4,
   },
   receivedBubble: {
