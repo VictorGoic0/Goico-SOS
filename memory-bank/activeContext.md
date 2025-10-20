@@ -8,11 +8,11 @@ The project is currently in the initial planning and setup phase. The memory ban
 
 ### Immediate Next Steps
 
-1. **Environment Setup**: Create Expo project and configure Firebase
-2. **Core Architecture**: Implement 3-store Zustand pattern
-3. **Authentication**: Build signup/login flow with Firebase Auth
-4. **User Profiles**: Create profile setup and management screens
-5. **Messaging Core**: Implement 1-on-1 messaging with status tracking
+1. **PR #1**: React Native Setup & Environment Configuration
+2. **PR #2**: Firebase Configuration & Zustand Stores
+3. **PR #3**: Authentication (Signup & Login)
+4. **PR #4**: Profile Setup & User Creation in Firestore
+5. **PR #5**: User List & Presence Tracking
 
 ## Recent Changes
 
