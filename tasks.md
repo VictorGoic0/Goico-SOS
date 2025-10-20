@@ -192,39 +192,39 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Firebase Project:**
 
-- [ ] Go to https://console.firebase.google.com
-- [ ] Click "Add project"
-- [ ] Name it (e.g., "messaging-app-prod")
-- [ ] Disable Google Analytics (optional for MVP)
-- [ ] Wait for project to be created
+- [x] Go to https://console.firebase.google.com
+- [x] Click "Add project"
+- [x] Name it (e.g., "messaging-app-prod")
+- [x] Disable Google Analytics (optional for MVP)
+- [x] Wait for project to be created
 
 **Enable Firebase Services:**
 
-- [ ] In Firebase console, go to "Authentication"
-- [ ] Click "Get Started"
-- [ ] Enable "Email/Password" sign-in method
-- [ ] Go to "Firestore Database"
-- [ ] Click "Create database"
-- [ ] Start in "test mode" (we'll add rules later)
-- [ ] Choose region (closest to you)
-- [ ] Go to "Realtime Database"
-- [ ] Click "Create database"
-- [ ] Start in "test mode"
-- [ ] Go to "Storage"
-- [ ] Click "Get Started"
-- [ ] Start in "test mode"
+- [x] In Firebase console, go to "Authentication"
+- [x] Click "Get Started"
+- [x] Enable "Email/Password" sign-in method
+- [x] Go to "Firestore Database"
+- [x] Click "Create database"
+- [x] Start in "test mode" (we'll add rules later)
+- [x] Choose region: us-central1 (Iowa)
+- [x] Go to "Realtime Database"
+- [x] Click "Create database"
+- [x] Start in "test mode"
+- [x] Go to "Storage"
+- [x] Click "Get Started"
+- [x] Start in "test mode"
 
 **Get Firebase Configuration:**
 
-- [ ] In Firebase console, click gear icon → Project settings
-- [ ] Scroll to "Your apps" section
-- [ ] Click "Web" icon (</>) to add web app
-- [ ] Register app (name it "messaging-app")
-- [ ] Copy the Firebase config object
+- [x] In Firebase console, click gear icon → Project settings
+- [x] Scroll to "Your apps" section
+- [x] Click "Web" icon (</>) to add web app
+- [x] Register app (name it "messaging-app")
+- [x] Copy the Firebase config object
 
 **Configure Firebase in App:**
 
-- [ ] Add Firebase config to `.env`:
+- [x] Add Firebase config to `.env`:
 
   ```
   EXPO_PUBLIC_FIREBASE_API_KEY=your_key
@@ -236,17 +236,17 @@ Since you've never used React Native, this PR focuses on getting your developmen
   EXPO_PUBLIC_FIREBASE_DATABASE_URL=your_database_url
   ```
 
-- [ ] Create Firebase initialization file:
+- [x] Create Firebase initialization file:
   - File: `src/config/firebase.js`
   - Import Firebase modules
   - Initialize Firebase app with config from env variables
   - Initialize and export: `auth`, `db` (Firestore), `realtimeDb`, `storage`
-  - Enable Firestore offline persistence
+  - Enable Firestore offline persistence (50MB cache)
 
 **Create Local Store:**
 
-- [ ] File: `src/stores/localStore.js`
-- [ ] Create Zustand store with:
+- [x] File: `src/stores/localStore.js`
+- [x] Create Zustand store with:
   - `pendingMessages: {}` (object keyed by conversationId)
   - `drafts: {}` (object keyed by conversationId)
   - `addPendingMessage(conversationId, message)`
@@ -256,8 +256,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Presence Store:**
 
-- [ ] File: `src/stores/presenceStore.js`
-- [ ] Create Zustand store with:
+- [x] File: `src/stores/presenceStore.js`
+- [x] Create Zustand store with:
   - `presenceData: {}` (object keyed by userId)
   - `updatePresence(userId, presenceObj)`
   - `setAllPresence(presenceMap)`
@@ -265,8 +265,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Firebase Store:**
 
-- [ ] File: `src/stores/firebaseStore.js`
-- [ ] Create Zustand store with:
+- [x] File: `src/stores/firebaseStore.js`
+- [x] Create Zustand store with:
   - `currentUser: null`
   - `users: []`
   - `usersMap: {}`
