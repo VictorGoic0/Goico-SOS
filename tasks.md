@@ -817,8 +817,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Implement Send Message Function:**
 
-- [x] **1.** File: `src/utils/conversation.js` (used instead of messaging.js)
-- [x] **2.** Function: `sendMessage(conversationId, text, senderId, senderUsername)`
+- [ ] **1.** File: `src/utils/conversation.js` (used instead of messaging.js)
+- [ ] **2.** Function: `sendMessage(conversationId, text, senderId, senderUsername)`
   - Generate messageId with `generateId()`
   - Create message object for LOCAL store (status: "sending")
   - Add to LOCAL store:
@@ -848,50 +848,50 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Connect Send Button to Function:**
 
-- [x] **3.** In `ChatScreen.js`:
-- [x] **4.** Using Zustand drafts instead of local useState for better DevTools visibility
-- [x] **5.** Enable send button when inputText is not empty
-- [x] **6.** On send button press:
+- [ ] **3.** In `ChatScreen.js`:
+- [ ] **4.** Using Zustand drafts instead of local useState for better DevTools visibility
+- [ ] **5.** Enable send button when inputText is not empty
+- [ ] **6.** On send button press:
   - Call `sendMessage(conversationId, inputText, currentUserId, currentUsername)`
   - Clear input via `clearDraft(conversationId)`
 
 **Merge LOCAL + FIREBASE Messages:**
 
-- [x] **7.** In `ChatScreen.js`:
-- [x] **8.** Get pending messages from LOCAL store
-- [x] **9.** Get confirmed messages from FIREBASE store
-- [x] **10.** Merge for display:
+- [ ] **7.** In `ChatScreen.js`:
+- [ ] **8.** Get pending messages from LOCAL store
+- [ ] **9.** Get confirmed messages from FIREBASE store
+- [ ] **10.** Merge for display:
   ```javascript
   const allMessages = [
     ...(messages[conversationId] || []),
     ...(pendingMessages[conversationId] || []),
   ];
   ```
-- [x] **11.** Sort by timestamp (handling both Firestore Timestamp and Date.now() formats)
+- [ ] **11.** Sort by timestamp (handling both Firestore Timestamp and Date.now() formats)
 
 **Add Message Status Indicators:**
 
-- [x] **12.** In `MessageBubble.js`:
-- [x] **13.** If message is from current user, show status icon:
+- [ ] **12.** In `MessageBubble.js`:
+- [ ] **13.** If message is from current user, show status icon:
   - "sending": Clock emoji 🕐
   - "sent": Single checkmark ✓
   - "delivered": Double checkmark ✓✓
   - "read": Blue double checkmark ✓✓ (for future PR)
-- [x] **14.** Position status icon at bottom-right of message bubble with timestamp
+- [ ] **14.** Position status icon at bottom-right of message bubble with timestamp
 
 **Handle Delivered Status Update:**
 
-- [x] **15.** In `ChatScreen.js`, in the onSnapshot listener:
-- [x] **16.** When a new message is added and it's not from current user:
+- [ ] **15.** In `ChatScreen.js`, in the onSnapshot listener:
+- [ ] **16.** When a new message is added and it's not from current user:
   - Update message status to "delivered" in Firestore
   - Uses `docChanges()` to detect new messages
   - Only marks as delivered if status is currently "sent"
 
 **Update Firebase Store on Status Changes:**
 
-- [x] **17.** `updateMessageStatus` function exists in firebaseStore
-- [x] **18.** Messages automatically update in store via onSnapshot listener
-- [x] **19.** Status changes propagate to UI in real-time
+- [ ] **17.** `updateMessageStatus` function exists in firebaseStore
+- [ ] **18.** Messages automatically update in store via onSnapshot listener
+- [ ] **19.** Status changes propagate to UI in real-time
 
 **Handle Keyboard Behavior:**
 
@@ -902,10 +902,10 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Auto-Scroll to Bottom:**
 
-- [x] **24.** In `ChatScreen.js`:
-- [x] **25.** Use FlatList ref
-- [x] **26.** Scroll to end on content size change and layout
-- [x] **27.** Scroll to end after sending message (with 100ms delay for smooth animation)
+- [ ] **24.** In `ChatScreen.js`:
+- [ ] **25.** Use FlatList ref
+- [ ] **26.** Scroll to end on content size change and layout
+- [ ] **27.** Scroll to end after sending message (with 100ms delay for smooth animation)
 
 **Implement Message Deduplication (Single Array Approach):**
 
@@ -1068,15 +1068,16 @@ Since you've never used React Native, this PR focuses on getting your developmen
 1. Create file: `src/screens/ProfileScreen.js`
 
 2. Add UI Components:
-   - Large circular profile photo at top
-   - "Change Photo" button (below photo)
-   - Display Name (editable TextInput)
-   - Username (non-editable Text, gray color)
-   - Email (non-editable Text, gray color)
-   - Bio (editable TextInput, multiline)
-   - Status picker/dropdown (Available, Busy, Away)
-   - "Save Changes" Button
-   - "Sign Out" Button (bottom, red color)
+
+- Large circular profile photo at top
+- "Change Photo" button (below photo)
+- Display Name (editable TextInput)
+- Username (non-editable Text, gray color)
+- Email (non-editable Text, gray color)
+- Bio (editable TextInput, multiline)
+- Status picker/dropdown (Available, Busy, Away)
+- "Save Changes" Button
+- "Sign Out" Button (bottom, red color)
 
 **Navigate to Profile Screen:**
 
