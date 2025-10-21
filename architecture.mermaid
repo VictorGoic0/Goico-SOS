@@ -1,111 +1,91 @@
 graph TB
-    subgraph "React Native App - Expo"
-        subgraph "Zustand State Management"
-            LS[Local Store<br/>- pendingMessages<br/>- drafts<br/>Status: sending]
-            PS[Presence Store<br/>- presenceData<br/>- isOnline<br/>- lastSeen]
-            FS[Firebase Store<br/>- currentUser<br/>- users/usersMap<br/>- conversations<br/>- messages<br/>Status: sent/delivered/read]
+    subgraph "React Native App (Expo)"
+        subgraph "State Management (Zustand)"
+            LocalStore["Local Store<br/>- pendingMessages<br/>- drafts<br/>- optimistic updates"]
+            PresenceStore["Presence Store<br/>- presenceData<br/>- typingData<br/>- online/offline status"]
+            FirebaseStore["Firebase Store<br/>- users<br/>- conversations<br/>- messages<br/>- source of truth"]
         end
         
         subgraph "Screens"
-            AUTH[Auth Screens<br/>Signup/Login<br/>ProfileSetup]
-            HOME[Home Screen<br/>User List<br/>Presence Display]
-            CHAT[Chat Screen<br/>1-on-1 & Groups<br/>Message Status]
-            PROFILE[Profile Screen<br/>Edit Profile]
-            GROUP[Group Screens<br/>Create/Info]
-            AI[AI Chat Screen<br/>Assistant]
+            Auth["Auth Screens<br/>- Signup<br/>- Login<br/>- Profile Setup"]
+            Home["Home Screen<br/>- User List<br/>- Presence Indicators<br/>- Status Colors"]
+            Chat["Chat Screen<br/>- Messages<br/>- Typing Indicators<br/>- Status: ✓ ✓✓ ✓✓"]
+            Profile["Profile Screen<br/>- Edit Profile<br/>- Dark Mode Toggle"]
+            Group["Group Screens<br/>- Create Group<br/>- Group Info<br/>- Add/Remove Members"]
+            AI["AI Screens<br/>- Action Items<br/>- Decisions<br/>- Agent Chat"]
         end
         
-        subgraph "Components"
-            MSG[MessageBubble<br/>Status Icons]
-            USER[UserListItem<br/>Online Indicator]
-        end
-        
-        AUTH --> FS
-        HOME --> FS
-        HOME --> PS
-        CHAT --> LS
-        CHAT --> FS
-        CHAT --> PS
-        PROFILE --> FS
-        GROUP --> FS
-        AI --> AISERVICE[AI Service]
-        
-        MSG --> LS
-        MSG --> FS
-        USER --> PS
-    end
-    
-    subgraph "Firebase Backend"
-        subgraph "Firebase Auth"
-            FAUTH[Authentication<br/>Email/Password<br/>User Sessions]
-        end
-        
-        subgraph "Firestore Database"
-            USERS[users collection<br/>- userId<br/>- username<br/>- displayName<br/>- imageURL<br/>- bio<br/>- status<br/>- pushToken]
-            CONVS[conversations collection<br/>- conversationId<br/>- participants<br/>- isGroup<br/>- groupName<br/>- lastMessage]
-            MSGS[messages subcollection<br/>- messageId<br/>- senderId<br/>- text<br/>- timestamp<br/>- status]
-            
-            CONVS --> MSGS
-        end
-        
-        subgraph "Realtime Database"
-            PRESENCE[presence node<br/>- userId<br/>  - isOnline<br/>  - lastSeen<br/>Auto-disconnect]
-        end
-        
-        subgraph "Firebase Storage"
-            PHOTOS[profile_photos/<br/>group_photos/]
-        end
-        
-        subgraph "Cloud Functions"
-            NOTIF[sendMessageNotification<br/>Trigger on new message<br/>Send via Expo Push]
+        subgraph "AI Services"
+            Summary["Thread<br/>Summarization"]
+            ActionItems["Action Item<br/>Extraction"]
+            Search["Semantic<br/>Search"]
+            Priority["Priority<br/>Detection"]
+            Decisions["Decision<br/>Tracking"]
+            Agent["Multi-Step<br/>Agent"]
         end
     end
     
-    subgraph "External Services"
-        EXPO[Expo Push Notifications<br/>Push Tokens<br/>Notification Delivery]
-        OPENAI[OpenAI API<br/>GPT-4<br/>Chat Completions]
+    subgraph "Firebase Services"
+        Auth_FB["Firebase Auth<br/>Email/Password"]
+        Firestore["Firestore<br/>- users collection<br/>- conversations<br/>- messages<br/>- offline persistence"]
+        RealtimeDB["Realtime Database<br/>- /presence/{userId}<br/>- /typing/{convId}/{userId}<br/>- .onDisconnect()"]
+        Storage["Firebase Storage<br/>- profile_photos<br/>- group_photos"]
+        CloudFunc["Cloud Functions<br/>- sendMessageNotification<br/>- priority alerts"]
     end
     
-    AUTH -->|signUp/signIn/signOut| FAUTH
-    HOME -->|fetch users| USERS
-    PROFILE -->|update profile| USERS
-    PROFILE -->|upload photo| PHOTOS
+    subgraph "AI Backend"
+        OpenAI["OpenAI API<br/>- GPT-4 Turbo<br/>- text-embedding-3-small"]
+        VercelAI["Vercel AI SDK<br/>- streamText<br/>- generateObject<br/>- tool calling"]
+    end
     
-    CHAT -->|create conversation| CONVS
-    CHAT -->|send message| MSGS
-    CHAT -->|onSnapshot| MSGS
+    subgraph "Push Notifications"
+        ExpoNotif["Expo Notifications<br/>- Request permission<br/>- Get push token"]
+        FCM["Firebase Cloud<br/>Messaging"]
+    end
     
-    LS -->|optimistic write| MSGS
-    MSGS -->|onSnapshot updates| FS
-    MSGS -->|status: sent| FS
-    CHAT -->|mark delivered| MSGS
+    %% Connections
+    Auth --> Auth_FB
+    Home --> FirebaseStore
+    Home --> PresenceStore
+    Chat --> LocalStore
+    Chat --> FirebaseStore
+    Chat --> PresenceStore
+    Profile --> FirebaseStore
+    Profile --> Storage
+    Group --> FirebaseStore
+    AI --> Summary
+    AI --> ActionItems
+    AI --> Search
+    AI --> Priority
+    AI --> Decisions
+    AI --> Agent
     
-    HOME -->|onValue listener| PRESENCE
-    CHAT -->|read presence| PRESENCE
-    AUTH -->|set online| PRESENCE
-    PRESENCE -->|updates| PS
+    LocalStore --> Firestore
+    FirebaseStore --> Firestore
+    PresenceStore --> RealtimeDB
     
-    MSGS -->|onCreate trigger| NOTIF
-    NOTIF -->|send push| EXPO
-    EXPO -->|deliver to device| AUTH
+    Summary --> VercelAI
+    ActionItems --> VercelAI
+    Search --> VercelAI
+    Priority --> VercelAI
+    Decisions --> VercelAI
+    Agent --> VercelAI
     
-    AUTH -->|save pushToken| USERS
+    VercelAI --> OpenAI
     
-    AISERVICE -->|API call| OPENAI
-    OPENAI -->|response| AISERVICE
+    Firestore --> CloudFunc
+    CloudFunc --> FCM
+    ExpoNotif --> FCM
     
-    style LS fill:#FFE4B5
-    style PS fill:#B0E0E6
-    style FS fill:#90EE90
-    style FAUTH fill:#FFA500
-    style USERS fill:#4285F4
-    style CONVS fill:#4285F4
-    style MSGS fill:#4285F4
-    style PRESENCE fill:#34A853
-    style PHOTOS fill:#FBBC04
-    style NOTIF fill:#EA4335
-    style EXPO fill:#9370DB
-    style OPENAI fill:#00D4AA
+    %% Styling
+    classDef storeStyle fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    classDef screenStyle fill:#50C878,stroke:#2E7D4E,color:#fff
+    classDef aiStyle fill:#9B59B6,stroke:#6C3483,color:#fff
+    classDef firebaseStyle fill:#FFA500,stroke:#CC8400,color:#fff
+    classDef apiStyle fill:#E74C3C,stroke:#A93226,color:#fff
     
-    classDef storeStyle fill:#F0F8FF,stroke:#333,stroke-width:2px
-    class LS,PS,FS storeStyle
+    class LocalStore,PresenceStore,FirebaseStore storeStyle
+    class Auth,Home,Chat,Profile,Group,AI screenStyle
+    class Summary,ActionItems,Search,Priority,Decisions,Agent aiStyle
+    class Auth_FB,Firestore,RealtimeDB,Storage,CloudFunc firebaseStyle
+    class OpenAI,VercelAI,ExpoNotif,FCM apiStyle
