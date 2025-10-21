@@ -1218,24 +1218,24 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Enable Web Support:**
 
-- [ ] 4. Install web dependencies:
+- [x] 4. Install web dependencies:
 
   - Run: `npx expo install react-dom react-native-web`
   - Enables running app in browser for multi-device testing
 
-- [ ] 5. Start web server:
+- [x] 5. Start web server:
 
   - Run: `npm run web` or `expo start --web`
   - App will open in browser (typically at http://localhost:8081)
 
-- [ ] 6. Test multi-device messaging:
+- [x] 6. Test multi-device messaging:
   - Keep phone app running via Expo Go
   - Open web version in browser
   - Send messages between devices to verify real-time sync
 
 **Delete Conversation Feature:**
 
-- [ ] 7. Create utility function in `src/utils/conversation.js`:
+- [x] 7. Create utility function in `src/utils/conversation.js`:
 
   - Add function: `deleteConversation(conversationId)`
   - Delete all messages in the conversation subcollection

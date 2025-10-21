@@ -1,6 +1,7 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -179,6 +180,37 @@ export const getUserConversations = async (userId) => {
     return conversations;
   } catch (error) {
     console.error("Error getting user conversations:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a conversation and all its messages
+ * @param {string} conversationId - Conversation ID to delete
+ * @returns {Promise<void>}
+ */
+export const deleteConversation = async (conversationId) => {
+  try {
+    // First, delete all messages in the conversation subcollection
+    const messagesRef = collection(
+      db,
+      "conversations",
+      conversationId,
+      "messages"
+    );
+    const messagesSnapshot = await getDocs(messagesRef);
+
+    // Delete all messages in batches
+    const deletePromises = messagesSnapshot.docs.map((messageDoc) =>
+      deleteDoc(messageDoc.ref)
+    );
+    await Promise.all(deletePromises);
+
+    // Then delete the conversation document itself
+    const conversationRef = doc(db, "conversations", conversationId);
+    await deleteDoc(conversationRef);
+  } catch (error) {
+    console.error("Error deleting conversation:", error);
     throw error;
   }
 };

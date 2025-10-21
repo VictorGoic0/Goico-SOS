@@ -1652,4 +1652,192 @@ exports.sendMessageNotification = functions.firestore
 - ❌ End-to-end encryption
 - ❌ User blocking/reporting
 - ❌ Message search
-- ❌
+- ❌ Typing indicators
+- ❌ Multiple device support (web + mobile)
+- ❌ Automated testing
+- ❌ Message forwarding
+- ❌ Voice notes
+- ❌ Location sharing
+- ❌ Stickers/GIFs
+- ❌ Video messages
+
+---
+
+## Post-MVP / Bonus Tasks
+
+### Performance & Scalability
+
+#### Hybrid Conversation Deletion (High Priority)
+
+**Problem**: Current client-side deletion works well for small conversations (<500 messages) but could timeout or fail on large conversations (10K+ messages).
+
+**Solution**: Implement intelligent deletion strategy:
+
+1. **Track Message Count**
+
+   - Add `messageCount` field to conversation documents
+   - Increment on each message send
+   - Use for deletion strategy decision
+
+2. **Smart Deletion Logic**
+
+   ```javascript
+   if (messageCount < 100) {
+     // Small conversation - immediate client-side deletion
+     await deleteConversation(conversationId);
+   } else {
+     // Large conversation - async server-side deletion
+     await markConversationForDeletion(conversationId);
+     // Show toast: "Deleting conversation in background..."
+   }
+   ```
+
+3. **Soft Delete Option**
+
+   - Add `deletedBy: [userId]` field to conversations
+   - Filter out deleted conversations in UI
+   - Allow "undo" within 30 seconds
+   - Enables per-user deletion (one user can delete, other keeps it)
+
+4. **Cloud Function for Background Deletion**
+
+   ```javascript
+   // Trigger on conversation.markedForDeletion = true
+   // Use admin.firestore().recursiveDelete() for efficient bulk deletion
+   // Delete conversation after all messages are removed
+   ```
+
+5. **Scheduled Cleanup Job**
+   - Cloud Scheduler + Cloud Function
+   - Run daily to hard-delete conversations marked as deleted 30+ days ago
+   - Saves storage costs and allows data recovery window
+
+**Benefits**:
+
+- ✅ Instant UI response for users
+- ✅ No timeout issues on large conversations
+- ✅ "Undo" capability improves UX
+- ✅ Reduces client bandwidth usage
+- ✅ Scales to millions of messages
+- ✅ Independent per-user deletion
+
+**Implementation Complexity**: Medium
+**Priority**: Implement when conversations regularly exceed 1000 messages
+
+---
+
+### Other Performance Improvements
+
+#### Message Pagination
+
+- Load messages in batches (50 at a time)
+- Infinite scroll for older messages
+- Reduces initial load time for long conversations
+
+#### Image Optimization
+
+- Compress images before upload
+- Generate thumbnails for faster loading
+- Use progressive loading (blur → full image)
+
+#### Presence Optimization
+
+- Batch presence updates (max 1 update per 5 seconds)
+- Use Firebase Realtime Database single listener
+- Reduce unnecessary writes
+
+---
+
+### Feature Enhancements
+
+#### Message Reactions
+
+- Add emoji reactions to messages
+- Real-time reaction updates
+- Show reaction counts
+
+#### Typing Indicators
+
+- Show "User is typing..." indicator
+- Real-time typing status
+- Auto-hide after 3 seconds
+
+#### Message Search
+
+- Full-text search across conversations
+- Search by user, date, or content
+- Use Algolia or Firestore text search
+
+#### Read Receipts (Individual)
+
+- Track when each message was read
+- Show read timestamp
+- Blue checkmarks when read
+
+#### Message Forwarding
+
+- Forward messages to other conversations
+- Preserve original sender info
+- Add "Forwarded" label
+
+#### Voice Messages
+
+- Record audio messages
+- Playback controls
+- Waveform visualization
+
+#### File Sharing
+
+- Support PDF, docs, spreadsheets
+- File size limits (25MB)
+- Download and preview
+
+---
+
+### Infrastructure Improvements
+
+#### Automated Testing
+
+- Unit tests for utility functions
+- Integration tests for Firebase operations
+- E2E tests with Detox
+
+#### Error Monitoring
+
+- Integrate Sentry for error tracking
+- Log critical errors to analytics
+- Alert on high error rates
+
+#### Analytics
+
+- Track user engagement metrics
+- Message send rates
+- Feature usage statistics
+
+#### Rate Limiting
+
+- Prevent message spam (max 10 msgs/second)
+- Conversation creation limits
+- API rate limiting
+
+---
+
+### Security Enhancements
+
+#### End-to-End Encryption
+
+- Encrypt messages client-side
+- Key exchange protocol
+- Secure key storage
+
+#### User Blocking/Reporting
+
+- Block users from messaging
+- Report inappropriate content
+- Admin moderation tools
+
+#### Two-Factor Authentication
+
+- SMS or authenticator app
+- Required for sensitive actions
+- Account recovery flow
