@@ -815,59 +815,58 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 ### Subtasks
 
-**Implement Send Message Function:**
+**Implement Send Message Function (Firebase-Native Approach):**
 
 - [ ] **1.** File: `src/utils/conversation.js` (used instead of messaging.js)
 - [ ] **2.** Function: `sendMessage(conversationId, text, senderId, senderUsername)`
-  - Generate messageId with `generateId()`
-  - Create message object for LOCAL store (status: "sending")
-  - Add to LOCAL store:
-    ```javascript
-    useLocalStore.getState().addPendingMessage(conversationId, {
-      messageId,
-      senderId,
-      senderUsername,
-      text,
-      timestamp: Date.now(),
-      status: "sending",
-    });
-    ```
+  - **Simplified**: Just write to Firestore directly
+  - Firebase's local cache handles optimistic updates automatically
   - Write to Firestore:
     ```javascript
-    await addDoc(collection(db, "conversations", conversationId, "messages"), {
-      senderId,
-      senderUsername,
-      text,
-      timestamp: serverTimestamp(),
-      status: "sent",
-    });
+    const messageRef = await addDoc(
+      collection(db, "conversations", conversationId, "messages"),
+      {
+        senderId,
+        senderUsername,
+        text,
+        timestamp: serverTimestamp(),
+        status: "sent", // Server-confirmed status
+      }
+    );
     ```
-  - Remove from LOCAL store after Firestore confirms
   - Update conversation's lastMessage fields
-  - Catch errors: if write fails, message stays in LOCAL store with "sending" status
+  - Return messageRef for reference
+  - No need to manually track pending state - Firebase does it!
 
 **Connect Send Button to Function:**
 
 - [ ] **3.** In `ChatScreen.js`:
-- [ ] **4.** Using Zustand drafts instead of local useState for better DevTools visibility
+- [ ] **4.** Using Zustand drafts for input text (keep this pattern)
 - [ ] **5.** Enable send button when inputText is not empty
 - [ ] **6.** On send button press:
   - Call `sendMessage(conversationId, inputText, currentUserId, currentUsername)`
   - Clear input via `clearDraft(conversationId)`
+  - Message appears instantly via Firebase's local cache
+  - Status determined by `hasPendingWrites` metadata
 
-**Merge LOCAL + FIREBASE Messages:**
+**Set Up Firebase Listener with Metadata Changes:**
 
 - [ ] **7.** In `ChatScreen.js`:
-- [ ] **8.** Get pending messages from LOCAL store
-- [ ] **9.** Get confirmed messages from FIREBASE store
-- [ ] **10.** Merge for display:
+- [ ] **8.** Set up onSnapshot listener with `{ includeMetadataChanges: true }`
+- [ ] **9.** This option enables tracking of local writes vs server-confirmed writes
+- [ ] **10.** Map messages from snapshot:
   ```javascript
-  const allMessages = [
-    ...(messages[conversationId] || []),
-    ...(pendingMessages[conversationId] || []),
-  ];
+  const messages = snapshot.docs.map((doc) => ({
+    messageId: doc.id,
+    ...doc.data(),
+    // hasPendingWrites: true = local write (sending)
+    // hasPendingWrites: false = server confirmed (sent)
+    status: doc.metadata.hasPendingWrites
+      ? "sending"
+      : doc.data().status || "sent",
+  }));
   ```
-- [ ] **11.** Sort by timestamp (handling both Firestore Timestamp and Date.now() formats)
+- [ ] **11.** Store directly in firebaseStore - no merging needed!
 
 **Add Message Status Indicators:**
 
@@ -907,125 +906,151 @@ Since you've never used React Native, this PR focuses on getting your developmen
 - [ ] **26.** Scroll to end on content size change and layout
 - [ ] **27.** Scroll to end after sending message (with 100ms delay for smooth animation)
 
-**Implement Message Deduplication (Single Array Approach):**
+**Use Firebase's Built-in Optimistic Updates (hasPendingWrites):**
 
-> **Architectural Decision**: Simplify by using a single messages array instead of separate pending/confirmed arrays.
+> **Architectural Decision**: Firebase Firestore has built-in optimistic updates with offline persistence. We don't need a separate pendingMessages array - Firebase handles this automatically through its local cache and metadata tracking.
 
-- [ ] **28. Remove separate pendingMessages array**
+- [ ] **28. Remove pendingMessages from localStore**
 
-  - Keep messages in firebaseStore only
-  - Add optimistic messages directly to messages array with temp ID
-  - Update message in place when Firebase returns real ID
+  - Delete `pendingMessages` state from `src/stores/localStore.js`
+  - Delete `addPendingMessage` and `removePendingMessage` actions
+  - Keep `drafts`, `isSending`, and `isLoadingConversation` (these are still useful)
 
-- [ ] **29. Add ID tracking for deduplication**
+- [ ] **29. Update conversation.js sendMessage function**
 
-  - In ChatScreen, maintain a Set of message IDs we already have on frontend
-  - When onSnapshot fires, filter incoming messages against this Set
-  - Only add messages whose IDs aren't already in the Set
-
-- [ ] **30. Update handleSend flow**
+  - Simplify to just write to Firestore directly
+  - No need to add to localStore first
+  - Firebase's local cache handles optimistic updates automatically
+  - Return the message document reference
 
   ```javascript
-  // 1. Add optimistic message with temp ID, status: "sending"
-  addMessage(conversationId, {
-    messageId: tempId,
+  export async function sendMessage(
+    conversationId,
     text,
-    status: "sending",
-    timestamp: Date.now()
-  });
+    senderId,
+    senderUsername
+  ) {
+    // Just write to Firestore - that's it!
+    const messageRef = await addDoc(
+      collection(db, "conversations", conversationId, "messages"),
+      {
+        senderId,
+        senderUsername,
+        text,
+        timestamp: serverTimestamp(),
+        status: "sent", // Will be "sent" once confirmed by server
+      }
+    );
 
-  // 2. Add temp ID to tracking Set
-  messageIdsSet.add(tempId);
+    // Update conversation's lastMessage
+    await updateDoc(doc(db, "conversations", conversationId), {
+      lastMessage: text,
+      lastMessageSenderId: senderId,
+      lastMessageTimestamp: serverTimestamp(),
+      lastEdit: serverTimestamp(),
+    });
 
-  // 3. Send to Firebase, get real ID back
-  const { messageId: realId } = await sendMessage(...);
-
-  // 4. Update message in place: temp ID → real ID, status: "sent"
-  updateMessageInArray(conversationId, tempId, {
-    messageId: realId,
-    status: "sent"
-  });
-
-  // 5. Update tracking Set
-  messageIdsSet.delete(tempId);
-  messageIdsSet.add(realId);
+    return messageRef;
+  }
   ```
 
-- [ ] **31. Update onSnapshot deduplication**
+- [ ] **30. Update ChatScreen onSnapshot listener**
+
+  - Add `{ includeMetadataChanges: true }` option to onSnapshot
+  - This enables tracking of local vs server-confirmed writes
+  - Map messages and check `doc.metadata.hasPendingWrites` to determine status
 
   ```javascript
-  const incomingMessages = snapshot.docs.map((doc) => ({
-    messageId: doc.id,
-    ...doc.data(),
-  }));
+  useEffect(() => {
+    if (!conversationId) return;
 
-  // Filter out messages we already have (optimistic or confirmed)
-  const newMessages = incomingMessages.filter(
-    (msg) => !messageIdsSet.has(msg.messageId)
-  );
+    const messagesRef = collection(
+      db,
+      "conversations",
+      conversationId,
+      "messages"
+    );
+    const q = query(messagesRef, orderBy("timestamp", "asc"));
 
-  // Add only new messages
-  newMessages.forEach((msg) => {
-    addMessage(conversationId, msg);
-    messageIdsSet.add(msg.messageId);
-  });
+    // includeMetadataChanges: true is the key!
+    const unsubscribe = onSnapshot(
+      q,
+      { includeMetadataChanges: true },
+      (snapshot) => {
+        const messages = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            messageId: doc.id,
+            ...data,
+            // Use Firebase metadata to determine status
+            status: doc.metadata.hasPendingWrites
+              ? "sending"
+              : data.status || "sent",
+          };
+        });
+
+        // Just set messages directly - no merging needed!
+        setMessages(conversationId, messages);
+      }
+    );
+
+    return unsubscribe;
+  }, [conversationId]);
   ```
 
-- [ ] **32. Benefits of this approach**
-  - ✅ Single source of truth (one array)
-  - ✅ No duplicate key warnings
-  - ✅ No flickering or temporary duplicates
-  - ✅ Firebase offline persistence still works
-  - ✅ Simpler mental model
-  - ✅ In-place status updates (sending → sent → delivered)
+- [ ] **31. Update ChatScreen handleSend**
+
+  - Remove all localStore pendingMessages logic
+  - Just call sendMessage and let Firebase handle optimistic updates
+  - Clear draft after sending
+
+  ```javascript
+  const handleSend = async () => {
+    if (!inputText.trim()) return;
+
+    const textToSend = inputText.trim();
+    clearDraft(conversationId);
+
+    try {
+      await sendMessage(
+        conversationId,
+        textToSend,
+        currentUser.uid,
+        currentUser.username
+      );
+      // That's it! Firebase handles the rest.
+      // Message appears instantly in onSnapshot with hasPendingWrites: true
+      // Then updates to hasPendingWrites: false when server confirms
+    } catch (error) {
+      console.error("Error sending message:", error);
+      // Restore draft on error
+      setDraft(conversationId, textToSend);
+    }
+  };
+  ```
+
+- [ ] **32. Benefits of Firebase's Built-in Approach**
+  - ✅ No duplicate messages or flickering
+  - ✅ No manual deduplication needed
+  - ✅ Single source of truth (Firebase cache)
+  - ✅ Automatic offline queueing (Firebase handles it)
+  - ✅ Simpler code (less logic to maintain)
+  - ✅ Messages appear once and update in place
+  - ✅ Status tracking built-in (hasPendingWrites)
+  - ✅ Firebase's offline persistence works seamlessly
 
 **Test with Firestore Offline Persistence:**
 
 - [ ] **33.** Turn on airplane mode
-- [ ] **34.** Send 3 messages → all show "sending" status
+- [ ] **34.** Send 3 messages → all show "sending" status (hasPendingWrites: true)
 - [ ] **35.** Turn off airplane mode
-- [ ] **36.** Messages sync to Firestore (status: "sent")
-- [ ] **37.** Verify in Firebase console
+- [ ] **36.** Messages automatically sync to Firestore (Firebase handles queue)
+- [ ] **37.** Status updates from "sending" to "sent" (hasPendingWrites: false)
+- [ ] **38.** Verify in Firebase console
 
-**Future Enhancement - Persist Pending Messages Across App Restarts:**
+**Note on Persistence:**
 
-> **Note**: Documented for future implementation, not included in this PR.
-
-- [ ] Use Zustand's `persist` middleware to save `localStore` to AsyncStorage
-- [ ] Configuration:
-
-  ```javascript
-  import { create } from "zustand";
-  import { persist, createJSONStorage } from "zustand/middleware";
-  import AsyncStorage from "@react-native-async-storage/async-storage";
-
-  const useLocalStore = create(
-    persist(
-      (set, get) => ({
-        // ... existing store implementation
-      }),
-      {
-        name: "local-storage", // unique key for AsyncStorage
-        storage: createJSONStorage(() => AsyncStorage),
-        // Optional: only persist certain fields
-        partialize: (state) => ({
-          pendingMessages: state.pendingMessages,
-          drafts: state.drafts,
-        }),
-      }
-    )
-  );
-  ```
-
-- [ ] Benefits:
-  - Pending messages survive app restarts/crashes
-  - Draft messages preserved when user closes app
-  - Automatic rehydration on app launch
-  - Seamless sync when network reconnects
-- [ ] Implementation considerations:
-  - Add retry logic for failed messages on app restart
-  - Clear old pending messages after certain time (e.g., 24 hours)
-  - Handle edge cases where message was sent but client didn't receive confirmation
+> Firebase's offline persistence is built-in and enabled by default (configured in `firebase.js`). Messages written while offline are automatically queued and synced when connection is restored. No additional code needed!
 
 **Files Created:**
 

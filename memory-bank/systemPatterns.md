@@ -12,10 +12,10 @@ The app follows a **3-store Zustand architecture** pattern proven in CollabCanva
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Local Store   │    │ Presence Store  │    │ Firebase Store  │
 │                 │    │                 │    │                 │
-│ - pending       │    │ - presence      │    │ - users         │
-│   messages      │    │   data          │    │ - conversations │
-│ - drafts        │    │ - isOnline      │    │ - messages      │
-│ Status: sending │    │ - lastSeen      │    │ Status: sent/   │
+│ - drafts        │    │ - presence      │    │ - users         │
+│ - isSending     │    │   data          │    │ - conversations │
+│ - isLoading     │    │ - isOnline      │    │ - messages      │
+│                 │    │ - lastSeen      │    │ Status: sent/   │
 └─────────────────┘    └─────────────────┘    │   delivered/    │
          │                       │             │   read         │
          └───────────────────────┼─────────────┘                │
@@ -34,33 +34,39 @@ The app follows a **3-store Zustand architecture** pattern proven in CollabCanva
             │   Firebase      │
             │   Backend       │
             │                 │
-            │ - Firestore     │
-            │ - Realtime DB   │
+            │ - Firestore     │◄─── Local Cache
+            │ - Realtime DB   │    (hasPendingWrites)
             │ - Storage       │
             │ - Auth          │
             └─────────────────┘
 ```
 
+**Note**: Firebase Firestore's built-in local cache and `hasPendingWrites` metadata handle optimistic updates automatically. We no longer need a separate `pendingMessages` array.
+
 ## Store Responsibilities
 
-### 1. Local Store (Optimistic Updates)
+### 1. Local Store (UI State & Drafts)
 
-**Purpose**: Temporary local state, optimistic updates before Firestore confirms
+**Purpose**: Handle local UI state and draft messages (NOT optimistic message updates)
 
 ```javascript
 // stores/localStore.js
-- pendingMessages: { conversationId: [messages with status: "sending"] }
 - drafts: { conversationId: "draft text..." }
-- addPendingMessage()
-- removePendingMessage()
+- isSending: { conversationId: boolean }
+- isLoadingConversation: { conversationId: boolean }
 - setDraft()
+- clearDraft()
+- setIsSending()
+- setIsLoadingConversation()
 ```
 
 **Use cases:**
 
-- Message shows immediately when user taps send (status: "sending")
-- Removed once Firestore confirms write
 - Store draft messages being typed
+- Track UI loading states
+- Track sending states for buttons
+
+**Important**: Firebase Firestore's built-in local cache handles optimistic updates automatically via `hasPendingWrites` metadata. We don't manually track pending messages!
 
 ### 2. Presence Store (Realtime Database)
 
@@ -107,31 +113,56 @@ The app follows a **3-store Zustand architecture** pattern proven in CollabCanva
 
 ## Data Flow Patterns
 
-### Message Send Flow (3-Store Pattern)
+### Message Send Flow (Firebase-Native Pattern)
 
 ```
 USER SENDS MESSAGE
     ↓
-1. LOCAL STORE (optimistic, status: "sending")
+1. WRITE TO FIRESTORE (status: "sent")
     ↓
-2. WRITE TO FIRESTORE (status: "sent")
+2. FIRESTORE LOCAL CACHE (instant write)
     ↓
-3. REMOVE FROM LOCAL STORE
+3. onSnapshot FIRES (hasPendingWrites: true)
     ↓
-4. FIREBASE STORE UPDATES (onSnapshot, status: "sent")
+4. UI SHOWS MESSAGE (status: "sending")
     ↓
-5. RECIPIENT RECEIVES (status: "delivered")
+5. SERVER CONFIRMS WRITE
     ↓
-6. RECIPIENT READS (status: "read") [BONUS]
+6. onSnapshot FIRES (hasPendingWrites: false)
+    ↓
+7. UI UPDATES MESSAGE (status: "sent")
+    ↓
+8. RECIPIENT RECEIVES (status: "delivered")
+    ↓
+9. RECIPIENT READS (status: "read") [BONUS]
 ```
 
 **Component renders:**
 
 ```javascript
-const allMessages = [
-  ...useLocalStore((s) => s.pendingMessages[conversationId] || []),
-  ...useFirebaseStore((s) => s.messages[conversationId] || []),
-];
+// Single source of truth - Firebase Store only!
+const messages = useFirebaseStore((s) => s.messages[conversationId] || []);
+
+// Message status determined in onSnapshot listener:
+useEffect(() => {
+  const unsubscribe = onSnapshot(
+    q,
+    { includeMetadataChanges: true }, // Enable metadata tracking
+    (snapshot) => {
+      const messages = snapshot.docs.map((doc) => ({
+        messageId: doc.id,
+        ...doc.data(),
+        // hasPendingWrites: true = "sending"
+        // hasPendingWrites: false = "sent"
+        status: doc.metadata.hasPendingWrites
+          ? "sending"
+          : doc.data().status || "sent",
+      }));
+      setMessages(conversationId, messages);
+    }
+  );
+  return unsubscribe;
+}, [conversationId]);
 ```
 
 ### Presence Update Flow
@@ -303,15 +334,16 @@ const useFirebaseStore = create((set, get) => ({
 ```javascript
 // Screen components use stores for global state
 const ChatScreen = () => {
+  // Single source of truth - Firebase Store
   const messages = useFirebaseStore((s) => s.messages[conversationId] || []);
-  const pendingMessages = useLocalStore(
-    (s) => s.pendingMessages[conversationId] || []
-  );
-  const allMessages = [...pendingMessages, ...messages];
 
-  // Local state for UI-only concerns
-  const [inputText, setInputText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  // Local Store for drafts and UI state
+  const drafts = useLocalStore((s) => s.drafts);
+  const inputText = drafts[conversationId] || "";
+
+  // Local state for component-specific concerns
+  const [conversationId, setConversationId] = useState(null);
+  const flatListRef = useRef(null);
 };
 ```
 
@@ -320,14 +352,25 @@ const ChatScreen = () => {
 ### Firestore Listeners
 
 ```javascript
-// Listen to messages in real-time
+// Listen to messages in real-time with metadata changes
 const unsubscribe = onSnapshot(
-  query(collection(db, "conversations", conversationId, "messages")),
+  query(
+    collection(db, "conversations", conversationId, "messages"),
+    orderBy("timestamp", "asc")
+  ),
+  { includeMetadataChanges: true }, // Enable hasPendingWrites tracking
   (snapshot) => {
-    const messages = snapshot.docs.map((doc) => ({
-      messageId: doc.id,
-      ...doc.data(),
-    }));
+    const messages = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        messageId: doc.id,
+        ...data,
+        // Determine status from Firebase metadata
+        status: doc.metadata.hasPendingWrites
+          ? "sending"
+          : data.status || "sent",
+      };
+    });
     useFirebaseStore.getState().setMessages(conversationId, messages);
   }
 );
@@ -345,31 +388,32 @@ const unsubscribe = onValue(ref(realtimeDb, "presence"), (snapshot) => {
 
 ## Error Handling Patterns
 
-### Optimistic Update Error Recovery
+### Firebase-Native Error Recovery
 
 ```javascript
-const sendMessage = async (conversationId, text) => {
-  // 1. Optimistic update
-  const messageId = generateId();
-  useLocalStore.getState().addPendingMessage(conversationId, {
-    messageId,
-    text,
-    status: "sending",
-  });
+const handleSend = async () => {
+  const textToSend = inputText.trim();
+  if (!textToSend) return;
+
+  // Clear draft immediately for instant UI feedback
+  clearDraft(conversationId);
 
   try {
-    // 2. Write to Firestore
-    await addDoc(collection(db, "conversations", conversationId, "messages"), {
-      text,
-      status: "sent",
-    });
+    // Just write to Firestore - that's it!
+    // Firebase's local cache handles optimistic updates
+    await sendMessage(
+      conversationId,
+      currentUser.uid,
+      currentUser.username,
+      textToSend
+    );
 
-    // 3. Remove from local store
-    useLocalStore.getState().removePendingMessage(conversationId, messageId);
+    // Message appears instantly with hasPendingWrites: true ("sending")
+    // Then updates to hasPendingWrites: false ("sent") when server confirms
   } catch (error) {
-    // 4. Error recovery - message stays in local store with "sending" status
-    console.error("Failed to send message:", error);
-    // User can retry or message will sync when connection restored
+    console.error("Error sending message:", error);
+    // Restore draft on error so user doesn't lose their message
+    setDraft(conversationId, textToSend);
   }
 };
 ```
@@ -377,9 +421,14 @@ const sendMessage = async (conversationId, text) => {
 ### Offline State Management
 
 ```javascript
-// Firestore handles offline persistence automatically
-// Local store provides immediate UI feedback
-// Firebase store receives updates when connection restored
+// Firebase Firestore handles offline persistence automatically:
+// 1. Writes are cached locally when offline
+// 2. hasPendingWrites: true indicates locally cached writes
+// 3. Automatic sync when connection restored
+// 4. No manual queue management needed!
+
+// Offline persistence is enabled in firebase.js:
+enableIndexedDbPersistence(db, { cacheSizeBytes: 50 * 1024 * 1024 });
 ```
 
 ## Performance Patterns

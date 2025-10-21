@@ -1,24 +1,41 @@
-import React, { useEffect, useState } from "react";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  updateDoc,
+} from "firebase/firestore";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import CompactInput from "../components/CompactInput";
+import MessageBubble from "../components/MessageBubble";
+import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import useLocalStore from "../stores/localStore";
 import { colors, spacing, typography } from "../styles/tokens";
-import { getOrCreateConversation } from "../utils/conversation";
+import { getOrCreateConversation, sendMessage } from "../utils/conversation";
 
 export default function ChatScreen({ route, navigation }) {
   const { otherUser } = route.params;
 
   // Firebase Store
   const currentUser = useFirebaseStore((state) => state.currentUser);
+  const messages = useFirebaseStore((state) => state.messages);
+  const setMessages = useFirebaseStore((state) => state.setMessages);
 
-  // Local Store
+  // Local Store (drafts and UI state only)
+  const drafts = useLocalStore((state) => state.drafts);
+  const setDraft = useLocalStore((state) => state.setDraft);
+  const clearDraft = useLocalStore((state) => state.clearDraft);
   const isLoadingConversation = useLocalStore(
     (state) => state.isLoadingConversation
   );
@@ -26,8 +43,9 @@ export default function ChatScreen({ route, navigation }) {
     (state) => state.setIsLoadingConversation
   );
 
-  // Only conversationId needs local state since it's not shared across components
+  // Local state
   const [conversationId, setConversationId] = useState(null);
+  const flatListRef = useRef(null);
 
   // Get or create conversation on mount
   useEffect(() => {
@@ -54,6 +72,88 @@ export default function ChatScreen({ route, navigation }) {
     initConversation();
   }, [currentUser, otherUser, setIsLoadingConversation]);
 
+  // Set up real-time message listener with metadata changes
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const messagesRef = collection(
+      db,
+      "conversations",
+      conversationId,
+      "messages"
+    );
+    const q = query(messagesRef, orderBy("timestamp", "asc"));
+
+    // includeMetadataChanges: true enables tracking of local writes
+    const unsubscribe = onSnapshot(
+      q,
+      { includeMetadataChanges: true },
+      (snapshot) => {
+        const messagesList = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            messageId: doc.id,
+            ...data,
+            // Use Firebase metadata to determine if message is pending
+            // hasPendingWrites: true = local write (sending)
+            // hasPendingWrites: false = server confirmed (sent)
+            status: doc.metadata.hasPendingWrites
+              ? "sending"
+              : data.status || "sent",
+          };
+        });
+
+        // Store messages in Firebase store
+        setMessages(conversationId, messagesList);
+
+        // Auto-scroll to bottom when new messages arrive
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      },
+      (error) => {
+        console.error("Error in message listener:", error);
+      }
+    );
+
+    return unsubscribe;
+  }, [conversationId, setMessages]);
+
+  // Mark messages as delivered when user views them
+  useEffect(() => {
+    if (!conversationId || !messages[conversationId]) return;
+
+    const markMessagesAsDelivered = async () => {
+      const conversationMessages = messages[conversationId] || [];
+
+      // Find messages from other user that are "sent" but not "delivered"
+      const undeliveredMessages = conversationMessages.filter(
+        (msg) =>
+          msg.senderId !== currentUser.uid &&
+          msg.status === "sent" &&
+          !msg.metadata?.hasPendingWrites // Don't update pending writes
+      );
+
+      // Mark each as delivered
+      for (const msg of undeliveredMessages) {
+        try {
+          const messageRef = doc(
+            db,
+            "conversations",
+            conversationId,
+            "messages",
+            msg.messageId
+          );
+          await updateDoc(messageRef, { status: "delivered" });
+        } catch (error) {
+          console.error("Error marking message as delivered:", error);
+        }
+      }
+    };
+
+    markMessagesAsDelivered();
+  }, [conversationId, messages, currentUser.uid]);
+
   // Set navigation title
   useEffect(() => {
     navigation.setOptions({
@@ -61,8 +161,51 @@ export default function ChatScreen({ route, navigation }) {
     });
   }, [navigation, otherUser]);
 
+  // Handle send message
+  const handleSend = async () => {
+    const inputText = drafts[conversationId] || "";
+    if (!inputText.trim()) return;
+
+    const textToSend = inputText.trim();
+
+    // Clear draft immediately for instant UI feedback
+    clearDraft(conversationId);
+
+    try {
+      // Just write to Firestore - Firebase handles optimistic updates!
+      // Message will appear instantly with hasPendingWrites: true ("sending")
+      // Then update to hasPendingWrites: false ("sent") when server confirms
+      await sendMessage(
+        conversationId,
+        currentUser.uid,
+        currentUser.username,
+        textToSend
+      );
+
+      // Auto-scroll to bottom after sending
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      // Restore draft on error so user doesn't lose their message
+      setDraft(conversationId, textToSend);
+    }
+  };
+
+  // Handle input text change
+  const handleInputChange = (text) => {
+    setDraft(conversationId, text);
+  };
+
   // Get loading state
   const isLoading = isLoadingConversation[conversationId] || false;
+
+  // Get messages for this conversation
+  const conversationMessages = messages[conversationId] || [];
+
+  // Get draft text
+  const inputText = drafts[conversationId] || "";
 
   if (isLoading || !conversationId) {
     return (
@@ -79,14 +222,40 @@ export default function ChatScreen({ route, navigation }) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <View style={styles.placeholderContainer}>
-        <Text style={styles.placeholderText}>Chat Screen</Text>
-        <Text style={styles.placeholderSubtext}>
-          Conversation with {otherUser.displayName || otherUser.username}
-        </Text>
-        <Text style={styles.placeholderSubtext}>
-          Conversation ID: {conversationId}
-        </Text>
+      {/* Messages List */}
+      <FlatList
+        ref={flatListRef}
+        data={conversationMessages}
+        keyExtractor={(item) => item.messageId}
+        renderItem={({ item }) => (
+          <MessageBubble
+            message={item}
+            isSent={item.senderId === currentUser.uid}
+          />
+        )}
+        contentContainerStyle={styles.messagesList}
+        onContentSizeChange={() =>
+          flatListRef.current?.scrollToEnd({ animated: false })
+        }
+        onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              No messages yet. Say hi to{" "}
+              {otherUser.displayName || otherUser.username}! 👋
+            </Text>
+          </View>
+        }
+      />
+
+      {/* Message Input */}
+      <View style={styles.inputContainer}>
+        <CompactInput
+          value={inputText}
+          onChangeText={handleInputChange}
+          onSubmit={handleSend}
+          placeholder="Type a message..."
+        />
       </View>
     </KeyboardAvoidingView>
   );
@@ -108,23 +277,23 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.text.secondary,
   },
-  placeholderContainer: {
+  messagesList: {
+    paddingVertical: spacing[4],
+  },
+  emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: spacing[8],
   },
-  placeholderText: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-    marginBottom: spacing[2],
-    textAlign: "center",
-  },
-  placeholderSubtext: {
+  emptyText: {
     fontSize: typography.fontSize.base,
     color: colors.text.secondary,
     textAlign: "center",
-    marginTop: spacing[2],
+  },
+  inputContainer: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+    backgroundColor: colors.background.paper,
   },
 });
