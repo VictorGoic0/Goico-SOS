@@ -15,6 +15,7 @@ import Input from "../components/Input";
 import { auth } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
+import { signOutUser } from "../utils/auth";
 import { getAvatarColor, getInitials } from "../utils/helpers";
 import { updateUserProfile, uploadProfileImage } from "../utils/profile";
 
@@ -147,9 +148,30 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const handleSignOut = () => {
-    // TODO: Implement in next subtask
-    console.log("Sign out tapped");
+  const handleSignOut = async () => {
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to sign out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await signOutUser();
+            } catch (error) {
+              console.error("Error signing out:", error);
+              Alert.alert("Error", "Failed to sign out. Please try again.");
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
