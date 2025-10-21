@@ -1,7 +1,8 @@
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   RefreshControl,
@@ -15,6 +16,7 @@ import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import { signOutUser } from "../utils/auth";
+import { deleteConversation, getConversationId } from "../utils/conversation";
 import { getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function HomeScreen({ navigation }) {
@@ -24,6 +26,8 @@ export default function HomeScreen({ navigation }) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [existingConversations, setExistingConversations] = useState(new Set());
+  const [deletingConversationId, setDeletingConversationId] = useState(null);
 
   // Configure header with profile icon
   useLayoutEffect(() => {
@@ -84,6 +88,31 @@ export default function HomeScreen({ navigation }) {
     return () => unsubscribe();
   }, [setUsers]);
 
+  // Listen to conversations for current user (only fetch IDs, not full data)
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+
+    const conversationsRef = collection(db, "conversations");
+    const q = query(
+      conversationsRef,
+      where("participants", "array-contains", currentUser.uid)
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        // Only store conversation IDs, not full conversation data
+        const conversationIds = new Set(snapshot.docs.map((doc) => doc.id));
+        setExistingConversations(conversationIds);
+      },
+      (error) => {
+        console.error("Error fetching conversations:", error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [currentUser?.uid]);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
     // The onSnapshot listener will automatically refresh
@@ -107,13 +136,83 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  const handleUserLongPress = (user) => {
+    // Don't allow deleting conversation with yourself
+    if (user.userId === currentUser.uid) {
+      return;
+    }
+
+    // Check if a conversation exists with this user
+    const conversationId = getConversationId(currentUser.uid, user.userId);
+
+    if (!existingConversations.has(conversationId)) {
+      // No conversation exists
+      return;
+    }
+
+    // Show delete confirmation alert
+    Alert.alert(
+      `Delete conversation with ${user.displayName || user.username}?`,
+      "This will delete all messages. You can message them again to start a new conversation.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => handleDeleteConversation(conversationId, user),
+        },
+      ]
+    );
+  };
+
+  const handleDeleteConversation = async (conversationId, user) => {
+    try {
+      setDeletingConversationId(conversationId);
+      await deleteConversation(conversationId);
+
+      // Optimistically remove from local state immediately
+      // (Firestore listener will sync eventually, but this ensures instant UI update)
+      setExistingConversations((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(conversationId);
+        return newSet;
+      });
+
+      // Show success feedback
+      Alert.alert(
+        "Conversation deleted",
+        `Your conversation with ${
+          user.displayName || user.username
+        } has been deleted.`,
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+      Alert.alert(
+        "Delete failed",
+        "Unable to delete conversation. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setDeletingConversationId(null);
+    }
+  };
+
   const renderUser = ({ item }) => {
     const isCurrentUser = item.userId === currentUser.uid;
+    const conversationId = getConversationId(currentUser.uid, item.userId);
+    const isDeleting = deletingConversationId === conversationId;
+
     return (
       <UserListItem
         user={item}
         onPress={() => handleUserPress(item)}
+        onLongPress={() => handleUserLongPress(item)}
         isCurrentUser={isCurrentUser}
+        isDeleting={isDeleting}
       />
     );
   };

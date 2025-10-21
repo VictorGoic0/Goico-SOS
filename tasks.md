@@ -1242,19 +1242,19 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - Delete the conversation document from Firestore
   - Handle errors gracefully
 
-- [ ] 8. In `HomeScreen.js`, add long-press/context menu to user list items:
+- [x] 8. In `HomeScreen.js`, add long-press/context menu to user list items:
 
   - Only show delete option if a conversation exists with that user
   - Check `conversationsMap` for existing conversation with user
   - Display menu with "Delete Conversation" option
 
-- [ ] 9. On delete tap from HomeScreen:
+- [x] 9. On delete tap from HomeScreen:
 
   - Show confirmation modal/alert: "Delete conversation with [username]?"
   - Include message: "This will delete all messages. You can message them again to start a new conversation."
   - Add "Cancel" and "Delete" buttons
 
-- [ ] 10. On confirmation, call `deleteConversation(conversationId)`
+- [x] 10. On confirmation, call `deleteConversation(conversationId)`
 
   - Show loading indicator while deleting
   - Navigate away or refresh list after deletion

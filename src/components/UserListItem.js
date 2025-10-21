@@ -1,5 +1,12 @@
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import usePresenceStore from "../stores/presenceStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import { formatLastSeen, getAvatarColor, getInitials } from "../utils/helpers";
@@ -8,9 +15,17 @@ import { formatLastSeen, getAvatarColor, getInitials } from "../utils/helpers";
  * UserListItem - Display a user in a list with presence indicator
  * @param {Object} user - User object
  * @param {Function} onPress - Callback when user is pressed
+ * @param {Function} onLongPress - Callback when user is long-pressed
  * @param {boolean} isCurrentUser - Whether this is the current logged-in user
+ * @param {boolean} isDeleting - Whether the conversation is being deleted
  */
-export default function UserListItem({ user, onPress, isCurrentUser = false }) {
+export default function UserListItem({
+  user,
+  onPress,
+  onLongPress,
+  isCurrentUser = false,
+  isDeleting = false,
+}) {
   const isOnline = usePresenceStore((state) => state.isUserOnline(user.userId));
   const presenceData = usePresenceStore(
     (state) => state.presenceData[user.userId]
@@ -21,10 +36,15 @@ export default function UserListItem({ user, onPress, isCurrentUser = false }) {
 
   return (
     <TouchableOpacity
-      style={[styles.container, isCurrentUser && styles.currentUserContainer]}
+      style={[
+        styles.container,
+        isCurrentUser && styles.currentUserContainer,
+        isDeleting && styles.deletingContainer,
+      ]}
       onPress={onPress}
+      onLongPress={onLongPress}
       activeOpacity={isCurrentUser ? 1 : 0.7}
-      disabled={isCurrentUser}
+      disabled={isCurrentUser || isDeleting}
     >
       {/* Avatar */}
       <View style={styles.avatarContainer}>
@@ -73,8 +93,13 @@ export default function UserListItem({ user, onPress, isCurrentUser = false }) {
         )}
       </View>
 
-      {/* Chevron - hidden for current user */}
-      {!isCurrentUser && <Text style={styles.chevron}>›</Text>}
+      {/* Loading indicator when deleting */}
+      {isDeleting && (
+        <ActivityIndicator size="small" color={colors.primary.base} />
+      )}
+
+      {/* Chevron - hidden for current user and when deleting */}
+      {!isCurrentUser && !isDeleting && <Text style={styles.chevron}>›</Text>}
     </TouchableOpacity>
   );
 }
@@ -90,6 +115,9 @@ const styles = StyleSheet.create({
   },
   currentUserContainer: {
     opacity: 0.6,
+  },
+  deletingContainer: {
+    opacity: 0.5,
   },
   avatarContainer: {
     position: "relative",
