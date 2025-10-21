@@ -1414,15 +1414,40 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Multi-Select User List:**
 
-- [ ] 18. In `CreateGroupScreen.js`:
+- [x] 18. In `CreateGroupScreen.js`:
 
   - Add state to track selected user IDs: `const [selectedUsers, setSelectedUsers] = useState([])`
 
-- [ ] 19. Render all users (except current user) with checkboxes
+  **Implementation:**
 
-- [ ] 20. Toggle selection on checkbox tap
+  - Added `selectedUsers` state initialized to empty array (line 28)
+  - State tracks array of user IDs that are currently selected
 
-- [ ] 21. Add validation: Minimum 2 users required to create group
+- [x] 19. Render all users (except current user) with checkboxes
+
+  **Implementation:**
+
+  - Filter current user from list: `availableUsers = users.filter((user) => user.userId !== currentUser.uid)`
+  - FlatList renders all available users with checkbox UI
+  - Each user item shows avatar, display name, username, and checkbox
+  - Checkbox shows checkmark (✓) when selected
+
+- [x] 20. Toggle selection on checkbox tap
+
+  **Implementation:**
+
+  - `toggleUserSelection(userId)` function adds/removes user from selectedUsers array
+  - Called on TouchableOpacity press for entire user item
+  - If user is already selected, removes them; otherwise adds them
+  - Visual feedback with checkbox state change
+
+- [x] 21. Add validation: Minimum 2 users required to create group
+
+  **Implementation:**
+
+  - Create Group button disabled when: `!groupName.trim() || selectedUsers.length < 2`
+  - Validates both group name (not empty) and minimum 2 participants
+  - Button visually disabled until validation passes
 
 **Implement Create Group:**
 

@@ -188,13 +188,15 @@ export default function CreateGroupScreen({ navigation }) {
       {/* Create Group Button (Fixed at bottom) */}
       <View style={styles.buttonContainer}>
         <Button
-          title="Create Group"
           onPress={() => {
             // TODO: Implement create group functionality
             console.log("Create group:", { groupName, selectedUsers });
           }}
           disabled={!groupName.trim() || selectedUsers.length < 2}
-        />
+          fullWidth
+        >
+          Create Group Chat
+        </Button>
       </View>
     </KeyboardAvoidingView>
   );
