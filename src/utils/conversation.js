@@ -254,3 +254,62 @@ export const listenToConversations = (userId) => {
 
   return unsubscribe;
 };
+
+/**
+ * Create a group conversation
+ * @param {string} groupName - Group name
+ * @param {Array<string>} participantIds - Array of participant user IDs (excluding current user)
+ * @param {string|null} groupImageURL - Optional group image URL
+ * @returns {Promise<string>} Created conversation ID
+ */
+export const createGroupConversation = async (
+  groupName,
+  participantIds,
+  groupImageURL = null
+) => {
+  try {
+    // Get current user from Firebase store
+    const currentUser = useFirebaseStore.getState().currentUser;
+    if (!currentUser) {
+      throw new Error("No current user found");
+    }
+
+    // Get users map to fetch usernames
+    const usersMap = useFirebaseStore.getState().usersMap;
+
+    // Add current user to participants
+    const allParticipantIds = [currentUser.uid, ...participantIds];
+
+    // Get usernames for all participants
+    const participantUsernames = allParticipantIds.map((userId) => {
+      if (userId === currentUser.uid) {
+        return currentUser.username;
+      }
+      const user = usersMap[userId];
+      return user ? user.username : "Unknown";
+    });
+
+    // Create new conversation document in Firestore
+    const conversationsRef = collection(db, "conversations");
+    const newConversation = {
+      participants: allParticipantIds,
+      participantUsernames,
+      isGroup: true,
+      groupName,
+      groupImageURL: groupImageURL || null,
+      lastMessage: "",
+      lastMessageSenderId: "",
+      lastMessageTimestamp: null,
+      createdAt: serverTimestamp(),
+      lastEdit: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(conversationsRef, newConversation);
+
+    // Return the created conversation ID
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating group conversation:", error);
+    throw error;
+  }
+};
