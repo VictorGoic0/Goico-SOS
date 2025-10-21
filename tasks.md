@@ -1216,11 +1216,67 @@ Since you've never used React Native, this PR focuses on getting your developmen
 - [ ] 2. Display circular profile photo (or placeholder with initials) in the header
 - [ ] 3. Ensure online/offline status indicator appears next to the profile photo
 
+**Delete Conversation Feature:**
+
+- [ ] 4. Create utility function in `src/utils/conversation.js`:
+
+  - Add function: `deleteConversation(conversationId)`
+  - Delete all messages in the conversation subcollection
+  - Delete the conversation document from Firestore
+  - Handle errors gracefully
+
+- [ ] 5. In `HomeScreen.js`, add long-press/context menu to user list items:
+
+  - Only show delete option if a conversation exists with that user
+  - Check `conversationsMap` for existing conversation with user
+  - Display menu with "Delete Conversation" option
+
+- [ ] 6. On delete tap from HomeScreen:
+
+  - Show confirmation modal/alert: "Delete conversation with [username]?"
+  - Include message: "This will delete all messages. You can message them again to start a new conversation."
+  - Add "Cancel" and "Delete" buttons
+
+- [ ] 7. On confirmation, call `deleteConversation(conversationId)`
+
+  - Show loading indicator while deleting
+  - Navigate away or refresh list after deletion
+  - Show success feedback (toast or brief message)
+
+- [ ] 8. In `ChatScreen.js`, add "Delete Conversation" button to header:
+
+  - Button should always be visible (trash icon or text)
+  - Disable button if no messages exist (0 messages)
+  - Enable button only if 1 or more messages exist
+
+- [ ] 9. On delete button tap from ChatScreen:
+
+  - Show confirmation modal/alert: "Delete this entire conversation?"
+  - Include message: "This will permanently delete all messages. This cannot be undone."
+  - Add "Cancel" and "Delete" buttons
+
+- [ ] 10. On confirmation from ChatScreen:
+
+  - Call `deleteConversation(conversationId)`
+  - Show loading indicator while deleting
+  - Navigate back to HomeScreen after successful deletion
+  - Show success feedback
+
+- [ ] 11. Update Firestore security rules (if needed):
+
+  - Ensure users can delete their own conversations
+  - Verify both participants can delete the conversation
+
+- [ ] 12. Handle edge cases:
+  - What happens if other user is viewing conversation while it's deleted
+  - Handle deletion errors (network issues, permission errors)
+  - Prevent double-deletion (disable button after first tap)
+
 **Create Group Chat Screen:**
 
-- [ ] 4. Create file: `src/screens/CreateGroupScreen.js`
+- [ ] 13. Create file: `src/screens/CreateGroupScreen.js`
 
-- [ ] 5. Add UI Components:
+- [ ] 14. Add UI Components:
   - Header: "Create Group"
   - Group Name TextInput
   - "Add Group Photo" Button (optional)
@@ -1231,29 +1287,29 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Multi-Select User List:**
 
-- [ ] 6. In `CreateGroupScreen.js`:
+- [ ] 15. In `CreateGroupScreen.js`:
 
   - Add state to track selected user IDs: `const [selectedUsers, setSelectedUsers] = useState([])`
 
-- [ ] 7. Render all users (except current user) with checkboxes
+- [ ] 16. Render all users (except current user) with checkboxes
 
-- [ ] 8. Toggle selection on checkbox tap
+- [ ] 17. Toggle selection on checkbox tap
 
-- [ ] 9. Add validation: Minimum 2 users required to create group
+- [ ] 18. Add validation: Minimum 2 users required to create group
 
 **Implement Create Group:**
 
-- [ ] 10. In `src/utils/messaging.js`:
+- [ ] 19. In `src/utils/messaging.js`:
 
   - Add function: `createGroupConversation(groupName, participantIds, groupImageURL)`
 
-- [ ] 11. Inside `createGroupConversation`:
+- [ ] 20. Inside `createGroupConversation`:
 
   - Generate conversationId (auto-generated)
   - Add current user to participants
   - Get usernames for all participants from Firebase store
 
-- [ ] 12. Create conversation document in Firestore:
+- [ ] 21. Create conversation document in Firestore:
 
   ```javascript
   {
@@ -1271,25 +1327,25 @@ Since you've never used React Native, this PR focuses on getting your developmen
   }
   ```
 
-- [ ] 13. Return conversationId
+- [ ] 22. Return conversationId
 
 **Connect Create Button:**
 
-- [ ] 14. In `CreateGroupScreen.js`:
+- [ ] 23. In `CreateGroupScreen.js`:
 
   - On "Create Group" button press:
     - Validate group name not empty
     - Validate at least 2 users selected
 
-- [ ] 15. If group photo selected, upload it first (to Firebase Storage)
+- [ ] 24. If group photo selected, upload it first (to Firebase Storage)
 
-- [ ] 16. Call `createGroupConversation` with group data
+- [ ] 25. Call `createGroupConversation` with group data
 
-- [ ] 17. Navigate to ChatScreen with new conversationId
+- [ ] 26. Navigate to ChatScreen with new conversationId
 
 **Update ChatScreen for Groups:**
 
-- [ ] 18. In `src/screens/ChatScreen.js`:
+- [ ] 27. In `src/screens/ChatScreen.js`:
 
   - Detect if conversation is group:
     ```javascript
@@ -1299,38 +1355,38 @@ Since you've never used React Native, this PR focuses on getting your developmen
     const isGroup = conversation?.isGroup || false;
     ```
 
-- [ ] 19. If group, update header to show:
+- [ ] 28. If group, update header to show:
   - Group name instead of user name
   - Participant count (e.g., "3 members")
   - Tap header → navigate to GroupInfoScreen
 
 **Update MessageBubble for Groups:**
 
-- [ ] 20. In `src/components/MessageBubble.js`:
+- [ ] 29. In `src/components/MessageBubble.js`:
 
   - Add prop: `isGroup` and `senderUsername`
 
-- [ ] 21. If group and message is from another user:
+- [ ] 30. If group and message is from another user:
   - Show sender's name above message
   - Use different colors for different senders (optional)
 
 **Update Message Sending for Groups:**
 
-- [ ] 22. Verify `sendMessage` function in `src/utils/messaging.js` works for both 1-on-1 and groups
+- [ ] 31. Verify `sendMessage` function in `src/utils/messaging.js` works for both 1-on-1 and groups
   - Should already work without changes
   - Messages go to same subcollection structure
 
 **Update Delivered Status for Groups:**
 
-- [ ] 23. In `ChatScreen.js`:
+- [ ] 32. In `ChatScreen.js`:
   - For groups, mark as "delivered" when current user receives
   - (Advanced: track delivered status per user - optional for MVP)
 
 **Create Group Info Screen:**
 
-- [ ] 24. Create file: `src/screens/GroupInfoScreen.js`
+- [ ] 33. Create file: `src/screens/GroupInfoScreen.js`
 
-- [ ] 25. Add UI Components:
+- [ ] 34. Add UI Components:
   - Group photo (large, circular)
   - Group name (editable TextInput for creator, read-only for others)
   - Participants section title
@@ -1340,36 +1396,36 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Implement Leave Group:**
 
-- [ ] 26. In `GroupInfoScreen.js`:
+- [ ] 35. In `GroupInfoScreen.js`:
 
   - "Leave Group" button:
     - Remove current user from participants array in Firestore
     - Update conversation document
 
-- [ ] 27. Navigate back to Home screen after leaving
+- [ ] 36. Navigate back to Home screen after leaving
 
 **Add Navigation:**
 
-- [ ] 28. In `src/navigation/AppNavigator.js`:
+- [ ] 37. In `src/navigation/AppNavigator.js`:
   - Add CreateGroupScreen to Main Stack
   - Add GroupInfoScreen to Main Stack
 
 **Add "Create Group" Button to Home Screen:**
 
-- [ ] 29. In `src/screens/HomeScreen.js`:
+- [ ] 38. In `src/screens/HomeScreen.js`:
 
   - Add floating action button (FAB) or header button for "Create Group"
 
-- [ ] 30. On tap, navigate to CreateGroupScreen
+- [ ] 39. On tap, navigate to CreateGroupScreen
 
 **Update Conversations List (Optional Enhancement):**
 
-- [ ] 31. In `src/screens/HomeScreen.js`:
+- [ ] 40. In `src/screens/HomeScreen.js`:
 
   - Fetch user's conversations from Firestore
   - Display both 1-on-1 and group conversations
 
-- [ ] 32. For each conversation:
+- [ ] 41. For each conversation:
   - Show group icon for group chats
   - Display last message preview
   - Display timestamp of last message
