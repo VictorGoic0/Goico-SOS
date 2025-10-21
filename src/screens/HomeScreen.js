@@ -1,4 +1,4 @@
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -23,10 +23,10 @@ export default function HomeScreen({ navigation }) {
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const users = useFirebaseStore((state) => state.users);
   const setUsers = useFirebaseStore((state) => state.setUsers);
+  const conversationsMap = useFirebaseStore((state) => state.conversationsMap);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [existingConversations, setExistingConversations] = useState(new Set());
   const [deletingConversationId, setDeletingConversationId] = useState(null);
 
   // Configure header with profile icon
@@ -88,31 +88,6 @@ export default function HomeScreen({ navigation }) {
     return () => unsubscribe();
   }, [setUsers]);
 
-  // Listen to conversations for current user (only fetch IDs, not full data)
-  useEffect(() => {
-    if (!currentUser?.uid) return;
-
-    const conversationsRef = collection(db, "conversations");
-    const q = query(
-      conversationsRef,
-      where("participants", "array-contains", currentUser.uid)
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        // Only store conversation IDs, not full conversation data
-        const conversationIds = new Set(snapshot.docs.map((doc) => doc.id));
-        setExistingConversations(conversationIds);
-      },
-      (error) => {
-        console.error("Error fetching conversations:", error);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [currentUser?.uid]);
-
   const handleRefresh = () => {
     setIsRefreshing(true);
     // The onSnapshot listener will automatically refresh
@@ -145,7 +120,7 @@ export default function HomeScreen({ navigation }) {
     // Check if a conversation exists with this user
     const conversationId = getConversationId(currentUser.uid, user.userId);
 
-    if (!existingConversations.has(conversationId)) {
+    if (!conversationsMap[conversationId]) {
       // No conversation exists
       return;
     }
@@ -173,13 +148,7 @@ export default function HomeScreen({ navigation }) {
       setDeletingConversationId(conversationId);
       await deleteConversation(conversationId);
 
-      // Optimistically remove from local state immediately
-      // (Firestore listener will sync eventually, but this ensures instant UI update)
-      setExistingConversations((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(conversationId);
-        return newSet;
-      });
+      // Firestore listener will automatically update the global store
 
       // Show success feedback
       Alert.alert(

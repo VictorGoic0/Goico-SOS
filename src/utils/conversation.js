@@ -5,12 +5,14 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   query,
   serverTimestamp,
   setDoc,
   where,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import useFirebaseStore from "../stores/firebaseStore";
 
 /**
  * Generate a consistent conversation ID for two users
@@ -213,4 +215,42 @@ export const deleteConversation = async (conversationId) => {
     console.error("Error deleting conversation:", error);
     throw error;
   }
+};
+
+/**
+ * Listen to all conversations for a user in real-time
+ * Updates the firebaseStore with conversation data
+ * @param {string} userId - User ID to listen for
+ * @returns {Function} Unsubscribe function
+ */
+export const listenToConversations = (userId) => {
+  if (!userId) {
+    console.error("Cannot listen to conversations: No user ID provided");
+    return () => {}; // Return empty unsubscribe function
+  }
+
+  const conversationsRef = collection(db, "conversations");
+  const q = query(
+    conversationsRef,
+    where("participants", "array-contains", userId)
+  );
+
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      // Store full conversation data in global store
+      const conversationsData = snapshot.docs.map((doc) => ({
+        conversationId: doc.id,
+        ...doc.data(),
+      }));
+
+      // Update the firebase store
+      useFirebaseStore.getState().setConversations(conversationsData);
+    },
+    (error) => {
+      console.error("Error listening to conversations:", error);
+    }
+  );
+
+  return unsubscribe;
 };

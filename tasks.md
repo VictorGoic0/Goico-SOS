@@ -1248,17 +1248,56 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - Check `conversationsMap` for existing conversation with user
   - Display menu with "Delete Conversation" option
 
+  **Implementation:**
+
+  - Added `conversationsMap` from global firebaseStore (instead of local state)
+  - Created `handleUserLongPress(user)` function that checks if conversation exists
+  - Uses `getConversationId(currentUser.uid, user.userId)` to determine conversation ID
+  - Only shows alert if `conversationsMap[conversationId]` exists
+  - Passes `onLongPress` prop to `UserListItem` component
+
+  **Architectural Decision:**
+
+  - Moved conversation listener from HomeScreen to AppNavigator (global)
+  - Created `listenToConversations(userId)` utility in `conversation.js`
+  - Follows same pattern as `listenToPresence()` for consistency
+  - Stores full conversation data (not just IDs) in global store for future features (last message, timestamps, etc.)
+
 - [x] 9. On delete tap from HomeScreen:
 
   - Show confirmation modal/alert: "Delete conversation with [username]?"
   - Include message: "This will delete all messages. You can message them again to start a new conversation."
   - Add "Cancel" and "Delete" buttons
 
+  **Implementation:**
+
+  - Uses React Native's `Alert.alert()` with custom title and message
+  - Displays user's display name or username in confirmation
+  - Two buttons: "Cancel" (style: "cancel") and "Delete" (style: "destructive")
+  - Destructive button triggers `handleDeleteConversation(conversationId, user)`
+
 - [x] 10. On confirmation, call `deleteConversation(conversationId)`
 
   - Show loading indicator while deleting
   - Navigate away or refresh list after deletion
   - Show success feedback (toast or brief message)
+
+  **Implementation:**
+
+  - `handleDeleteConversation` calls `deleteConversation(conversationId)` from utils
+  - Sets `deletingConversationId` state to show loading indicator in UserListItem
+  - UserListItem receives `isDeleting` prop and shows ActivityIndicator instead of chevron
+  - Disables user interaction while deleting (disabled prop on TouchableOpacity)
+  - Shows success Alert after deletion completes
+  - Shows error Alert if deletion fails
+  - Firestore listener automatically updates global store (no optimistic update needed)
+
+  **Files Modified:**
+
+  - `src/screens/HomeScreen.js` - Added delete handlers, consuming conversationsMap from global store
+  - `src/components/UserListItem.js` - Added onLongPress, isDeleting props, loading indicator
+  - `src/utils/conversation.js` - Added listenToConversations(userId) utility function
+  - `src/navigation/AppNavigator.js` - Added conversations listener alongside presence listener
 
 - [ ] 11. In `ChatScreen.js`, add "Delete Conversation" button to header:
 

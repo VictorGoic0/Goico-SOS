@@ -24,6 +24,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 
 // Utils
 import { colors, spacing, typography } from "../styles/tokens";
+import { listenToConversations } from "../utils/conversation";
 import {
   initializePresence,
   listenToPresence,
@@ -99,6 +100,16 @@ export default function AppNavigator() {
     const unsubscribe = listenToPresence();
     return unsubscribe;
   }, []);
+
+  // Listen to conversations for current user
+  useEffect(() => {
+    if (!currentUser?.uid || !hasUsername) {
+      return;
+    }
+
+    const unsubscribe = listenToConversations(currentUser.uid);
+    return unsubscribe;
+  }, [currentUser?.uid, hasUsername]);
 
   // Handle app state changes (foreground/background)
   useEffect(() => {
