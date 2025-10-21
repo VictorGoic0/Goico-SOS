@@ -19,9 +19,11 @@ import Button from "../components/Button";
 import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
-import { createGroupConversation } from "../utils/conversation";
+import {
+  createGroupConversation,
+  updateGroupConversation,
+} from "../utils/conversation";
 import { getAvatarColor, getInitials } from "../utils/helpers";
-import { uploadProfileImage } from "../utils/profile";
 
 export default function CreateGroupScreen({ navigation }) {
   const currentUser = useFirebaseStore((state) => state.currentUser);
@@ -120,30 +122,29 @@ export default function CreateGroupScreen({ navigation }) {
     setIsCreating(true);
 
     try {
-      let groupImageURL = null;
+      // Task 28: Create group conversation first (without photo)
+      const conversationId = await createGroupConversation(
+        groupName.trim(),
+        selectedUsers,
+        null // No photo URL yet
+      );
 
-      // Task 27: If group photo selected, upload it first
+      // Task 27: If group photo selected, update conversation with photo
       if (groupPhoto) {
         try {
-          // Generate a unique ID for the group photo (using timestamp)
-          const groupPhotoId = `group_${Date.now()}`;
-          groupImageURL = await uploadProfileImage(groupPhotoId, groupPhoto);
+          // Use updateGroupConversation to upload and update in one call
+          await updateGroupConversation(conversationId, {
+            imageUri: groupPhoto, // Will be uploaded to conversation-files/{conversationId}/group-photo.jpg
+          });
         } catch (uploadError) {
           console.error("Error uploading group photo:", uploadError);
           // Continue without photo if upload fails
           Alert.alert(
             "Photo Upload Failed",
-            "Group will be created without a photo."
+            "Group was created but photo upload failed."
           );
         }
       }
-
-      // Task 28: Call createGroupConversation with group data
-      const conversationId = await createGroupConversation(
-        groupName.trim(),
-        selectedUsers,
-        groupImageURL
-      );
 
       // Task 29: Navigate to ChatScreen with new conversationId
       navigation.replace("Chat", {

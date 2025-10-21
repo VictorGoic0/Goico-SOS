@@ -9,9 +9,11 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
-import { db } from "../config/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { db, storage } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 
 /**
@@ -253,6 +255,71 @@ export const listenToConversations = (userId) => {
   );
 
   return unsubscribe;
+};
+
+/**
+ * Upload group photo to Firebase Storage
+ * @param {string} conversationId - Conversation ID for the group
+ * @param {string} imageUri - Local image URI
+ * @returns {Promise<string>} Download URL of uploaded image
+ */
+export const uploadGroupPhoto = async (conversationId, imageUri) => {
+  try {
+    // Convert image URI to blob
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+
+    // Create reference to Firebase Storage in conversation-files path
+    // Path: conversation-files/{conversationId}/group-photo.jpg
+    const storageRef = ref(
+      storage,
+      `conversation-files/${conversationId}/group-photo.jpg`
+    );
+
+    // Upload image
+    await uploadBytes(storageRef, blob);
+
+    // Get download URL
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error("Error uploading group photo:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update group conversation information
+ * @param {string} conversationId - Conversation ID
+ * @param {Object} updates - Fields to update
+ * @param {string} [updates.groupName] - New group name
+ * @param {string} [updates.imageUri] - Local image URI to upload
+ * @param {string} [updates.groupImageURL] - Direct group image URL
+ * @returns {Promise<void>}
+ */
+export const updateGroupConversation = async (conversationId, updates) => {
+  try {
+    const conversationRef = doc(db, "conversations", conversationId);
+
+    // If updating image via local URI, upload it first
+    if (updates.imageUri) {
+      const groupImageURL = await uploadGroupPhoto(
+        conversationId,
+        updates.imageUri
+      );
+      updates.groupImageURL = groupImageURL;
+      delete updates.imageUri; // Remove local URI from updates
+    }
+
+    // Add lastEdit timestamp
+    updates.lastEdit = serverTimestamp();
+
+    // Update the conversation document
+    await updateDoc(conversationRef, updates);
+  } catch (error) {
+    console.error("Error updating group conversation:", error);
+    throw error;
+  }
 };
 
 /**
