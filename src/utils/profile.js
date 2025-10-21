@@ -151,8 +151,6 @@ export const createUserProfile = async (profileData) => {
       displayName: userData.displayName,
       imageURL: userData.imageURL,
     });
-
-    console.log("✅ User profile created successfully");
   } catch (error) {
     console.error("Error creating user profile:", error);
 
@@ -188,8 +186,6 @@ export const updateUserProfile = async (userId, updates) => {
     updates.lastEdit = serverTimestamp();
 
     await updateDoc(userRef, updates);
-
-    console.log("✅ User profile updated successfully");
   } catch (error) {
     console.error("Error updating user profile:", error);
     throw error;

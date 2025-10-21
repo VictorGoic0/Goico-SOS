@@ -49,8 +49,7 @@ export default function SignupScreen({ navigation }) {
     // Attempt signup
     setLoading(true);
     try {
-      const user = await signUpUser(email, password);
-      console.log("✅ User signed up:", user.uid);
+      await signUpUser(email, password);
       // Navigate to ProfileSetupScreen (will be created in PR #4)
       // For now, we'll just log success
     } catch (err) {

@@ -101,7 +101,6 @@ export default function ProfileSetupScreen({ navigation }) {
       });
 
       // Navigation will automatically update once currentUser has username
-      console.log("✅ Profile created successfully");
     } catch (error) {
       console.error("Profile creation error:", error);
 

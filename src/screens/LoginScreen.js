@@ -38,8 +38,7 @@ export default function LoginScreen({ navigation }) {
     // Attempt login
     setLoading(true);
     try {
-      const user = await signInUser(email, password);
-      console.log("✅ User logged in:", user.uid);
+      await signInUser(email, password);
       // Navigation will be handled by auth state listener in App.js
     } catch (err) {
       setError(getAuthErrorMessage(err.code));

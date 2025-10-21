@@ -72,8 +72,6 @@ export default function HomeScreen({ navigation }) {
         setUsers(usersData);
         setIsLoading(false);
         setIsRefreshing(false);
-
-        console.log("✅ Users loaded:", usersData.length);
       },
       (error) => {
         console.error("Error fetching users:", error);

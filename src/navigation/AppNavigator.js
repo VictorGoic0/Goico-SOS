@@ -57,18 +57,12 @@ export default function AppNavigator() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log("✅ User authenticated:", user.uid);
-
         try {
           // Fetch user profile from Firestore to check if username exists
           const userProfile = await getUserProfile(user.uid);
 
           if (userProfile && userProfile.username) {
             // User has completed profile setup
-            console.log(
-              "✅ User profile found with username:",
-              userProfile.username
-            );
             setCurrentUser({
               ...user,
               ...userProfile,
@@ -79,7 +73,6 @@ export default function AppNavigator() {
             await initializePresence(user.uid);
           } else {
             // User needs to complete profile setup
-            console.log("⚠️ User profile not found or missing username");
             setCurrentUser(user);
             setHasUsername(false);
           }
@@ -92,7 +85,6 @@ export default function AppNavigator() {
           setIsCheckingProfile(false);
         }
       } else {
-        console.log("❌ User signed out");
         setCurrentUser(null);
         setHasUsername(false);
         setIsCheckingProfile(false);

@@ -55,8 +55,4 @@ export const db = initializeFirestore(app, {
 export const realtimeDb = getDatabase(app);
 export const storage = getStorage(app);
 
-// Log Firebase initialization (useful for debugging)
-console.log("✅ Firebase initialized successfully");
-console.log("📦 Project ID:", firebaseConfig.projectId);
-
 export default app;

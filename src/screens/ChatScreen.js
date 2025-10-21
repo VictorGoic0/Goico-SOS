@@ -172,7 +172,6 @@ export default function ChatScreen({ route, navigation }) {
           activeOpacity={0.7}
           onPress={() => {
             // TODO: Navigate to user profile or conversation info
-            console.log("Header tapped - navigate to user profile");
           }}
         >
           {/* Profile Photo */}

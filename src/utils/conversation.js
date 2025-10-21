@@ -70,8 +70,6 @@ export const getOrCreateConversation = async (
 
     await setDoc(conversationRef, newConversation);
 
-    console.log("✅ Conversation created:", conversationId);
-
     return {
       conversationId,
       ...newConversation,
@@ -147,8 +145,6 @@ export const sendMessage = async (
 
     // Update conversation's last message
     await updateConversationLastMessage(conversationId, text, senderId);
-
-    console.log("✅ Message sent:", docRef.id);
 
     return {
       messageId: docRef.id,

@@ -35,8 +35,6 @@ export const initializePresence = async (userId) => {
       isOnline: false,
       lastSeen: serverTimestamp(),
     });
-
-    console.log("✅ Presence initialized for user:", userId);
   } catch (error) {
     console.error("Error initializing presence:", error);
   }
@@ -61,10 +59,6 @@ export const updatePresence = async (userId, isOnline) => {
       isOnline,
       lastSeen: serverTimestamp(),
     });
-
-    console.log(
-      `✅ Presence updated for ${userId}: ${isOnline ? "online" : "offline"}`
-    );
   } catch (error) {
     console.error("Error updating presence:", error);
   }
@@ -85,12 +79,6 @@ export const listenToPresence = () => {
 
       // Update the presence store
       usePresenceStore.getState().setAllPresence(presenceData);
-
-      console.log(
-        "✅ Presence data updated:",
-        Object.keys(presenceData).length,
-        "users"
-      );
     },
     (error) => {
       console.error("Error listening to presence:", error);
@@ -117,8 +105,6 @@ export const setUserOffline = async (userId) => {
       isOnline: false,
       lastSeen: serverTimestamp(),
     });
-
-    console.log("✅ User set to offline:", userId);
   } catch (error) {
     console.error("Error setting user offline:", error);
   }
