@@ -1191,16 +1191,16 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Before Merge:**
 
-- [ ] Tap profile icon in Home screen → navigates to Profile screen
-- [ ] All fields pre-filled with current user data
-- [ ] Can change profile photo (uploads and displays new photo)
-- [ ] Can edit displayName and bio
-- [ ] Can change status
-- [ ] "Save Changes" updates Firestore and local state
-- [ ] Changes reflect immediately in UI
-- [ ] Changes visible in Home screen (if displayName changed)
-- [ ] Sign out works and returns to Login screen
-- [ ] Sign out updates presence to offline
+- [x] Tap profile icon in Home screen → navigates to Profile screen
+- [x] All fields pre-filled with current user data
+- [x] Can change profile photo (uploads and displays new photo)
+- [x] Can edit displayName and bio
+- [x] Can change status
+- [x] "Save Changes" updates Firestore and local state
+- [x] Changes reflect immediately in UI
+- [x] Changes visible in Home screen (if displayName changed)
+- [x] Sign out works and returns to Login screen
+- [x] Sign out updates presence to offline
 
 ---
 
