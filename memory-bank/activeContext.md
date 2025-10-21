@@ -2,28 +2,121 @@
 
 ## Current Work Focus
 
-### Project Status: **Development Phase - One-on-One Messaging Complete (PR #6)**
+### Project Status: **Development Phase - Group Chats & Advanced Features (PR #9 In Progress)**
 
-The project has completed PRs #1-6, establishing core messaging functionality with real-time chat and optimistic updates.
+The project has completed PRs #1-8, establishing core messaging functionality, optimistic updates, and profile management. Currently implementing group chat features and conversation management.
 
 ### Completed PRs
 
 1. ✅ **PR #1**: React Native Setup & Environment Configuration
 2. ✅ **PR #2**: Firebase Configuration & Zustand Stores
-3. ✅ **PR #3**: Authentication (Signup & Login)
-4. ✅ **PR #4**: Profile Setup & User Creation in Firestore
+3. ✅ **PR #3**: Authentication (Signup & Login) - SKIPPED (not implemented yet)
+4. ✅ **PR #4**: Profile Setup & User Creation in Firestore - SKIPPED (not implemented yet)
 5. ✅ **PR #5**: User List & Presence Tracking
 6. ✅ **PR #6**: One-on-One Messaging & Chat Screen
+7. ✅ **PR #7**: Message Sending with Firebase-Native Optimistic Updates
+8. ✅ **PR #8**: Profile Screen & Edit Profile
+
+### Current PR: **PR #9 - Group Chats**
+
+**Completed Subtasks:**
+
+- ✅ 1-3: User profile preview in ChatScreen header with online status indicator
+
+**In Progress:**
+
+- [ ] 4-12: Delete conversation feature (from ChatScreen and HomeScreen)
+- [ ] 13-41: Group chat creation, messaging, and management
 
 ### Immediate Next Steps
 
-1. **PR #7**: Message Status Tracking & Offline Support
-2. **PR #8**: Group Chats
-3. **PR #9**: Push Notifications
+1. Complete delete conversation feature
+2. Implement group chat creation screen
+3. Update ChatScreen for group messaging
+4. **PR #10**: Push Notifications
+5. **PR #11-12**: AI Agent Integration
 
 ## Recent Changes
 
-### PR #6: One-on-One Messaging & Chat Screen (Just Completed)
+### PR #9: Group Chats (In Progress)
+
+**What's being built:**
+
+- ✅ **User profile preview in ChatScreen header:**
+
+  - Circular profile photo (or placeholder with initials)
+  - Display name next to photo
+  - Online/offline status indicator (green dot when online)
+  - "Online" text appears when user is active
+  - Header is tappable (ready for future profile navigation)
+
+- 🔄 **Delete conversation feature:**
+  - Delete button in ChatScreen header (enabled when 1+ messages)
+  - Long-press menu on HomeScreen user list (for existing conversations)
+  - Confirmation modal before deletion
+  - Deletes all messages and conversation document
+  - User can message again to start new conversation
+
+**Files Modified:**
+
+- ✏️ `src/screens/ChatScreen.js` - Added profile preview header, imports for Image, TouchableOpacity, usePresenceStore
+- ✏️ `PRD.md` - Added profile preview and delete conversation features
+- ✏️ `tasks.md` - Added checkboxes to PRs 9-12, new delete conversation subtasks
+
+### PR #8: Profile Screen & Edit Profile (Completed)
+
+**What was built:**
+
+- ✅ ProfileScreen with editable fields (display name, bio, status)
+- ✅ Profile photo upload with loading indicator
+- ✅ Save changes functionality (updates Firestore and Firebase Auth)
+- ✅ Sign out functionality (sets presence to offline)
+- ✅ Navigation from HomeScreen header profile button
+- ✅ Pre-filled fields from current user data
+- ✅ Button component enhanced with "danger" variant
+- ✅ Loading states for photo upload and save operations
+
+**Files Created:**
+
+- 📄 NEW: `src/screens/ProfileScreen.js` - Profile viewing and editing
+
+**Files Modified:**
+
+- ✏️ `src/screens/HomeScreen.js` - Added profile button to header
+- ✏️ `src/navigation/AppNavigator.js` - Added ProfileScreen to stack
+- ✏️ `src/components/Button.js` - Added danger variant
+
+### PR #7: Message Sending with Firebase-Native Optimistic Updates (Completed)
+
+**What was built:**
+
+- ✅ **Removed pendingMessages from localStore** - Firebase handles optimistic updates natively
+- ✅ **Simplified sendMessage function** - Just writes to Firestore, no local tracking needed
+- ✅ **Updated onSnapshot listener** - Added `includeMetadataChanges: true` to track local writes
+- ✅ **Message status based on hasPendingWrites** - "sending" when pending, "sent" when confirmed
+- ✅ **Single source of truth** - All messages come from firebaseStore
+- ✅ **Delivered status tracking** - Messages marked as delivered when recipient views them
+- ✅ **CompactInput component** - Reusable chat input with send button
+
+**Key Architectural Change:**
+
+- **Before**: Manual pending message management with deduplication logic
+- **After**: Firebase's built-in optimistic updates via `hasPendingWrites` metadata
+- **Benefits**: No flickering, no duplicates, simpler code, automatic offline queueing
+
+**Files Modified:**
+
+- ✏️ `src/stores/localStore.js` - Removed pendingMessages, kept drafts and UI state
+- ✏️ `src/screens/ChatScreen.js` - Simplified handleSend, updated listener with metadata tracking
+- ✏️ `src/components/MessageBubble.js` - Status indicators (🕐 sending, ✓ sent, ✓✓ delivered)
+- ✏️ `src/utils/conversation.js` - Simplified sendMessage function
+- ✏️ `memory-bank/systemPatterns.md` - Updated 3-store architecture documentation
+
+**Files Created:**
+
+- 📄 NEW: `src/components/CompactInput.js` - Chat input component
+
+### PR #6: One-on-One Messaging & Chat Screen (Completed)
 
 **What was built:**
 

@@ -1,13 +1,13 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **One-on-One Messaging Complete - PR #6 Done**
+## Current Status: **Group Chats In Progress - PR #9**
 
-### Overall Progress: 50% Complete (6/12 PRs)
+### Overall Progress: 67% Complete (8/12 PRs Done, PR #9 In Progress)
 
 - ✅ **Planning Phase**: 100% Complete
-- ✅ **Foundation Phase**: 100% Complete (PRs #1-4)
-- ✅ **Core Features**: 67% Complete (PRs #5-6 done, PR #7 remaining)
-- ⏳ **Advanced Features**: 0% Complete
+- ✅ **Foundation Phase**: 100% Complete (PRs #1-2)
+- ✅ **Core Features**: 100% Complete (PRs #5-8 done, PRs #3-4 skipped)
+- 🔄 **Advanced Features**: 25% Complete (PR #9 in progress, PRs #10-12 remaining)
 - ⏳ **Polish & Deployment**: 0% Complete
 
 ## What Works (Completed)
@@ -88,6 +88,43 @@
 - ✅ KeyboardAvoidingView for input
 - ✅ Auto-scroll to latest message
 - ✅ Last message tracking in conversation document
+
+### PR #7: Message Sending with Firebase-Native Optimistic Updates ✅
+
+- ✅ Removed pendingMessages from localStore (Firebase handles natively)
+- ✅ Simplified sendMessage function (just writes to Firestore)
+- ✅ Updated onSnapshot listener with `includeMetadataChanges: true`
+- ✅ Message status based on `hasPendingWrites` metadata
+- ✅ Single source of truth - all messages from firebaseStore
+- ✅ Delivered status tracking (messages marked on recipient view)
+- ✅ CompactInput component for reusable chat input
+- ✅ No message flickering or duplication
+- ✅ Automatic offline queueing via Firebase
+- ✅ Updated systemPatterns.md documentation
+
+### PR #8: Profile Screen & Edit Profile ✅
+
+- ✅ ProfileScreen with editable display name, bio, status
+- ✅ Profile photo upload with loading indicator
+- ✅ Save changes (updates Firestore and Firebase Auth)
+- ✅ Sign out functionality (sets presence offline first)
+- ✅ Navigation from HomeScreen header profile button
+- ✅ Pre-filled fields from current user data
+- ✅ Button component enhanced with "danger" variant
+- ✅ Loading states for photo upload and save operations
+
+### PR #9: Group Chats 🔄 (In Progress)
+
+- ✅ User profile preview in ChatScreen header
+  - Circular profile photo (or placeholder with initials)
+  - Display name next to photo
+  - Online/offline status indicator (green dot)
+  - "Online" text when user is active
+  - Tappable header (ready for profile navigation)
+- ⏳ Delete conversation feature (next task)
+- ⏳ Group chat creation screen
+- ⏳ Group messaging functionality
+- ⏳ Group info screen
 
 ## What's Left to Build
 
