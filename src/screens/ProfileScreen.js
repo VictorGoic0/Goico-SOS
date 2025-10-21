@@ -1,5 +1,8 @@
+import * as ImagePicker from "expo-image-picker";
+import { updateProfile } from "firebase/auth";
 import React, { useState } from "react";
 import {
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -9,13 +12,17 @@ import {
 } from "react-native";
 import Button from "../components/Button";
 import Input from "../components/Input";
+import { auth } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import { getAvatarColor, getInitials } from "../utils/helpers";
+import { updateUserProfile, uploadProfileImage } from "../utils/profile";
 
 export default function ProfileScreen({ navigation }) {
   // Get current user from Firebase store
   const currentUser = useFirebaseStore((state) => state.currentUser);
+  const setCurrentUser = useFirebaseStore((state) => state.setCurrentUser);
+  const updateUser = useFirebaseStore((state) => state.updateUser);
 
   // Local state for editable fields
   const [displayName, setDisplayName] = useState(
@@ -29,14 +36,115 @@ export default function ProfileScreen({ navigation }) {
 
   const statusOptions = ["Available", "Busy", "Away"];
 
-  const handleChangePhoto = () => {
-    // TODO: Implement in next subtask
-    console.log("Change photo tapped");
+  const handleChangePhoto = async () => {
+    try {
+      // Request permission
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Please grant photo library access to upload a profile picture."
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1], // Square crop
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setIsUploading(true);
+
+        try {
+          // Upload image to Firebase Storage
+          const downloadURL = await uploadProfileImage(
+            currentUser.uid,
+            result.assets[0].uri
+          );
+
+          // Update local state
+          setImageURL(downloadURL);
+
+          // Update Firestore
+          await updateUserProfile(currentUser.uid, {
+            imageURL: downloadURL,
+          });
+
+          // Update Firebase store
+          updateUser(currentUser.uid, { imageURL: downloadURL });
+
+          // Also update currentUser in store
+          setCurrentUser({
+            ...currentUser,
+            imageURL: downloadURL,
+          });
+
+          Alert.alert("Success", "Profile photo updated successfully!");
+        } catch (error) {
+          console.error("Error uploading photo:", error);
+          Alert.alert("Error", "Failed to upload photo. Please try again.");
+        } finally {
+          setIsUploading(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image. Please try again.");
+    }
   };
 
-  const handleSaveChanges = () => {
-    // TODO: Implement in next subtask
-    console.log("Save changes tapped");
+  const handleSaveChanges = async () => {
+    // Validate display name
+    if (!displayName.trim()) {
+      Alert.alert("Validation Error", "Display name cannot be empty.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Update Firestore user document
+      await updateUserProfile(currentUser.uid, {
+        displayName: displayName.trim(),
+        bio: bio.trim(),
+        status: status,
+      });
+
+      // Update Firebase Auth displayName
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: displayName.trim(),
+        });
+      }
+
+      // Update Firebase store
+      const updates = {
+        displayName: displayName.trim(),
+        bio: bio.trim(),
+        status: status,
+      };
+
+      updateUser(currentUser.uid, updates);
+
+      // Also update currentUser in store
+      setCurrentUser({
+        ...currentUser,
+        ...updates,
+      });
+
+      Alert.alert("Success", "Profile updated successfully!");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      Alert.alert("Error", "Failed to save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSignOut = () => {
