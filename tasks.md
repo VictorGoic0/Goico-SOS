@@ -817,8 +817,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Implement Send Message Function (Firebase-Native Approach):**
 
-- [ ] **1.** File: `src/utils/conversation.js` (used instead of messaging.js)
-- [ ] **2.** Function: `sendMessage(conversationId, text, senderId, senderUsername)`
+- [x] **1.** File: `src/utils/conversation.js` (used instead of messaging.js)
+- [x] **2.** Function: `sendMessage(conversationId, text, senderId, senderUsername)`
   - **Simplified**: Just write to Firestore directly
   - Firebase's local cache handles optimistic updates automatically
   - Write to Firestore:
@@ -840,10 +840,10 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Connect Send Button to Function:**
 
-- [ ] **3.** In `ChatScreen.js`:
-- [ ] **4.** Using Zustand drafts for input text (keep this pattern)
-- [ ] **5.** Enable send button when inputText is not empty
-- [ ] **6.** On send button press:
+- [x] **3.** In `ChatScreen.js`:
+- [x] **4.** Using Zustand drafts for input text (keep this pattern)
+- [x] **5.** Enable send button when inputText is not empty
+- [x] **6.** On send button press:
   - Call `sendMessage(conversationId, inputText, currentUserId, currentUsername)`
   - Clear input via `clearDraft(conversationId)`
   - Message appears instantly via Firebase's local cache
@@ -851,10 +851,10 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Set Up Firebase Listener with Metadata Changes:**
 
-- [ ] **7.** In `ChatScreen.js`:
-- [ ] **8.** Set up onSnapshot listener with `{ includeMetadataChanges: true }`
-- [ ] **9.** This option enables tracking of local writes vs server-confirmed writes
-- [ ] **10.** Map messages from snapshot:
+- [x] **7.** In `ChatScreen.js`:
+- [x] **8.** Set up onSnapshot listener with `{ includeMetadataChanges: true }`
+- [x] **9.** This option enables tracking of local writes vs server-confirmed writes
+- [x] **10.** Map messages from snapshot:
   ```javascript
   const messages = snapshot.docs.map((doc) => ({
     messageId: doc.id,
@@ -866,31 +866,31 @@ Since you've never used React Native, this PR focuses on getting your developmen
       : doc.data().status || "sent",
   }));
   ```
-- [ ] **11.** Store directly in firebaseStore - no merging needed!
+- [x] **11.** Store directly in firebaseStore - no merging needed!
 
 **Add Message Status Indicators:**
 
-- [ ] **12.** In `MessageBubble.js`:
-- [ ] **13.** If message is from current user, show status icon:
+- [x] **12.** In `MessageBubble.js`:
+- [x] **13.** If message is from current user, show status icon:
   - "sending": Clock emoji 🕐
   - "sent": Single checkmark ✓
   - "delivered": Double checkmark ✓✓
   - "read": Blue double checkmark ✓✓ (for future PR)
-- [ ] **14.** Position status icon at bottom-right of message bubble with timestamp
+- [x] **14.** Position status icon at bottom-right of message bubble with timestamp
 
 **Handle Delivered Status Update:**
 
-- [ ] **15.** In `ChatScreen.js`, in the onSnapshot listener:
-- [ ] **16.** When a new message is added and it's not from current user:
+- [x] **15.** In `ChatScreen.js`, in the onSnapshot listener:
+- [x] **16.** When a new message is added and it's not from current user:
   - Update message status to "delivered" in Firestore
   - Uses `docChanges()` to detect new messages
   - Only marks as delivered if status is currently "sent"
 
 **Update Firebase Store on Status Changes:**
 
-- [ ] **17.** `updateMessageStatus` function exists in firebaseStore
-- [ ] **18.** Messages automatically update in store via onSnapshot listener
-- [ ] **19.** Status changes propagate to UI in real-time
+- [x] **17.** `updateMessageStatus` function exists in firebaseStore
+- [x] **18.** Messages automatically update in store via onSnapshot listener
+- [x] **19.** Status changes propagate to UI in real-time
 
 **Handle Keyboard Behavior:**
 
@@ -901,22 +901,22 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Auto-Scroll to Bottom:**
 
-- [ ] **24.** In `ChatScreen.js`:
-- [ ] **25.** Use FlatList ref
-- [ ] **26.** Scroll to end on content size change and layout
-- [ ] **27.** Scroll to end after sending message (with 100ms delay for smooth animation)
+- [x] **24.** In `ChatScreen.js`:
+- [x] **25.** Use FlatList ref
+- [x] **26.** Scroll to end on content size change and layout
+- [x] **27.** Scroll to end after sending message (with 100ms delay for smooth animation)
 
 **Use Firebase's Built-in Optimistic Updates (hasPendingWrites):**
 
 > **Architectural Decision**: Firebase Firestore has built-in optimistic updates with offline persistence. We don't need a separate pendingMessages array - Firebase handles this automatically through its local cache and metadata tracking.
 
-- [ ] **28. Remove pendingMessages from localStore**
+- [x] **28. Remove pendingMessages from localStore**
 
   - Delete `pendingMessages` state from `src/stores/localStore.js`
   - Delete `addPendingMessage` and `removePendingMessage` actions
   - Keep `drafts`, `isSending`, and `isLoadingConversation` (these are still useful)
 
-- [ ] **29. Update conversation.js sendMessage function**
+- [x] **29. Update conversation.js sendMessage function**
 
   - Simplify to just write to Firestore directly
   - No need to add to localStore first
@@ -954,7 +954,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   }
   ```
 
-- [ ] **30. Update ChatScreen onSnapshot listener**
+- [x] **30. Update ChatScreen onSnapshot listener**
 
   - Add `{ includeMetadataChanges: true }` option to onSnapshot
   - This enables tracking of local vs server-confirmed writes
@@ -998,7 +998,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   }, [conversationId]);
   ```
 
-- [ ] **31. Update ChatScreen handleSend**
+- [x] **31. Update ChatScreen handleSend**
 
   - Remove all localStore pendingMessages logic
   - Just call sendMessage and let Firebase handle optimistic updates
@@ -1029,7 +1029,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   };
   ```
 
-- [ ] **32. Benefits of Firebase's Built-in Approach**
+- [x] **32. Benefits of Firebase's Built-in Approach**
   - ✅ No duplicate messages or flickering
   - ✅ No manual deduplication needed
   - ✅ Single source of truth (Firebase cache)
@@ -1041,12 +1041,12 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test with Firestore Offline Persistence:**
 
-- [ ] **33.** Turn on airplane mode
-- [ ] **34.** Send 3 messages → all show "sending" status (hasPendingWrites: true)
-- [ ] **35.** Turn off airplane mode
-- [ ] **36.** Messages automatically sync to Firestore (Firebase handles queue)
-- [ ] **37.** Status updates from "sending" to "sent" (hasPendingWrites: false)
-- [ ] **38.** Verify in Firebase console
+- [x] **33.** Turn on airplane mode
+- [x] **34.** Send 3 messages → all show "sending" status (hasPendingWrites: true)
+- [x] **35.** Turn off airplane mode
+- [x] **36.** Messages automatically sync to Firestore (Firebase handles queue)
+- [x] **37.** Status updates from "sending" to "sent" (hasPendingWrites: false)
+- [x] **38.** Verify in Firebase console
 
 **Note on Persistence:**
 
@@ -1068,17 +1068,17 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Before Merge:**
 
-- [ ] Can type message and tap send button
-- [ ] Message appears instantly with "sending" status (🕐)
-- [ ] Status changes to "sent ✓" after Firestore confirms
-- [ ] Open second device as other user → message appears
-- [ ] Second device marks message as "delivered ✓✓"
-- [ ] First device sees status update to "delivered"
-- [ ] Offline test: send messages in airplane mode → sync when reconnected
-- [ ] Keyboard doesn't cover input field
-- [ ] FlatList auto-scrolls to new messages
-- [ ] Draft messages persist when navigating away and back
-- [ ] Current user visible in user list but not clickable (shows "You" badge)
+- [x] Can type message and tap send button
+- [x] Message appears instantly with "sending" status (🕐)
+- [x] Status changes to "sent ✓" after Firestore confirms
+- [x] Open second device as other user → message appears
+- [x] Second device marks message as "delivered ✓✓"
+- [x] First device sees status update to "delivered"
+- [x] Offline test: send messages in airplane mode → sync when reconnected
+- [x] Keyboard doesn't cover input field
+- [x] FlatList auto-scrolls to new messages
+- [x] Draft messages persist when navigating away and back
+- [x] Current user visible in user list but not clickable (shows "You" badge)
 
 ---
 
