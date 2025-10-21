@@ -19,6 +19,7 @@ import SignupScreen from "../screens/SignupScreen";
 
 // Main Screens
 import ChatScreen from "../screens/ChatScreen";
+import CreateGroupScreen from "../screens/CreateGroupScreen";
 import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 
@@ -179,6 +180,15 @@ export default function AppNavigator() {
               component={ProfileScreen}
               options={{
                 title: "Profile",
+                headerShown: true,
+                headerBackTitle: "Back",
+              }}
+            />
+            <Stack.Screen
+              name="CreateGroup"
+              component={CreateGroupScreen}
+              options={{
+                title: "Create Group",
                 headerShown: true,
                 headerBackTitle: "Back",
               }}

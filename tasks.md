@@ -1366,16 +1366,24 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
   - `README.md` - Added Firebase setup section, security rules, development workflow, and contributing guidelines
 
-- [ ] 15. Handle edge cases:
+- [x] 15. Handle edge cases:
+
   - What happens if other user is viewing conversation while it's deleted
   - Handle deletion errors (network issues, permission errors)
   - Prevent double-deletion (disable button after first tap)
 
+  **Implementation:**
+
+  - Edge case handled: When other user is viewing conversation while it's deleted, messages disappear rapidly as Firestore listener detects deletions
+  - Error handling: Already implemented in deleteConversation with try-catch and error alerts
+  - Double-deletion prevented: Button disabled via isDeleting state during deletion process
+
 **Create Group Chat Screen:**
 
-- [ ] 16. Create file: `src/screens/CreateGroupScreen.js`
+- [x] 16. Create file: `src/screens/CreateGroupScreen.js`
 
-- [ ] 17. Add UI Components:
+- [x] 17. Add UI Components:
+
   - Header: "Create Group"
   - Group Name TextInput
   - "Add Group Photo" Button (optional)
@@ -1383,6 +1391,26 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - FlatList of all users with checkboxes
   - Selected count display: "3 selected"
   - "Create Group" Button (bottom)
+
+  **Implementation:**
+
+  - Created complete CreateGroupScreen component with all required UI elements
+  - Group name input with 50 character limit
+  - "Add Group Photo" button (placeholder for image picker)
+  - Section header showing "Select Participants" with dynamic selected count
+  - FlatList rendering all users (except current user) with checkboxes
+  - Selected count displays in real-time (e.g., "3 selected")
+  - Create Group button fixed at bottom (disabled when name empty or < 2 users selected)
+  - User items show avatar (or initials), display name, username
+  - Checkbox UI with checkmark when selected (✓)
+  - KeyboardAvoidingView for proper input behavior
+  - ScrollView to handle long user lists
+  - Loading state while fetching users
+  - Empty state when no other users exist
+
+  **Files Created:**
+
+  - `src/screens/CreateGroupScreen.js` - Complete group creation UI
 
 **Multi-Select User List:**
 

@@ -232,14 +232,25 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={users.length === 0 ? styles.emptyList : null}
       />
 
-      {/* Temporary Sign Out Button - Will move to Profile screen later */}
-      <TouchableOpacity
-        style={styles.signOutButton}
-        onPress={handleSignOut}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.signOutText}>Sign Out</Text>
-      </TouchableOpacity>
+      {/* Action Buttons - Bottom right */}
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          style={styles.createGroupButton}
+          onPress={() => navigation.navigate("CreateGroup")}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.createGroupText}>Create Group</Text>
+        </TouchableOpacity>
+
+        {/* Temporary Sign Out Button - Will move to Profile screen later */}
+        <TouchableOpacity
+          style={styles.signOutButton}
+          onPress={handleSignOut}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -297,10 +308,32 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: "center",
   },
-  signOutButton: {
+  actionButtons: {
     position: "absolute",
     bottom: spacing[6],
     right: spacing[6],
+    flexDirection: "column",
+  },
+  createGroupButton: {
+    backgroundColor: colors.primary.base,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[6],
+    borderRadius: 24,
+    marginBottom: spacing[3],
+    ...{
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+  },
+  createGroupText: {
+    color: colors.neutral.white,
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+  },
+  signOutButton: {
     backgroundColor: colors.error.main,
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[6],
