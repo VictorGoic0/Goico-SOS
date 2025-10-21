@@ -2,6 +2,7 @@ import * as ImagePicker from "expo-image-picker";
 import { updateProfile } from "firebase/auth";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -196,15 +197,19 @@ export default function ProfileScreen({ navigation }) {
           )}
 
           {/* Change Photo Button */}
-          <TouchableOpacity
-            style={styles.changePhotoButton}
-            onPress={handleChangePhoto}
-            disabled={isUploading}
-          >
-            <Text style={styles.changePhotoText}>
-              {isUploading ? "Uploading..." : "Change Photo"}
-            </Text>
-          </TouchableOpacity>
+          {isUploading ? (
+            <View style={styles.uploadingContainer}>
+              <ActivityIndicator size="small" color={colors.primary.base} />
+              <Text style={styles.uploadingText}>Uploading...</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.changePhotoButton}
+              onPress={handleChangePhoto}
+            >
+              <Text style={styles.changePhotoText}>Change Photo</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Display Name */}
@@ -331,6 +336,16 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.primary.base,
     fontWeight: typography.fontWeight.semibold,
+  },
+  uploadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: spacing[2],
+  },
+  uploadingText: {
+    marginLeft: spacing[2],
+    fontSize: typography.fontSize.base,
+    color: colors.text.secondary,
   },
   fieldContainer: {
     marginBottom: spacing[6],
