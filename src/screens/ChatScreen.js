@@ -34,12 +34,13 @@ import {
 import { getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function ChatScreen({ route, navigation }) {
-  const { otherUser } = route.params;
+  const { otherUser, conversationId: routeConversationId } = route.params;
 
   // Firebase Store
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const messages = useFirebaseStore((state) => state.messages);
   const setMessages = useFirebaseStore((state) => state.setMessages);
+  const conversationsMap = useFirebaseStore((state) => state.conversationsMap);
 
   // Local Store (drafts and UI state only)
   const drafts = useLocalStore((state) => state.drafts);
@@ -63,6 +64,18 @@ export default function ChatScreen({ route, navigation }) {
   // Get or create conversation on mount
   useEffect(() => {
     const initConversation = async () => {
+      // If conversationId is passed (for groups), use it directly
+      if (routeConversationId) {
+        setConversationId(routeConversationId);
+        return;
+      }
+
+      // Otherwise, get or create 1-on-1 conversation
+      if (!otherUser) {
+        console.error("No otherUser or conversationId provided");
+        return;
+      }
+
       const tempConvId = `${currentUser.uid}_${otherUser.userId}`; // Temp ID for loading state
       setIsLoadingConversation(tempConvId, true);
 
@@ -83,7 +96,7 @@ export default function ChatScreen({ route, navigation }) {
     };
 
     initConversation();
-  }, [currentUser, otherUser, setIsLoadingConversation]);
+  }, [currentUser, otherUser, routeConversationId, setIsLoadingConversation]);
 
   // Set up real-time message listener with metadata changes
   useEffect(() => {
@@ -167,9 +180,13 @@ export default function ChatScreen({ route, navigation }) {
     markMessagesAsDelivered();
   }, [conversationId, messages, currentUser.uid]);
 
-  // Get online status
+  // Task 30: Detect if conversation is a group
+  const conversation = conversationsMap[conversationId];
+  const isGroup = conversation?.isGroup || false;
+
+  // Get online status (only for 1-on-1 chats)
   const isOnline = usePresenceStore((state) =>
-    state.isUserOnline(otherUser.userId)
+    otherUser ? state.isUserOnline(otherUser.userId) : false
   );
 
   // Set navigation header with profile photo and online status
@@ -182,47 +199,88 @@ export default function ChatScreen({ route, navigation }) {
           style={styles.headerContent}
           activeOpacity={0.7}
           onPress={() => {
-            // TODO: Navigate to user profile or conversation info
+            // Task 31: Tap header to navigate to GroupInfoScreen (for groups)
+            if (isGroup) {
+              // TODO: Navigate to GroupInfoScreen
+              // navigation.navigate("GroupInfo", { conversationId });
+            }
           }}
         >
-          {/* Profile Photo */}
+          {/* Task 31: Show group icon or profile photo */}
           <View style={styles.headerAvatarContainer}>
-            {otherUser.imageURL ? (
-              <Image
-                source={{ uri: otherUser.imageURL }}
-                style={styles.headerAvatar}
-              />
+            {isGroup ? (
+              // Group icon/photo
+              conversation?.groupImageURL ? (
+                <Image
+                  source={{ uri: conversation.groupImageURL }}
+                  style={styles.headerAvatar}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.headerAvatarPlaceholder,
+                    { backgroundColor: getAvatarColor(conversationId) },
+                  ]}
+                >
+                  <Text style={styles.headerAvatarInitials}>👥</Text>
+                </View>
+              )
             ) : (
-              <View
-                style={[
-                  styles.headerAvatarPlaceholder,
-                  { backgroundColor: getAvatarColor(otherUser.userId) },
-                ]}
-              >
-                <Text style={styles.headerAvatarInitials}>
-                  {getInitials(otherUser.displayName || otherUser.username)}
-                </Text>
-              </View>
+              // 1-on-1 profile photo
+              <>
+                {otherUser?.imageURL ? (
+                  <Image
+                    source={{ uri: otherUser.imageURL }}
+                    style={styles.headerAvatar}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.headerAvatarPlaceholder,
+                      {
+                        backgroundColor: getAvatarColor(
+                          otherUser?.userId || conversationId
+                        ),
+                      },
+                    ]}
+                  >
+                    <Text style={styles.headerAvatarInitials}>
+                      {getInitials(
+                        otherUser?.displayName || otherUser?.username || "?"
+                      )}
+                    </Text>
+                  </View>
+                )}
+                {/* Online/Offline Status Indicator (only for 1-on-1) */}
+                <View
+                  style={[
+                    styles.headerOnlineIndicator,
+                    {
+                      backgroundColor: isOnline
+                        ? colors.success.main
+                        : colors.neutral.mediumLight,
+                    },
+                  ]}
+                />
+              </>
             )}
-            {/* Online/Offline Status Indicator */}
-            <View
-              style={[
-                styles.headerOnlineIndicator,
-                {
-                  backgroundColor: isOnline
-                    ? colors.success.main
-                    : colors.neutral.mediumLight,
-                },
-              ]}
-            />
           </View>
 
-          {/* User Name */}
+          {/* Task 31: User Name or Group Name */}
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle} numberOfLines={1}>
-              {otherUser.displayName || otherUser.username}
+              {isGroup
+                ? conversation?.groupName || "Group Chat"
+                : otherUser?.displayName || otherUser?.username || "Chat"}
             </Text>
-            {isOnline && <Text style={styles.headerSubtitle}>Online</Text>}
+            {/* Task 31: Show participant count for groups, online status for 1-on-1 */}
+            {isGroup ? (
+              <Text style={styles.headerSubtitle}>
+                {conversation?.participants?.length || 0} members
+              </Text>
+            ) : (
+              isOnline && <Text style={styles.headerSubtitle}>Online</Text>
+            )}
           </View>
         </TouchableOpacity>
       ),
@@ -250,6 +308,9 @@ export default function ChatScreen({ route, navigation }) {
     isOnline,
     conversationMessages.length,
     isDeleting,
+    isGroup,
+    conversation,
+    conversationId,
   ]);
 
   // Handle send message
@@ -291,9 +352,13 @@ export default function ChatScreen({ route, navigation }) {
 
   // Handle delete conversation
   const handleDeleteConversation = () => {
+    const conversationName = isGroup
+      ? conversation?.groupName || "group"
+      : otherUser?.displayName || otherUser?.username || "conversation";
+
     // Show confirmation alert
     Alert.alert(
-      "Delete this entire conversation?",
+      `Delete this ${isGroup ? "group" : "conversation"}?`,
       "This will permanently delete all messages. This cannot be undone.",
       [
         {
@@ -316,10 +381,8 @@ export default function ChatScreen({ route, navigation }) {
               // Show success feedback
               setTimeout(() => {
                 Alert.alert(
-                  "Conversation deleted",
-                  `Your conversation with ${
-                    otherUser.displayName || otherUser.username
-                  } has been deleted.`,
+                  `${isGroup ? "Group" : "Conversation"} deleted`,
+                  `${conversationName} has been deleted.`,
                   [{ text: "OK" }]
                 );
               }, 300);
@@ -378,8 +441,11 @@ export default function ChatScreen({ route, navigation }) {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              No messages yet. Say hi to{" "}
-              {otherUser.displayName || otherUser.username}! 👋
+              {isGroup
+                ? `No messages yet. Start the conversation! 👋`
+                : `No messages yet. Say hi to ${
+                    otherUser?.displayName || otherUser?.username || "them"
+                  }! 👋`}
             </Text>
           </View>
         }

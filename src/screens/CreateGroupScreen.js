@@ -1,7 +1,9 @@
+import * as ImagePicker from "expo-image-picker";
 import { collection, onSnapshot } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -17,7 +19,9 @@ import Button from "../components/Button";
 import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
+import { createGroupConversation } from "../utils/conversation";
 import { getAvatarColor, getInitials } from "../utils/helpers";
+import { uploadProfileImage } from "../utils/profile";
 
 export default function CreateGroupScreen({ navigation }) {
   const currentUser = useFirebaseStore((state) => state.currentUser);
@@ -27,6 +31,8 @@ export default function CreateGroupScreen({ navigation }) {
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [groupPhoto, setGroupPhoto] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   // Fetch all users from Firestore
   useEffect(() => {
@@ -61,6 +67,95 @@ export default function CreateGroupScreen({ navigation }) {
         return [...prev, userId];
       }
     });
+  };
+
+  // Pick group photo (Task 27)
+  const pickGroupPhoto = async () => {
+    try {
+      // Request permissions
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Please allow access to your photo library to select a group photo."
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setGroupPhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error picking group photo:", error);
+      Alert.alert("Error", "Failed to select photo. Please try again.");
+    }
+  };
+
+  // Handle create group button press (Tasks 26-29)
+  const handleCreateGroup = async () => {
+    // Task 26: Validate group name and selected users
+    if (!groupName.trim()) {
+      Alert.alert("Invalid Group Name", "Please enter a group name.");
+      return;
+    }
+
+    if (selectedUsers.length < 2) {
+      Alert.alert(
+        "Not Enough Participants",
+        "Please select at least 2 users to create a group."
+      );
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      let groupImageURL = null;
+
+      // Task 27: If group photo selected, upload it first
+      if (groupPhoto) {
+        try {
+          // Generate a unique ID for the group photo (using timestamp)
+          const groupPhotoId = `group_${Date.now()}`;
+          groupImageURL = await uploadProfileImage(groupPhotoId, groupPhoto);
+        } catch (uploadError) {
+          console.error("Error uploading group photo:", uploadError);
+          // Continue without photo if upload fails
+          Alert.alert(
+            "Photo Upload Failed",
+            "Group will be created without a photo."
+          );
+        }
+      }
+
+      // Task 28: Call createGroupConversation with group data
+      const conversationId = await createGroupConversation(
+        groupName.trim(),
+        selectedUsers,
+        groupImageURL
+      );
+
+      // Task 29: Navigate to ChatScreen with new conversationId
+      navigation.replace("Chat", {
+        conversationId,
+        isGroup: true,
+        groupName: groupName.trim(),
+      });
+    } catch (error) {
+      console.error("Error creating group:", error);
+      Alert.alert("Error", "Failed to create group. Please try again.");
+      setIsCreating(false);
+    }
   };
 
   // Filter out current user from the list
@@ -149,13 +244,20 @@ export default function CreateGroupScreen({ navigation }) {
         <View style={styles.section}>
           <TouchableOpacity
             style={styles.photoButton}
-            onPress={() => {
-              // TODO: Implement image picker for group photo
-            }}
+            onPress={pickGroupPhoto}
             activeOpacity={0.7}
           >
-            <Text style={styles.photoButtonText}>📷 Add Group Photo</Text>
-            <Text style={styles.photoButtonSubtext}>(Optional)</Text>
+            {groupPhoto ? (
+              <Image
+                source={{ uri: groupPhoto }}
+                style={styles.groupPhotoPreview}
+              />
+            ) : (
+              <>
+                <Text style={styles.photoButtonText}>📷 Add Group Photo</Text>
+                <Text style={styles.photoButtonSubtext}>(Optional)</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -188,14 +290,12 @@ export default function CreateGroupScreen({ navigation }) {
       {/* Create Group Button (Fixed at bottom) */}
       <View style={styles.buttonContainer}>
         <Button
-          onPress={() => {
-            // TODO: Implement create group functionality
-            console.log("Create group:", { groupName, selectedUsers });
-          }}
-          disabled={!groupName.trim() || selectedUsers.length < 2}
+          onPress={handleCreateGroup}
+          disabled={!groupName.trim() || selectedUsers.length < 2 || isCreating}
+          loading={isCreating}
           fullWidth
         >
-          Create Group Chat
+          {isCreating ? "Creating Group..." : "Create Group Chat"}
         </Button>
       </View>
     </KeyboardAvoidingView>
@@ -269,6 +369,12 @@ const styles = StyleSheet.create({
   photoButtonSubtext: {
     fontSize: typography.fontSize.sm,
     color: colors.text.tertiary,
+  },
+  groupPhotoPreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.neutral.lighter,
   },
   userList: {
     marginTop: spacing[2],

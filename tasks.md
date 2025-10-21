@@ -1482,21 +1482,21 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Connect Create Button:**
 
-- [ ] 26. In `CreateGroupScreen.js`:
+- [x] 26. In `CreateGroupScreen.js`:
 
   - On "Create Group" button press:
     - Validate group name not empty
     - Validate at least 2 users selected
 
-- [ ] 27. If group photo selected, upload it first (to Firebase Storage)
+- [x] 27. If group photo selected, upload it first (to Firebase Storage)
 
-- [ ] 28. Call `createGroupConversation` with group data
+- [x] 28. Call `createGroupConversation` with group data
 
-- [ ] 29. Navigate to ChatScreen with new conversationId
+- [x] 29. Navigate to ChatScreen with new conversationId
 
 **Update ChatScreen for Groups:**
 
-- [ ] 30. In `src/screens/ChatScreen.js`:
+- [x] 30. In `src/screens/ChatScreen.js`:
 
   - Detect if conversation is group:
     ```javascript
@@ -1506,10 +1506,10 @@ Since you've never used React Native, this PR focuses on getting your developmen
     const isGroup = conversation?.isGroup || false;
     ```
 
-- [ ] 31. If group, update header to show:
+- [x] 31. If group, update header to show:
   - Group name instead of user name
   - Participant count (e.g., "3 members")
-  - Tap header → navigate to GroupInfoScreen
+  - Tap header → navigate to GroupInfoScreen (prepared for future)
 
 **Update MessageBubble for Groups:**
 
