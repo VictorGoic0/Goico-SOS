@@ -1348,7 +1348,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
   - `src/screens/ChatScreen.js` - Added delete button to header, delete handler, loading state
 
-- [ ] 14. Update Firestore security rules (if needed):
+- [x] 14. Update Firestore security rules (if needed):
 
   - Ensure users can delete their own conversations
   - Verify both participants can delete the conversation
