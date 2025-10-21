@@ -1,9 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
-import { getReactNativePersistence, initializeAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { initializeFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { Platform } from "react-native";
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -19,10 +18,33 @@ const firebaseConfig = {
 // Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Auth with AsyncStorage persistence
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+// Initialize Firebase Auth with platform-specific persistence
+let auth;
+if (Platform.OS === "web") {
+  // Web: Use browser persistence
+  const {
+    getAuth,
+    browserLocalPersistence,
+    setPersistence,
+  } = require("firebase/auth");
+  auth = getAuth(app);
+  setPersistence(auth, browserLocalPersistence).catch((error) => {
+    console.warn("Failed to set browser persistence:", error);
+  });
+} else {
+  // Mobile: Use React Native persistence with AsyncStorage
+  const AsyncStorage =
+    require("@react-native-async-storage/async-storage").default;
+  const {
+    getReactNativePersistence,
+    initializeAuth,
+  } = require("firebase/auth");
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+}
+
+export { auth };
 
 // Initialize Firestore with offline persistence settings
 export const db = initializeFirestore(app, {
