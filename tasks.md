@@ -1299,24 +1299,54 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - `src/utils/conversation.js` - Added listenToConversations(userId) utility function
   - `src/navigation/AppNavigator.js` - Added conversations listener alongside presence listener
 
-- [ ] 11. In `ChatScreen.js`, add "Delete Conversation" button to header:
+- [x] 11. In `ChatScreen.js`, add "Delete Conversation" button to header:
 
   - Button should always be visible (trash icon or text)
   - Disable button if no messages exist (0 messages)
   - Enable button only if 1 or more messages exist
 
-- [ ] 12. On delete button tap from ChatScreen:
+  **Implementation:**
+
+  - Added `isDeleting` state to track deletion in progress
+  - Updated navigation header useEffect to include `headerRight` with delete button
+  - Button shows trash emoji (🗑️) when active
+  - Shows ActivityIndicator when `isDeleting` is true
+  - Button disabled when no messages exist (`conversationMessages.length === 0`) or when deleting
+  - Uses red background (`colors.error.main`) when enabled, gray when disabled
+  - Dependencies include `conversationMessages.length` to re-render when messages change
+
+- [x] 12. On delete button tap from ChatScreen:
 
   - Show confirmation modal/alert: "Delete this entire conversation?"
   - Include message: "This will permanently delete all messages. This cannot be undone."
   - Add "Cancel" and "Delete" buttons
 
-- [ ] 13. On confirmation from ChatScreen:
+  **Implementation:**
+
+  - Created `handleDeleteConversation` function that shows Alert.alert confirmation
+  - More severe message than HomeScreen version ("cannot be undone" vs "can message again")
+  - Two buttons: "Cancel" and "Delete" (destructive style)
+  - Delete button triggers async deletion flow
+
+- [x] 13. On confirmation from ChatScreen:
 
   - Call `deleteConversation(conversationId)`
   - Show loading indicator while deleting
   - Navigate back to HomeScreen after successful deletion
   - Show success feedback
+
+  **Implementation:**
+
+  - Sets `isDeleting` to true before deletion (shows spinner in header button)
+  - Calls `deleteConversation(conversationId)` utility function
+  - Navigates back with `navigation.goBack()` immediately after successful deletion
+  - Shows success Alert with setTimeout (300ms delay so it appears after navigation)
+  - Error handling: resets `isDeleting` and shows error Alert if deletion fails
+  - Firestore listener automatically cleans up global store
+
+  **Files Modified:**
+
+  - `src/screens/ChatScreen.js` - Added delete button to header, delete handler, loading state
 
 - [ ] 14. Update Firestore security rules (if needed):
 

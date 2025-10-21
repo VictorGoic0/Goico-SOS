@@ -9,6 +9,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -25,7 +26,11 @@ import useFirebaseStore from "../stores/firebaseStore";
 import useLocalStore from "../stores/localStore";
 import usePresenceStore from "../stores/presenceStore";
 import { colors, spacing, typography } from "../styles/tokens";
-import { getOrCreateConversation, sendMessage } from "../utils/conversation";
+import {
+  deleteConversation,
+  getOrCreateConversation,
+  sendMessage,
+} from "../utils/conversation";
 import { getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function ChatScreen({ route, navigation }) {
@@ -49,7 +54,11 @@ export default function ChatScreen({ route, navigation }) {
 
   // Local state
   const [conversationId, setConversationId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const flatListRef = useRef(null);
+
+  // Get messages for this conversation
+  const conversationMessages = messages[conversationId] || [];
 
   // Get or create conversation on mount
   useEffect(() => {
@@ -165,6 +174,8 @@ export default function ChatScreen({ route, navigation }) {
 
   // Set navigation header with profile photo and online status
   useEffect(() => {
+    const hasMessages = conversationMessages.length > 0;
+
     navigation.setOptions({
       headerTitle: () => (
         <TouchableOpacity
@@ -215,8 +226,31 @@ export default function ChatScreen({ route, navigation }) {
           </View>
         </TouchableOpacity>
       ),
+      headerRight: () => (
+        <TouchableOpacity
+          style={[
+            styles.deleteButton,
+            (!hasMessages || isDeleting) && styles.deleteButtonDisabled,
+          ]}
+          onPress={handleDeleteConversation}
+          disabled={!hasMessages || isDeleting}
+          activeOpacity={0.7}
+        >
+          {isDeleting ? (
+            <ActivityIndicator size="small" color={colors.neutral.white} />
+          ) : (
+            <Text style={styles.deleteButtonText}>🗑️</Text>
+          )}
+        </TouchableOpacity>
+      ),
     });
-  }, [navigation, otherUser, isOnline]);
+  }, [
+    navigation,
+    otherUser,
+    isOnline,
+    conversationMessages.length,
+    isDeleting,
+  ]);
 
   // Handle send message
   const handleSend = async () => {
@@ -255,11 +289,57 @@ export default function ChatScreen({ route, navigation }) {
     setDraft(conversationId, text);
   };
 
+  // Handle delete conversation
+  const handleDeleteConversation = () => {
+    // Show confirmation alert
+    Alert.alert(
+      "Delete this entire conversation?",
+      "This will permanently delete all messages. This cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            if (!conversationId) return;
+
+            try {
+              setIsDeleting(true);
+              await deleteConversation(conversationId);
+
+              // Navigate back to HomeScreen
+              navigation.goBack();
+
+              // Show success feedback
+              setTimeout(() => {
+                Alert.alert(
+                  "Conversation deleted",
+                  `Your conversation with ${
+                    otherUser.displayName || otherUser.username
+                  } has been deleted.`,
+                  [{ text: "OK" }]
+                );
+              }, 300);
+            } catch (error) {
+              console.error("Error deleting conversation:", error);
+              setIsDeleting(false);
+              Alert.alert(
+                "Delete failed",
+                "Unable to delete conversation. Please try again.",
+                [{ text: "OK" }]
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Get loading state
   const isLoading = isLoadingConversation[conversationId] || false;
-
-  // Get messages for this conversation
-  const conversationMessages = messages[conversationId] || [];
 
   // Get draft text
   const inputText = drafts[conversationId] || "";
@@ -404,5 +484,22 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
     color: colors.success.main,
     marginTop: spacing[0],
+  },
+  deleteButton: {
+    marginRight: spacing[4],
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[2],
+    borderRadius: 8,
+    backgroundColor: colors.error.main,
+    minWidth: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteButtonDisabled: {
+    backgroundColor: colors.neutral.mediumLight,
+    opacity: 0.5,
+  },
+  deleteButtonText: {
+    fontSize: 20,
   },
 });
