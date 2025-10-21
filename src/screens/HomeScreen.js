@@ -1,8 +1,9 @@
 import { collection, onSnapshot } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   RefreshControl,
   StyleSheet,
   Text,
@@ -14,6 +15,7 @@ import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import { signOutUser } from "../utils/auth";
+import { getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function HomeScreen({ navigation }) {
   const currentUser = useFirebaseStore((state) => state.currentUser);
@@ -22,6 +24,38 @@ export default function HomeScreen({ navigation }) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Configure header with profile icon
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          style={styles.headerProfileButton}
+          onPress={() => navigation.navigate("Profile")}
+          activeOpacity={0.7}
+        >
+          {currentUser?.imageURL ? (
+            <Image
+              source={{ uri: currentUser.imageURL }}
+              style={styles.headerProfileImage}
+            />
+          ) : (
+            <View
+              style={[
+                styles.headerProfileImage,
+                styles.headerProfilePlaceholder,
+                { backgroundColor: getAvatarColor(currentUser?.uid) },
+              ]}
+            >
+              <Text style={styles.headerProfileInitials}>
+                {getInitials(currentUser?.displayName || currentUser?.username)}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, currentUser]);
 
   // Fetch all users from Firestore
   useEffect(() => {
@@ -217,5 +251,22 @@ const styles = StyleSheet.create({
     color: colors.neutral.white,
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
+  },
+  headerProfileButton: {
+    marginRight: spacing[4],
+  },
+  headerProfileImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  headerProfilePlaceholder: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerProfileInitials: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.neutral.white,
   },
 });

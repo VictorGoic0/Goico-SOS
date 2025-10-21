@@ -71,6 +71,11 @@ const VARIANT_STYLES = {
     borderWidth: 1,
     borderColor: "transparent",
   },
+  danger: {
+    backgroundColor: colors.error.main,
+    borderWidth: 1,
+    borderColor: colors.error.main,
+  },
 };
 
 const TEXT_VARIANT_STYLES = {
@@ -85,6 +90,9 @@ const TEXT_VARIANT_STYLES = {
   },
   ghost: {
     color: colors.text.primary,
+  },
+  danger: {
+    color: colors.neutral.white,
   },
 };
 

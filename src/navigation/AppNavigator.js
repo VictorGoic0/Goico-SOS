@@ -20,6 +20,7 @@ import SignupScreen from "../screens/SignupScreen";
 // Main Screens
 import ChatScreen from "../screens/ChatScreen";
 import HomeScreen from "../screens/HomeScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 
 // Utils
 import { colors, spacing, typography } from "../styles/tokens";
@@ -166,6 +167,15 @@ export default function AppNavigator() {
               name="Chat"
               component={ChatScreen}
               options={{
+                headerShown: true,
+                headerBackTitle: "Back",
+              }}
+            />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{
+                title: "Profile",
                 headerShown: true,
                 headerBackTitle: "Back",
               }}
