@@ -1212,9 +1212,9 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Add User Profile Preview to Direct Messages:**
 
-- [ ] 1. In `ChatScreen.js`, update header to show user's profile photo next to their display name for 1-on-1 chats
-- [ ] 2. Display circular profile photo (or placeholder with initials) in the header
-- [ ] 3. Ensure online/offline status indicator appears next to the profile photo
+- [x] 1. In `ChatScreen.js`, update header to show user's profile photo next to their display name for 1-on-1 chats
+- [x] 2. Display circular profile photo (or placeholder with initials) in the header
+- [x] 3. Ensure online/offline status indicator appears next to the profile photo
 
 **Delete Conversation Feature:**
 

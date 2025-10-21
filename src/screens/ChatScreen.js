@@ -10,10 +10,12 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import CompactInput from "../components/CompactInput";
@@ -21,8 +23,10 @@ import MessageBubble from "../components/MessageBubble";
 import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import useLocalStore from "../stores/localStore";
+import usePresenceStore from "../stores/presenceStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import { getOrCreateConversation, sendMessage } from "../utils/conversation";
+import { getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function ChatScreen({ route, navigation }) {
   const { otherUser } = route.params;
@@ -154,12 +158,66 @@ export default function ChatScreen({ route, navigation }) {
     markMessagesAsDelivered();
   }, [conversationId, messages, currentUser.uid]);
 
-  // Set navigation title
+  // Get online status
+  const isOnline = usePresenceStore((state) =>
+    state.isUserOnline(otherUser.userId)
+  );
+
+  // Set navigation header with profile photo and online status
   useEffect(() => {
     navigation.setOptions({
-      title: otherUser.displayName || otherUser.username,
+      headerTitle: () => (
+        <TouchableOpacity
+          style={styles.headerContent}
+          activeOpacity={0.7}
+          onPress={() => {
+            // TODO: Navigate to user profile or conversation info
+            console.log("Header tapped - navigate to user profile");
+          }}
+        >
+          {/* Profile Photo */}
+          <View style={styles.headerAvatarContainer}>
+            {otherUser.imageURL ? (
+              <Image
+                source={{ uri: otherUser.imageURL }}
+                style={styles.headerAvatar}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.headerAvatarPlaceholder,
+                  { backgroundColor: getAvatarColor(otherUser.userId) },
+                ]}
+              >
+                <Text style={styles.headerAvatarInitials}>
+                  {getInitials(otherUser.displayName || otherUser.username)}
+                </Text>
+              </View>
+            )}
+            {/* Online/Offline Status Indicator */}
+            <View
+              style={[
+                styles.headerOnlineIndicator,
+                {
+                  backgroundColor: isOnline
+                    ? colors.success.main
+                    : colors.neutral.mediumLight,
+                },
+              ]}
+            />
+          </View>
+
+          {/* User Name */}
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {otherUser.displayName || otherUser.username}
+            </Text>
+            {isOnline && <Text style={styles.headerSubtitle}>Online</Text>}
+          </View>
+        </TouchableOpacity>
+      ),
     });
-  }, [navigation, otherUser]);
+  }, [navigation, otherUser, isOnline]);
 
   // Handle send message
   const handleSend = async () => {
@@ -295,5 +353,57 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border.light,
     backgroundColor: colors.background.paper,
+  },
+  // Header styles
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerAvatarContainer: {
+    position: "relative",
+    marginRight: spacing[2],
+  },
+  headerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.neutral.lighter,
+  },
+  headerAvatarPlaceholder: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerAvatarInitials: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.neutral.white,
+  },
+  headerOnlineIndicator: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.background.paper,
+  },
+  headerTextContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+  },
+  headerSubtitle: {
+    fontSize: typography.fontSize.xs,
+    color: colors.success.main,
+    marginTop: spacing[0],
   },
 });
