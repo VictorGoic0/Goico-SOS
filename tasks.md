@@ -4,7 +4,7 @@
 
 Each PR represents a complete, testable feature. PRs build on each other sequentially. Test thoroughly with physical devices before merging each PR.
 
-**Total PRs:** 12
+**Total PRs:** 11
 **Timeline:** 7 days with checkpoints at Day 2, Day 5, and Day 7
 
 ---
@@ -1676,592 +1676,160 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 ---
 
-## PR #11: AI Agent Integration - Basic
+## PR #11: Read Receipts Implementation
 
-**Goal**: Integrate Vercel AI SDK for basic chat assistant
-
-### Subtasks
-
-**Install Vercel AI SDK:**
-
-- [ ] 1. Install packages:
-  ```bash
-  npm install ai openai
-  ```
-
-**Add OpenAI API Key:**
-
-- [ ] 2. In `.env` file:
-
-  ```
-  EXPO_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
-  ```
-
-- [ ] 3. Restart Expo server after adding env variable
-
-**Create AI Service:**
-
-- [ ] 4. Create file: `src/utils/aiService.js`
-
-- [ ] 5. Import OpenAI:
-
-  ```javascript
-  import OpenAI from "openai";
-  ```
-
-- [ ] 6. Initialize OpenAI client:
-
-  ```javascript
-  const openai = new OpenAI({
-    apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
-  });
-  ```
-
-- [ ] 7. Add function: `sendToAI(prompt, conversationHistory = [])`
-
-- [ ] 8. Inside `sendToAI`:
-  - Create messages array with system prompt and conversation history
-  - Call OpenAI chat completions API:
-    ```javascript
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "You are a helpful assistant." },
-        ...conversationHistory,
-        { role: "user", content: prompt },
-      ],
-      stream: false,
-    });
-    ```
-
-9. Return response content:
-
-   ```javascript
-   return response.choices[0].message.content;
-   ```
-
-- [ ] 10. Add error handling (try/catch) with user-friendly error message
-
-**Create AI Chat Screen:**
-
-- [ ] 11. Create file: `src/screens/AIChatScreen.js`
-
-- [ ] 12. Structure similar to ChatScreen but simplified:
-
-  - Header shows "AI Assistant" instead of user name
-  - No online status indicator
-  - Messages from AI have robot icon or different avatar
-
-- [ ] 13. Add state for messages:
-  ```javascript
-  const [messages, setMessages] = useState([]);
-  const [inputText, setInputText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  ```
-
-**Implement AI Message Flow:**
-
-- [ ] 14. In `AIChatScreen.js`:
-
-  - When user sends message:
-    - Add user message to messages array immediately
-
-- [ ] 15. Set loading state: `setIsLoading(true)`
-
-- [ ] 16. Show "AI is typing..." indicator at bottom of message list
-
-- [ ] 17. Build conversation history from messages array:
-
-  ```javascript
-  const history = messages.map((msg) => ({
-    role: msg.isAI ? "assistant" : "user",
-    content: msg.text,
-  }));
-  ```
-
-- [ ] 18. Call `sendToAI(inputText, history)`
-
-- [ ] 19. Add AI response to messages array:
-
-  ```javascript
-  setMessages((prev) => [
-    ...prev,
-    {
-      id: generateId(),
-      text: aiResponse,
-      isAI: true,
-      timestamp: Date.now(),
-    },
-  ]);
-  ```
-
-- [ ] 20. Set loading state: `setIsLoading(false)`
-
-- [ ] 21. Clear input field
-
-- [ ] 22. Store conversation in LOCAL state only (not Firestore for MVP)
-
-**Style AI Messages Differently:**
-
-- [ ] 23. In `src/components/MessageBubble.js` or create new `AIMessageBubble.js`:
-  - Different background color for AI messages
-  - Add robot icon or AI badge
-  - Align left (like received messages)
-
-**Add Navigation to AI Chat:**
-
-- [ ] 24. In `src/navigation/AppNavigator.js`:
-  - Add AIChatScreen to Main Stack
-
-**Add AI Chat Button:**
-
-- [ ] 25. In `src/screens/HomeScreen.js`:
-
-  - Add "Chat with AI" button to header or as menu item
-
-- [ ] 26. On tap, navigate to AIChatScreen
-
-**Handle Streaming (Optional - Skip for MVP):**
-
-- [ ] 27. If time permits later, implement streaming:
-  - Set `stream: true` in OpenAI request
-  - Display response word by word as it arrives
-  - More complex, save for post-MVP
-
-**Add Error Handling:**
-
-- [ ] 28. Show error message if OpenAI API fails
-
-- [ ] 29. Allow user to retry failed message
-
-- [ ] 30. Handle network errors gracefully
-
-**Files Created:**
-
-- `src/utils/aiService.js`
-- `src/screens/AIChatScreen.js`
-
-**Files Modified:**
-
-- `.env`
-- `src/screens/HomeScreen.js`
-- `src/navigation/AppNavigator.js`
-- `src/components/MessageBubble.js` (optional, for AI styling)
-
-**Test Before Merge:**
-
-- [ ] Can navigate to AI Chat screen from Home
-- [ ] Can type and send messages to AI
-- [ ] "AI is typing..." indicator shows while waiting
-- [ ] AI responds with relevant answers
-- [ ] AI messages display with different styling (robot icon, different color)
-- [ ] Conversation history maintained within session
-- [ ] Can have multi-turn conversation (AI remembers context)
-- [ ] Error handling works (test by using invalid API key)
-- [ ] Messages display correctly (user vs AI)
-- [ ] Scroll behavior works correctly
-
----
-
-## PR #12: AI Agent Advanced Features & Final Polish
-
-**Goal**: Add conversation summaries, smart replies, and final UI polish
+**Goal**: Implement read receipts for both 1-on-1 and group chats to show when messages have been read
 
 ### Subtasks
 
-**Implement Conversation Summary:**
+**Update Message Schema for Read Receipts:**
 
-- [ ] 1. In `src/utils/aiService.js`:
+- [ ] 1. In `src/utils/conversation.js`:
 
-  - Add function: `summarizeConversation(messages)`
+  - Add function: `markMessagesAsRead(conversationId, currentUserId)`
+  - Query messages that are not from current user and have status "sent" or "delivered"
+  - Update status to "read" using batch write
 
-- [ ] 2. Inside `summarizeConversation`:
+- [ ] 2. For group chats, add `readBy` array field to messages:
+  - Track which users have read each message
+  - Use `arrayUnion` to add current user to readBy array
+  - Keep backward compatibility with simple status field
 
-  - Take last 50 messages from conversation (or all if less than 50)
-  - Format as string with sender names and text
+**Implement Read Receipt Detection:**
 
-- [ ] 3. Create prompt:
+- [ ] 3. In `src/screens/ChatScreen.js`:
 
-  ```javascript
-  "Summarize the following conversation in 2-3 sentences:\n\n" +
-    formattedMessages;
-  ```
+  - Add useEffect to detect when conversation is viewed
+  - Call `markMessagesAsRead` when ChatScreen mounts or becomes focused
+  - Only mark messages as read if they're from other users
 
-- [ ] 4. Call OpenAI API with summary prompt
+- [ ] 4. Handle app state changes:
+  - Mark messages as read when app comes to foreground
+  - Don't mark as read if user just backgrounded the app
 
-- [ ] 5. Return summary text
+**Update Message Status Indicators:**
 
-**Add Summary Button to Chat:**
+- [ ] 5. In `src/components/MessageBubble.js`:
+  - Add "read" status indicator: Blue double checkmark ✓✓
+  - Update status display logic:
+    - "sending": Gray clock 🕐
+    - "sent": Single checkmark ✓
+    - "delivered": Double checkmark ✓✓
+    - "read": Blue double checkmark ✓✓
 
-- [ ] 6. In `src/screens/ChatScreen.js`:
+**Group Chat Read Receipts:**
 
-  - Add "Summarize" button to header menu (three dots icon)
+- [ ] 6. For group messages, show read count:
 
-- [ ] 7. On tap:
+  - Display "Read by X of Y" below message
+  - Calculate from `readBy` array length vs total participants
+  - Show individual names on long-press (optional)
 
-  - Show loading indicator
-  - Get messages from Firebase store
+- [ ] 7. Update group message status logic:
+  - Mark as "delivered" when any user receives
+  - Mark as "read" when any user reads
+  - Show blue checkmarks when all participants have read
 
-- [ ] 8. Call `summarizeConversation(messages)`
+**Add Read Receipt UI Components:**
 
-- [ ] 9. Display summary in modal or alert dialog
+- [ ] 8. Create `ReadReceiptIndicator` component:
 
-- [ ] 10. Add "Close" button to dismiss modal
+  - Shows read count for group messages
+  - Handles long-press to show individual readers
+  - Different styling for 1-on-1 vs group chats
 
-**Implement Smart Replies:**
+- [ ] 9. Update MessageBubble to include read receipt indicator:
+  - Position below timestamp
+  - Only show for sent messages (not received)
+  - Different layout for group vs 1-on-1
 
-- [ ] 11. In `src/utils/aiService.js`:
+**Handle Edge Cases:**
 
-  - Add function: `generateSmartReplies(lastMessage, conversationContext)`
+- [ ] 10. Prevent duplicate read receipts:
 
-- [ ] 12. Inside `generateSmartReplies`:
+  - Check if user already in readBy array before adding
+  - Use Firestore transactions for atomic updates
 
-  - Create prompt: "Generate 3 short, natural reply suggestions (5-10 words each) for the message: '{lastMessage}'"
-  - Include last 3-5 messages as context
+- [ ] 11. Handle offline scenarios:
 
-- [ ] 13. Call OpenAI API
+  - Queue read receipt updates when offline
+  - Sync when connection restored
 
-- [ ] 14. Parse response into array of 3 reply options
+- [ ] 12. Handle user leaving/joining groups:
+  - Update read count calculations
+  - Remove user from readBy arrays when they leave
 
-- [ ] 15. Return array of strings
+**Update Firebase Store:**
 
-**Add Smart Reply Chips to Chat:**
+- [ ] 13. In `src/stores/firebaseStore.js`:
+  - Add function: `updateMessageReadStatus(conversationId, messageId, readBy)`
+  - Update message in store when read status changes
+  - Handle both simple status and readBy array updates
 
-- [ ] 16. In `src/screens/ChatScreen.js`:
+**Add Read Receipt Settings:**
 
-  - Add state: `const [smartReplies, setSmartReplies] = useState([])`
+- [ ] 14. In `src/screens/ProfileScreen.js`:
 
-- [ ] 17. When new message received from other user:
+  - Add toggle: "Send Read Receipts" (default: enabled)
+  - Save preference to Firestore user document
+  - Respect user's privacy choice
 
-  - Call `generateSmartReplies(lastMessage, recentMessages)`
-  - Store in smartReplies state
-
-- [ ] 18. Display 3 reply chips/buttons above input bar:
-
-  - Horizontal scrollable row
-  - Rounded pill-shaped buttons
-  - Each shows one reply option
-
-- [ ] 19. On chip tap:
-
-  - Populate input field with reply text
-  - Clear smart replies (or keep them for quick send)
-
-- [ ] 20. Clear smart replies when user types their own message
-
-**Make AI Context-Aware:**
-
-- [ ] 21. Update `sendToAI` function in `aiService.js`:
-
-  - Add optional parameter for conversation context
-  - Include last 10 messages from actual conversation
-
-- [ ] 22. Create function: `getAIResponseForConversation(prompt, conversationMessages)`
-  - Format conversation messages for context
-  - Call OpenAI with context
-  - AI can reference the conversation
-
-**Add AI to Any Conversation (Optional):**
-
-- [ ] 23. In `src/screens/ChatScreen.js`:
-
-  - Add "Ask AI" button in header or input bar
-
-- [ ] 24. On tap:
-
-  - Show modal/dialog for AI query
-  - User types question about the conversation
-
-- [ ] 25. Get AI response with full conversation as context
-
-- [ ] 26. Display AI response in modal (not as message in chat)
-
-**Final UI Polish:**
-
-- [ ] 27. Consistent styling across all screens:
-
-  - Same color scheme
-  - Same button styles
-  - Same text input styles
-  - Same header styles
-
-- [ ] 28. Add smooth animations:
-
-  - Screen transitions
-  - Modal/dialog animations
-  - Message send animations
-  - Typing indicator animations
-
-- [ ] 29. Loading states for all async operations:
-
-  - Message sending
-  - Image uploading
-  - Profile saving
-  - AI responses
-  - Conversation loading
-
-- [ ] 30. Error handling with user-friendly messages:
-
-  - Network errors
-  - Firebase errors
-  - AI errors
-  - Image upload errors
-
-- [ ] 31. Empty states:
-
-  - No messages in conversation: "No messages yet. Say hi!"
-  - No users online: "No users online right now"
-  - No conversations: "Start a conversation by tapping a user"
-
-- [ ] 32. Polish message bubbles:
-
-  - Better padding and spacing
-  - Subtle shadows
-  - Rounded corners
-  - Max width for long messages
-
-- [ ] 33. Add message timestamps:
-
-  - Group messages by date (Today, Yesterday, date)
-  - Show time for each message on tap or always visible
-
-- [ ] 34. Improve keyboard handling:
-
-  - Smooth keyboard appearance
-  - Input bar stays above keyboard
-  - Auto-scroll when keyboard opens
-
-- [ ] 35. Add pull-to-refresh on Home screen:
-  - Refresh user list
-  - Update presence data
-  - Reload conversations
+- [ ] 15. Update read receipt logic:
+  - Only send read receipts if user has enabled them
+  - Still show received read receipts regardless of setting
 
 **Performance Optimization:**
 
-- [ ] 36. Optimize FlatList rendering:
+- [ ] 16. Batch read receipt updates:
 
-  - Use `getItemLayout` if fixed height messages
-  - Add `windowSize` prop
-  - Use `maxToRenderPerBatch`
+  - Update multiple messages in single batch write
+  - Reduce Firestore write operations
 
-- [ ] 37. Memoize components:
+- [ ] 17. Debounce read receipt updates:
+  - Don't update on every scroll
+  - Update when user stops scrolling for 2+ seconds
 
-  - Wrap MessageBubble in React.memo
-  - Wrap UserListItem in React.memo
-  - Use useMemo for expensive calculations
+**Test Read Receipts:**
 
-- [ ] 38. Optimize image loading:
+- [ ] 18. Test 1-on-1 read receipts:
 
-  - Add image placeholders while loading
-  - Compress images before upload
-  - Cache images properly
+  - Send message from Device A
+  - Open conversation on Device B
+  - Verify Device A shows blue checkmarks
 
-- [ ] 39. Reduce unnecessary re-renders:
-  - Use useCallback for functions passed as props
-  - Optimize Zustand selectors (select only what's needed)
+- [ ] 19. Test group read receipts:
 
-**Add Message Features (Time Permitting):**
+  - Send message in group chat
+  - Have different users read the message
+  - Verify read count updates correctly
 
-- [ ] 40. Long press message for options menu:
-
-  - Copy text
-  - Delete (local only, not from Firestore)
-
-- [ ] 41. Copy message text to clipboard
-
-- [ ] 42. Timestamp display:
-
-  - Show full timestamp on tap
-  - Or always visible in smaller text
-
-- [ ] 43. Read receipts:
-  - Mark messages as "read" when conversation viewed
-  - Update status in Firestore
-  - Show blue checkmarks for read messages
-
-**Testing & Bug Fixes:**
-
-- [ ] 44. Test all features end-to-end on physical device
-
-- [ ] 45. Test with 3+ devices simultaneously:
-
-  - All receive messages
-  - Presence updates correctly
-  - Notifications work for all
-
-- [ ] 46. Test offline scenarios:
-
-  - Send messages in airplane mode
-  - Turn off/on WiFi
-  - Verify queued messages send
-  - Verify presence updates correctly
-
-- [ ] 47. Test push notifications in various states:
-
-  - App completely closed
-  - App in background
-  - App in foreground
-  - Multiple notifications
-
-- [ ] 48. Test AI features with edge cases:
-
-  - Very long prompts
-  - Empty prompts
-  - API errors
-  - Network timeouts
-
-- [ ] 49. Fix any bugs discovered during testing
-
-- [ ] 50. Polish any rough UI edges
-
-**Create Demo Video:**
-
-- [ ] 51. Record screen on physical device
-
-- [ ] 52. Demo in 3-5 minutes showing:
-
-  - Sign up and profile creation (30 seconds)
-  - User list with presence indicators (15 seconds)
-  - Sending messages with status indicators (30 seconds)
-  - Offline message queuing (30 seconds)
-  - Group chat creation and messaging (45 seconds)
-  - Push notifications (show notification arriving) (20 seconds)
-  - AI chat features (summary, smart replies) (60 seconds)
-  - Profile editing (20 seconds)
-
-- [ ] 53. Add voiceover or captions explaining features
-
-- [ ] 54. Export video in high quality
-
-**Documentation:**
-
-- [ ] 55. Update `README.md` with:
-
-  - Complete setup instructions
-  - Prerequisites (Node, Expo CLI, Expo Go app)
-  - How to add Firebase config to `.env`
-  - How to add OpenAI key to `.env`
-  - How to run: `npx expo start`
-  - How to test on phone (scan QR code)
-  - Feature list (bullet points)
-  - Screenshots of main screens
-
-- [ ] 56. Create `ARCHITECTURE.md` file:
-
-  - Explain 3-store Zustand architecture
-  - Explain message status flow (sending → sent → delivered → read)
-  - Explain presence tracking with Realtime Database
-  - Explain offline support
-  - Include diagrams or code examples
-
-- [ ] 57. Add code comments to complex sections:
-
-  - 3-store interactions
-  - Message status updates
-  - Presence tracking logic
-  - AI service functions
-
-- [ ] 58. Document any known limitations or future improvements
-
-**Deploy Production Build:**
-
-- [ ] 59. Install EAS CLI (Expo Application Services):
-
-  ```bash
-  npm install -g eas-cli
-  ```
-
-- [ ] 60. Login to Expo account:
-
-  ```bash
-  eas login
-  ```
-
-- [ ] 61. Configure EAS build:
-
-  ```bash
-  eas build:configure
-  ```
-
-- [ ] 62. Build for iOS (if you have Mac/iOS):
-
-  ```bash
-  eas build --platform ios
-  ```
-
-- [ ] 63. Build for Android:
-
-  ```bash
-  eas build --platform android
-  ```
-
-- [ ] 64. Wait for builds to complete (can take 10-30 minutes)
-
-- [ ] 65. Download APK (Android) or IPA (iOS) from Expo dashboard
-
-- [ ] 66. Test production build on physical devices:
-
-  - Install APK on Android device
-  - Install IPA on iOS device (requires TestFlight or enterprise cert)
-
-- [ ] 67. Verify all features work in production build:
-  - Sometimes features work in Expo Go but not in production
-  - Test notifications especially
-
-**Final Cleanup:**
-
-- [ ] 68. Remove any console.logs used for debugging
-
-- [ ] 69. Remove any commented-out code
-
-- [ ] 70. Format code consistently (use Prettier if available)
-
-- [ ] 71. Check for any TODO comments and address them
-
-- [ ] 72. Verify `.env` is in `.gitignore`
-
-- [ ] 73. Verify no sensitive data in code (API keys, Firebase config should be in .env)
-
-- [ ] 74. Make final Git commit with all changes
+- [ ] 20. Test edge cases:
+  - User leaves group while message unread
+  - Multiple users read simultaneously
+  - Offline/online transitions
 
 **Files Created:**
 
-- `ARCHITECTURE.md`
-- Demo video file (mp4)
-- Screenshots folder with app screenshots
+- `src/components/ReadReceiptIndicator.js`
 
 **Files Modified:**
 
-- `src/utils/aiService.js`
-- `src/screens/ChatScreen.js`
-- `src/screens/AIChatScreen.js`
-- All screen files (UI polish)
-- All component files (optimization)
-- `README.md`
+- `src/utils/conversation.js` (add markMessagesAsRead function)
+- `src/screens/ChatScreen.js` (add read receipt detection)
+- `src/components/MessageBubble.js` (add read receipt display)
+- `src/stores/firebaseStore.js` (add read receipt updates)
+- `src/screens/ProfileScreen.js` (add read receipt settings)
 
 **Test Before Merge:**
 
-- [ ] Conversation summary works correctly
-- [ ] Summary shows in modal with correct content
-- [ ] Smart replies generate appropriate suggestions
-- [ ] Smart reply chips display above input bar
-- [ ] Tapping smart reply populates input
-- [ ] AI is context-aware in conversations
-- [ ] All UI elements polished and consistent
-- [ ] Animations smooth and not jarring
-- [ ] Loading states show for all async operations
-- [ ] Error messages display user-friendly text
-- [ ] Empty states show helpful messages
-- [ ] No performance issues or lag when scrolling
-- [ ] Images load smoothly with placeholders
-- [ ] Pull-to-refresh works on Home screen
-- [ ] All error scenarios handled gracefully
-- [ ] App works on both iOS and Android (test both if possible)
-- [ ] Production build installs and runs correctly
-- [ ] All features work in production build
-- [ ] Demo video covers all features clearly
-- [ ] Documentation is complete and accurate
-- [ ] No console errors or warnings
+- [ ] 1-on-1 messages show blue checkmarks when read
+- [ ] Group messages show "Read by X of Y" correctly
+- [ ] Read receipts work when app comes to foreground
+- [ ] Read receipts respect user privacy settings
+- [ ] Offline read receipts sync when reconnected
+- [ ] No duplicate read receipts sent
+- [ ] Performance is smooth with many messages
+- [ ] Works correctly in groups with users joining/leaving
 
 ---
 
@@ -2269,16 +1837,12 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Post-MVP (Day 3-5):**
 
-- PR #8: Profile editing
-- PR #9: Group chats
+- PR #8: Profile editing ✅
+- PR #9: Group chats 🔄 (in progress)
 - PR #10: Push notifications
+- PR #11: Read Receipts
 
-**Final (Day 6-7):**
-
-- PR #11: AI agent basics
-- PR #12: Advanced AI features + polish
-
-**Total Remaining PRs:** 5 (PR #8-12)
+**Total Remaining PRs:** 3 (PR #9-11)
 
 ---
 
@@ -2290,8 +1854,6 @@ Since you've never used React Native, this PR focuses on getting your developmen
 - **Test offline mode after PR #8**
 - **Cloud Functions deployment can take a few tries - be patient**
 - **Production builds are different from Expo Go - test both**
-- **OpenAI API costs money - monitor usage**
-- **Smart replies can be slow - add loading states**
-- **Demo video is important - make it clear and engaging**
+- **After PR #10, transition to PRD-2 based AI features**
 
 Good luck finishing the app! 🚀
