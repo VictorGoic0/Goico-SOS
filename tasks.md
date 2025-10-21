@@ -1210,163 +1210,169 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 ### Subtasks
 
+**Add User Profile Preview to Direct Messages:**
+
+- [ ] 1. In `ChatScreen.js`, update header to show user's profile photo next to their display name for 1-on-1 chats
+- [ ] 2. Display circular profile photo (or placeholder with initials) in the header
+- [ ] 3. Ensure online/offline status indicator appears next to the profile photo
+
 **Create Group Chat Screen:**
 
-1. Create file: `src/screens/CreateGroupScreen.js`
+- [ ] 4. Create file: `src/screens/CreateGroupScreen.js`
 
-2. Add UI Components:
-   - Header: "Create Group"
-   - Group Name TextInput
-   - "Add Group Photo" Button (optional)
-   - Section title: "Select Participants"
-   - FlatList of all users with checkboxes
-   - Selected count display: "3 selected"
-   - "Create Group" Button (bottom)
+- [ ] 5. Add UI Components:
+  - Header: "Create Group"
+  - Group Name TextInput
+  - "Add Group Photo" Button (optional)
+  - Section title: "Select Participants"
+  - FlatList of all users with checkboxes
+  - Selected count display: "3 selected"
+  - "Create Group" Button (bottom)
 
 **Multi-Select User List:**
 
-3. In `CreateGroupScreen.js`:
+- [ ] 6. In `CreateGroupScreen.js`:
 
-   - Add state to track selected user IDs: `const [selectedUsers, setSelectedUsers] = useState([])`
+  - Add state to track selected user IDs: `const [selectedUsers, setSelectedUsers] = useState([])`
 
-4. Render all users (except current user) with checkboxes
+- [ ] 7. Render all users (except current user) with checkboxes
 
-5. Toggle selection on checkbox tap
+- [ ] 8. Toggle selection on checkbox tap
 
-6. Add validation: Minimum 2 users required to create group
+- [ ] 9. Add validation: Minimum 2 users required to create group
 
 **Implement Create Group:**
 
-7. In `src/utils/messaging.js`:
+- [ ] 10. In `src/utils/messaging.js`:
 
-   - Add function: `createGroupConversation(groupName, participantIds, groupImageURL)`
+  - Add function: `createGroupConversation(groupName, participantIds, groupImageURL)`
 
-8. Inside `createGroupConversation`:
+- [ ] 11. Inside `createGroupConversation`:
 
-   - Generate conversationId (auto-generated)
-   - Add current user to participants
-   - Get usernames for all participants from Firebase store
+  - Generate conversationId (auto-generated)
+  - Add current user to participants
+  - Get usernames for all participants from Firebase store
 
-9. Create conversation document in Firestore:
+- [ ] 12. Create conversation document in Firestore:
 
-   ```javascript
-   {
-     conversationId,
-     participants: [currentUserId, ...participantIds],
-     participantUsernames: [currentUsername, ...usernames],
-     isGroup: true,
-     groupName,
-     groupImageURL: groupImageURL || null,
-     lastMessage: '',
-     lastMessageSenderId: '',
-     lastMessageTimestamp: null,
-     createdAt: serverTimestamp(),
-     lastEdit: serverTimestamp()
-   }
-   ```
+  ```javascript
+  {
+    conversationId,
+    participants: [currentUserId, ...participantIds],
+    participantUsernames: [currentUsername, ...usernames],
+    isGroup: true,
+    groupName,
+    groupImageURL: groupImageURL || null,
+    lastMessage: '',
+    lastMessageSenderId: '',
+    lastMessageTimestamp: null,
+    createdAt: serverTimestamp(),
+    lastEdit: serverTimestamp()
+  }
+  ```
 
-10. Return conversationId
+- [ ] 13. Return conversationId
 
 **Connect Create Button:**
 
-11. In `CreateGroupScreen.js`:
+- [ ] 14. In `CreateGroupScreen.js`:
 
-    - On "Create Group" button press:
-      - Validate group name not empty
-      - Validate at least 2 users selected
+  - On "Create Group" button press:
+    - Validate group name not empty
+    - Validate at least 2 users selected
 
-12. If group photo selected, upload it first (to Firebase Storage)
+- [ ] 15. If group photo selected, upload it first (to Firebase Storage)
 
-13. Call `createGroupConversation` with group data
+- [ ] 16. Call `createGroupConversation` with group data
 
-14. Navigate to ChatScreen with new conversationId
+- [ ] 17. Navigate to ChatScreen with new conversationId
 
 **Update ChatScreen for Groups:**
 
-15. In `src/screens/ChatScreen.js`:
+- [ ] 18. In `src/screens/ChatScreen.js`:
 
-    - Detect if conversation is group:
-      ```javascript
-      const conversation = useFirebaseStore(
-        (s) => s.conversationsMap[conversationId]
-      );
-      const isGroup = conversation?.isGroup || false;
-      ```
+  - Detect if conversation is group:
+    ```javascript
+    const conversation = useFirebaseStore(
+      (s) => s.conversationsMap[conversationId]
+    );
+    const isGroup = conversation?.isGroup || false;
+    ```
 
-16. If group, update header to show:
-    - Group name instead of user name
-    - Participant count (e.g., "3 members")
-    - Tap header → navigate to GroupInfoScreen
+- [ ] 19. If group, update header to show:
+  - Group name instead of user name
+  - Participant count (e.g., "3 members")
+  - Tap header → navigate to GroupInfoScreen
 
 **Update MessageBubble for Groups:**
 
-17. In `src/components/MessageBubble.js`:
+- [ ] 20. In `src/components/MessageBubble.js`:
 
-    - Add prop: `isGroup` and `senderUsername`
+  - Add prop: `isGroup` and `senderUsername`
 
-18. If group and message is from another user:
-    - Show sender's name above message
-    - Use different colors for different senders (optional)
+- [ ] 21. If group and message is from another user:
+  - Show sender's name above message
+  - Use different colors for different senders (optional)
 
 **Update Message Sending for Groups:**
 
-19. Verify `sendMessage` function in `src/utils/messaging.js` works for both 1-on-1 and groups
-    - Should already work without changes
-    - Messages go to same subcollection structure
+- [ ] 22. Verify `sendMessage` function in `src/utils/messaging.js` works for both 1-on-1 and groups
+  - Should already work without changes
+  - Messages go to same subcollection structure
 
 **Update Delivered Status for Groups:**
 
-20. In `ChatScreen.js`:
-    - For groups, mark as "delivered" when current user receives
-    - (Advanced: track delivered status per user - optional for MVP)
+- [ ] 23. In `ChatScreen.js`:
+  - For groups, mark as "delivered" when current user receives
+  - (Advanced: track delivered status per user - optional for MVP)
 
 **Create Group Info Screen:**
 
-21. Create file: `src/screens/GroupInfoScreen.js`
+- [ ] 24. Create file: `src/screens/GroupInfoScreen.js`
 
-22. Add UI Components:
-    - Group photo (large, circular)
-    - Group name (editable TextInput for creator, read-only for others)
-    - Participants section title
-    - List of participants (with photos and names)
-    - "Add Participants" Button (for future)
-    - "Leave Group" Button (bottom, red)
+- [ ] 25. Add UI Components:
+  - Group photo (large, circular)
+  - Group name (editable TextInput for creator, read-only for others)
+  - Participants section title
+  - List of participants (with photos and names)
+  - "Add Participants" Button (for future)
+  - "Leave Group" Button (bottom, red)
 
 **Implement Leave Group:**
 
-23. In `GroupInfoScreen.js`:
+- [ ] 26. In `GroupInfoScreen.js`:
 
-    - "Leave Group" button:
-      - Remove current user from participants array in Firestore
-      - Update conversation document
+  - "Leave Group" button:
+    - Remove current user from participants array in Firestore
+    - Update conversation document
 
-24. Navigate back to Home screen after leaving
+- [ ] 27. Navigate back to Home screen after leaving
 
 **Add Navigation:**
 
-25. In `src/navigation/AppNavigator.js`:
-    - Add CreateGroupScreen to Main Stack
-    - Add GroupInfoScreen to Main Stack
+- [ ] 28. In `src/navigation/AppNavigator.js`:
+  - Add CreateGroupScreen to Main Stack
+  - Add GroupInfoScreen to Main Stack
 
 **Add "Create Group" Button to Home Screen:**
 
-26. In `src/screens/HomeScreen.js`:
+- [ ] 29. In `src/screens/HomeScreen.js`:
 
-    - Add floating action button (FAB) or header button for "Create Group"
+  - Add floating action button (FAB) or header button for "Create Group"
 
-27. On tap, navigate to CreateGroupScreen
+- [ ] 30. On tap, navigate to CreateGroupScreen
 
 **Update Conversations List (Optional Enhancement):**
 
-28. In `src/screens/HomeScreen.js`:
+- [ ] 31. In `src/screens/HomeScreen.js`:
 
-    - Fetch user's conversations from Firestore
-    - Display both 1-on-1 and group conversations
+  - Fetch user's conversations from Firestore
+  - Display both 1-on-1 and group conversations
 
-29. For each conversation:
-    - Show group icon for group chats
-    - Display last message preview
-    - Display timestamp of last message
+- [ ] 32. For each conversation:
+  - Show group icon for group chats
+  - Display last message preview
+  - Display timestamp of last message
 
 **Files Created:**
 
@@ -1406,170 +1412,169 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Install Expo Notifications:**
 
-1. Install package:
-   ```bash
-   npx expo install expo-notifications
-   ```
+- [ ] 1. Install package:
+  ```bash
+  npx expo install expo-notifications
+  ```
 
 **Request Notification Permissions:**
 
-2. Create file: `src/utils/notifications.js`
+- [ ] 2. Create file: `src/utils/notifications.js`
 
-3. Add function: `registerForPushNotifications()`
+- [ ] 3. Add function: `registerForPushNotifications()`
 
-   - Request permissions using Expo Notifications API
-   - Get Expo push token
-   - Return token
+  - Request permissions using Expo Notifications API
+  - Get Expo push token
+  - Return token
 
-4. In `src/screens/HomeScreen.js` or `App.js`:
+- [ ] 4. In `src/screens/HomeScreen.js` or `App.js`:
 
-   - On app start (after login), call `registerForPushNotifications()`
+  - On app start (after login), call `registerForPushNotifications()`
 
-5. Save push token to Firestore user document:
-   ```javascript
-   await updateDoc(doc(db, "users", userId), {
-     pushToken: token,
-   });
-   ```
+- [ ] 5. Save push token to Firestore user document:
+  ```javascript
+  await updateDoc(doc(db, "users", userId), {
+    pushToken: token,
+  });
+  ```
 
 **Set Up Firebase Cloud Functions:**
 
-6. Install Firebase CLI globally (if not already installed):
+- [ ] 6. Install Firebase CLI globally (if not already installed):
 
-   ```bash
-   npm install -g firebase-tools
-   ```
+  ```bash
+  npm install -g firebase-tools
+  ```
 
-7. Login to Firebase:
+- [ ] 7. Login to Firebase:
 
-   ```bash
-   firebase login
-   ```
+  ```bash
+  firebase login
+  ```
 
-8. Initialize Cloud Functions in your project root:
+- [ ] 8. Initialize Cloud Functions in your project root:
 
-   ```bash
-   firebase init functions
-   ```
+  ```bash
+  firebase init functions
+  ```
 
-9. Select your Firebase project
+- [ ] 9. Select your Firebase project
 
-10. Choose JavaScript (not TypeScript for simplicity)
+- [ ] 10. Choose JavaScript (not TypeScript for simplicity)
 
-11. Install dependencies when prompted
+- [ ] 11. Install dependencies when prompted
 
 **Create Cloud Function for Notifications:**
 
-12. Open file: `functions/index.js`
+- [ ] 12. Open file: `functions/index.js`
 
-13. Import required modules:
+- [ ] 13. Import required modules:
 
-    ```javascript
-    const functions = require("firebase-functions");
-    const admin = require("firebase-admin");
-    admin.initializeApp();
-    ```
+  ```javascript
+  const functions = require("firebase-functions");
+  const admin = require("firebase-admin");
+  admin.initializeApp();
+  ```
 
-14. Create function: `sendMessageNotification`
+- [ ] 14. Create function: `sendMessageNotification`
 
-    - Trigger: onCreate in `/conversations/{convId}/messages/{msgId}`
+  - Trigger: onCreate in `/conversations/{convId}/messages/{msgId}`
 
-15. Inside the function:
+- [ ] 15. Inside the function:
 
-    - Get the new message data from snapshot
-    - Get conversation document to find recipients
-    - Get recipients' user documents to retrieve push tokens
-    - Filter out sender from recipients
-    - Only send notifications if recipients have push tokens
+  - Get the new message data from snapshot
+  - Get conversation document to find recipients
+  - Get recipients' user documents to retrieve push tokens
+  - Filter out sender from recipients
+  - Only send notifications if recipients have push tokens
 
-16. Send notification via Expo push API:
+- [ ] 16. Send notification via Expo push API:
 
-    ```javascript
-    const messages = pushTokens.map((token) => ({
-      to: token,
-      sound: "default",
-      title: senderUsername,
-      body: messageText,
-      data: { conversationId, type: "new_message" },
-    }));
+  ```javascript
+  const messages = pushTokens.map((token) => ({
+    to: token,
+    sound: "default",
+    title: senderUsername,
+    body: messageText,
+    data: { conversationId, type: "new_message" },
+  }));
 
-    await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(messages),
-    });
-    ```
+  await fetch("https://exp.host/--/api/v2/push/send", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(messages),
+  });
+  ```
 
 **Deploy Cloud Function:**
 
-17. Deploy to Firebase:
+- [ ] 17. Deploy to Firebase:
 
-    ```bash
-    firebase deploy --only functions
-    ```
+  ```bash
+  firebase deploy --only functions
+  ```
 
-18. Verify function appears in Firebase console (Functions section)
+- [ ] 18. Verify function appears in Firebase console (Functions section)
 
-19. Check function logs in Firebase console to debug if needed
+- [ ] 19. Check function logs in Firebase console to debug if needed
 
 **Handle Notification Tap:**
 
-20. In `App.js`:
+- [ ] 20. In `App.js`:
 
-    - Set up notification response listener:
-      ```javascript
-      useEffect(() => {
-        const subscription =
-          Notifications.addNotificationResponseReceivedListener((response) => {
-            const { conversationId } =
-              response.notification.request.content.data;
-            // Navigate to ChatScreen with conversationId
-            // Use navigation ref or context
-          });
-        return () => subscription.remove();
-      }, []);
-      ```
+  - Set up notification response listener:
+    ```javascript
+    useEffect(() => {
+      const subscription =
+        Notifications.addNotificationResponseReceivedListener((response) => {
+          const { conversationId } = response.notification.request.content.data;
+          // Navigate to ChatScreen with conversationId
+          // Use navigation ref or context
+        });
+      return () => subscription.remove();
+    }, []);
+    ```
 
-21. Create navigation reference in App.js to allow navigation from listener
+- [ ] 21. Create navigation reference in App.js to allow navigation from listener
 
 **Test Notifications:**
 
-22. Close app completely on device A (not just background, fully quit)
+- [ ] 22. Close app completely on device A (not just background, fully quit)
 
-23. Send message from device B
+- [ ] 23. Send message from device B
 
-24. Verify device A receives notification on lock screen
+- [ ] 24. Verify device A receives notification on lock screen
 
-25. Tap notification → verify app opens to correct conversation
+- [ ] 25. Tap notification → verify app opens to correct conversation
 
 **Handle Notifications While App is Open:**
 
-26. In `App.js`:
+- [ ] 26. In `App.js`:
 
-    - Set up foreground notification handler:
-      ```javascript
-      Notifications.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowAlert: true,
-          shouldPlaySound: true,
-          shouldSetBadge: false,
-        }),
-      });
-      ```
+  - Set up foreground notification handler:
+    ```javascript
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+    ```
 
-27. Test: Send message while app is open → should show in-app notification
+- [ ] 27. Test: Send message while app is open → should show in-app notification
 
 **Handle Notification Permissions Edge Cases:**
 
-28. If user denies permissions:
+- [ ] 28. If user denies permissions:
 
-    - Show message explaining notifications won't work
-    - Provide button to open settings (optional)
+  - Show message explaining notifications won't work
+  - Provide button to open settings (optional)
 
-29. Save permission status to avoid repeatedly asking
+- [ ] 29. Save permission status to avoid repeatedly asking
 
 **Files Created:**
 
@@ -1606,56 +1611,55 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Install Vercel AI SDK:**
 
-1. Install packages:
-   ```bash
-   npm install ai openai
-   ```
+- [ ] 1. Install packages:
+  ```bash
+  npm install ai openai
+  ```
 
 **Add OpenAI API Key:**
 
-2. In `.env` file:
+- [ ] 2. In `.env` file:
 
-   ```
-   EXPO_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
-   ```
+  ```
+  EXPO_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
+  ```
 
-3. Restart Expo server after adding env variable
+- [ ] 3. Restart Expo server after adding env variable
 
 **Create AI Service:**
 
-4. Create file: `src/utils/aiService.js`
+- [ ] 4. Create file: `src/utils/aiService.js`
 
-5. Import OpenAI:
+- [ ] 5. Import OpenAI:
 
-   ```javascript
-   import OpenAI from "openai";
-   ```
+  ```javascript
+  import OpenAI from "openai";
+  ```
 
-6. Initialize OpenAI client:
+- [ ] 6. Initialize OpenAI client:
 
-   ```javascript
-   const openai = new OpenAI({
-     apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
-   });
-   ```
+  ```javascript
+  const openai = new OpenAI({
+    apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
+  });
+  ```
 
-7. Add function: `sendToAI(prompt, conversationHistory = [])`
+- [ ] 7. Add function: `sendToAI(prompt, conversationHistory = [])`
 
-8. Inside `sendToAI`:
-
-   - Create messages array with system prompt and conversation history
-   - Call OpenAI chat completions API:
-     ```javascript
-     const response = await openai.chat.completions.create({
-       model: "gpt-4",
-       messages: [
-         { role: "system", content: "You are a helpful assistant." },
-         ...conversationHistory,
-         { role: "user", content: prompt },
-       ],
-       stream: false,
-     });
-     ```
+- [ ] 8. Inside `sendToAI`:
+  - Create messages array with system prompt and conversation history
+  - Call OpenAI chat completions API:
+    ```javascript
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        ...conversationHistory,
+        { role: "user", content: prompt },
+      ],
+      stream: false,
+    });
+    ```
 
 9. Return response content:
 
@@ -1663,101 +1667,101 @@ Since you've never used React Native, this PR focuses on getting your developmen
    return response.choices[0].message.content;
    ```
 
-10. Add error handling (try/catch) with user-friendly error message
+- [ ] 10. Add error handling (try/catch) with user-friendly error message
 
 **Create AI Chat Screen:**
 
-11. Create file: `src/screens/AIChatScreen.js`
+- [ ] 11. Create file: `src/screens/AIChatScreen.js`
 
-12. Structure similar to ChatScreen but simplified:
+- [ ] 12. Structure similar to ChatScreen but simplified:
 
-    - Header shows "AI Assistant" instead of user name
-    - No online status indicator
-    - Messages from AI have robot icon or different avatar
+  - Header shows "AI Assistant" instead of user name
+  - No online status indicator
+  - Messages from AI have robot icon or different avatar
 
-13. Add state for messages:
-    ```javascript
-    const [messages, setMessages] = useState([]);
-    const [inputText, setInputText] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    ```
+- [ ] 13. Add state for messages:
+  ```javascript
+  const [messages, setMessages] = useState([]);
+  const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  ```
 
 **Implement AI Message Flow:**
 
-14. In `AIChatScreen.js`:
+- [ ] 14. In `AIChatScreen.js`:
 
-    - When user sends message:
-      - Add user message to messages array immediately
+  - When user sends message:
+    - Add user message to messages array immediately
 
-15. Set loading state: `setIsLoading(true)`
+- [ ] 15. Set loading state: `setIsLoading(true)`
 
-16. Show "AI is typing..." indicator at bottom of message list
+- [ ] 16. Show "AI is typing..." indicator at bottom of message list
 
-17. Build conversation history from messages array:
+- [ ] 17. Build conversation history from messages array:
 
-    ```javascript
-    const history = messages.map((msg) => ({
-      role: msg.isAI ? "assistant" : "user",
-      content: msg.text,
-    }));
-    ```
+  ```javascript
+  const history = messages.map((msg) => ({
+    role: msg.isAI ? "assistant" : "user",
+    content: msg.text,
+  }));
+  ```
 
-18. Call `sendToAI(inputText, history)`
+- [ ] 18. Call `sendToAI(inputText, history)`
 
-19. Add AI response to messages array:
+- [ ] 19. Add AI response to messages array:
 
-    ```javascript
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: generateId(),
-        text: aiResponse,
-        isAI: true,
-        timestamp: Date.now(),
-      },
-    ]);
-    ```
+  ```javascript
+  setMessages((prev) => [
+    ...prev,
+    {
+      id: generateId(),
+      text: aiResponse,
+      isAI: true,
+      timestamp: Date.now(),
+    },
+  ]);
+  ```
 
-20. Set loading state: `setIsLoading(false)`
+- [ ] 20. Set loading state: `setIsLoading(false)`
 
-21. Clear input field
+- [ ] 21. Clear input field
 
-22. Store conversation in LOCAL state only (not Firestore for MVP)
+- [ ] 22. Store conversation in LOCAL state only (not Firestore for MVP)
 
 **Style AI Messages Differently:**
 
-23. In `src/components/MessageBubble.js` or create new `AIMessageBubble.js`:
-    - Different background color for AI messages
-    - Add robot icon or AI badge
-    - Align left (like received messages)
+- [ ] 23. In `src/components/MessageBubble.js` or create new `AIMessageBubble.js`:
+  - Different background color for AI messages
+  - Add robot icon or AI badge
+  - Align left (like received messages)
 
 **Add Navigation to AI Chat:**
 
-24. In `src/navigation/AppNavigator.js`:
-    - Add AIChatScreen to Main Stack
+- [ ] 24. In `src/navigation/AppNavigator.js`:
+  - Add AIChatScreen to Main Stack
 
 **Add AI Chat Button:**
 
-25. In `src/screens/HomeScreen.js`:
+- [ ] 25. In `src/screens/HomeScreen.js`:
 
-    - Add "Chat with AI" button to header or as menu item
+  - Add "Chat with AI" button to header or as menu item
 
-26. On tap, navigate to AIChatScreen
+- [ ] 26. On tap, navigate to AIChatScreen
 
 **Handle Streaming (Optional - Skip for MVP):**
 
-27. If time permits later, implement streaming:
-    - Set `stream: true` in OpenAI request
-    - Display response word by word as it arrives
-    - More complex, save for post-MVP
+- [ ] 27. If time permits later, implement streaming:
+  - Set `stream: true` in OpenAI request
+  - Display response word by word as it arrives
+  - More complex, save for post-MVP
 
 **Add Error Handling:**
 
-28. Show error message if OpenAI API fails
+- [ ] 28. Show error message if OpenAI API fails
 
-29. Allow user to retry failed message
+- [ ] 29. Allow user to retry failed message
 
-30. Handle network errors gracefully
+- [ ] 30. Handle network errors gracefully
 
 **Files Created:**
 
@@ -1794,358 +1798,358 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Implement Conversation Summary:**
 
-1. In `src/utils/aiService.js`:
+- [ ] 1. In `src/utils/aiService.js`:
 
-   - Add function: `summarizeConversation(messages)`
+  - Add function: `summarizeConversation(messages)`
 
-2. Inside `summarizeConversation`:
+- [ ] 2. Inside `summarizeConversation`:
 
-   - Take last 50 messages from conversation (or all if less than 50)
-   - Format as string with sender names and text
+  - Take last 50 messages from conversation (or all if less than 50)
+  - Format as string with sender names and text
 
-3. Create prompt:
+- [ ] 3. Create prompt:
 
-   ```javascript
-   "Summarize the following conversation in 2-3 sentences:\n\n" +
-     formattedMessages;
-   ```
+  ```javascript
+  "Summarize the following conversation in 2-3 sentences:\n\n" +
+    formattedMessages;
+  ```
 
-4. Call OpenAI API with summary prompt
+- [ ] 4. Call OpenAI API with summary prompt
 
-5. Return summary text
+- [ ] 5. Return summary text
 
 **Add Summary Button to Chat:**
 
-6. In `src/screens/ChatScreen.js`:
+- [ ] 6. In `src/screens/ChatScreen.js`:
 
-   - Add "Summarize" button to header menu (three dots icon)
+  - Add "Summarize" button to header menu (three dots icon)
 
-7. On tap:
+- [ ] 7. On tap:
 
-   - Show loading indicator
-   - Get messages from Firebase store
+  - Show loading indicator
+  - Get messages from Firebase store
 
-8. Call `summarizeConversation(messages)`
+- [ ] 8. Call `summarizeConversation(messages)`
 
-9. Display summary in modal or alert dialog
+- [ ] 9. Display summary in modal or alert dialog
 
-10. Add "Close" button to dismiss modal
+- [ ] 10. Add "Close" button to dismiss modal
 
 **Implement Smart Replies:**
 
-11. In `src/utils/aiService.js`:
+- [ ] 11. In `src/utils/aiService.js`:
 
-    - Add function: `generateSmartReplies(lastMessage, conversationContext)`
+  - Add function: `generateSmartReplies(lastMessage, conversationContext)`
 
-12. Inside `generateSmartReplies`:
+- [ ] 12. Inside `generateSmartReplies`:
 
-    - Create prompt: "Generate 3 short, natural reply suggestions (5-10 words each) for the message: '{lastMessage}'"
-    - Include last 3-5 messages as context
+  - Create prompt: "Generate 3 short, natural reply suggestions (5-10 words each) for the message: '{lastMessage}'"
+  - Include last 3-5 messages as context
 
-13. Call OpenAI API
+- [ ] 13. Call OpenAI API
 
-14. Parse response into array of 3 reply options
+- [ ] 14. Parse response into array of 3 reply options
 
-15. Return array of strings
+- [ ] 15. Return array of strings
 
 **Add Smart Reply Chips to Chat:**
 
-16. In `src/screens/ChatScreen.js`:
+- [ ] 16. In `src/screens/ChatScreen.js`:
 
-    - Add state: `const [smartReplies, setSmartReplies] = useState([])`
+  - Add state: `const [smartReplies, setSmartReplies] = useState([])`
 
-17. When new message received from other user:
+- [ ] 17. When new message received from other user:
 
-    - Call `generateSmartReplies(lastMessage, recentMessages)`
-    - Store in smartReplies state
+  - Call `generateSmartReplies(lastMessage, recentMessages)`
+  - Store in smartReplies state
 
-18. Display 3 reply chips/buttons above input bar:
+- [ ] 18. Display 3 reply chips/buttons above input bar:
 
-    - Horizontal scrollable row
-    - Rounded pill-shaped buttons
-    - Each shows one reply option
+  - Horizontal scrollable row
+  - Rounded pill-shaped buttons
+  - Each shows one reply option
 
-19. On chip tap:
+- [ ] 19. On chip tap:
 
-    - Populate input field with reply text
-    - Clear smart replies (or keep them for quick send)
+  - Populate input field with reply text
+  - Clear smart replies (or keep them for quick send)
 
-20. Clear smart replies when user types their own message
+- [ ] 20. Clear smart replies when user types their own message
 
 **Make AI Context-Aware:**
 
-21. Update `sendToAI` function in `aiService.js`:
+- [ ] 21. Update `sendToAI` function in `aiService.js`:
 
-    - Add optional parameter for conversation context
-    - Include last 10 messages from actual conversation
+  - Add optional parameter for conversation context
+  - Include last 10 messages from actual conversation
 
-22. Create function: `getAIResponseForConversation(prompt, conversationMessages)`
-    - Format conversation messages for context
-    - Call OpenAI with context
-    - AI can reference the conversation
+- [ ] 22. Create function: `getAIResponseForConversation(prompt, conversationMessages)`
+  - Format conversation messages for context
+  - Call OpenAI with context
+  - AI can reference the conversation
 
 **Add AI to Any Conversation (Optional):**
 
-23. In `src/screens/ChatScreen.js`:
+- [ ] 23. In `src/screens/ChatScreen.js`:
 
-    - Add "Ask AI" button in header or input bar
+  - Add "Ask AI" button in header or input bar
 
-24. On tap:
+- [ ] 24. On tap:
 
-    - Show modal/dialog for AI query
-    - User types question about the conversation
+  - Show modal/dialog for AI query
+  - User types question about the conversation
 
-25. Get AI response with full conversation as context
+- [ ] 25. Get AI response with full conversation as context
 
-26. Display AI response in modal (not as message in chat)
+- [ ] 26. Display AI response in modal (not as message in chat)
 
 **Final UI Polish:**
 
-27. Consistent styling across all screens:
+- [ ] 27. Consistent styling across all screens:
 
-    - Same color scheme
-    - Same button styles
-    - Same text input styles
-    - Same header styles
+  - Same color scheme
+  - Same button styles
+  - Same text input styles
+  - Same header styles
 
-28. Add smooth animations:
+- [ ] 28. Add smooth animations:
 
-    - Screen transitions
-    - Modal/dialog animations
-    - Message send animations
-    - Typing indicator animations
+  - Screen transitions
+  - Modal/dialog animations
+  - Message send animations
+  - Typing indicator animations
 
-29. Loading states for all async operations:
+- [ ] 29. Loading states for all async operations:
 
-    - Message sending
-    - Image uploading
-    - Profile saving
-    - AI responses
-    - Conversation loading
+  - Message sending
+  - Image uploading
+  - Profile saving
+  - AI responses
+  - Conversation loading
 
-30. Error handling with user-friendly messages:
+- [ ] 30. Error handling with user-friendly messages:
 
-    - Network errors
-    - Firebase errors
-    - AI errors
-    - Image upload errors
+  - Network errors
+  - Firebase errors
+  - AI errors
+  - Image upload errors
 
-31. Empty states:
+- [ ] 31. Empty states:
 
-    - No messages in conversation: "No messages yet. Say hi!"
-    - No users online: "No users online right now"
-    - No conversations: "Start a conversation by tapping a user"
+  - No messages in conversation: "No messages yet. Say hi!"
+  - No users online: "No users online right now"
+  - No conversations: "Start a conversation by tapping a user"
 
-32. Polish message bubbles:
+- [ ] 32. Polish message bubbles:
 
-    - Better padding and spacing
-    - Subtle shadows
-    - Rounded corners
-    - Max width for long messages
+  - Better padding and spacing
+  - Subtle shadows
+  - Rounded corners
+  - Max width for long messages
 
-33. Add message timestamps:
+- [ ] 33. Add message timestamps:
 
-    - Group messages by date (Today, Yesterday, date)
-    - Show time for each message on tap or always visible
+  - Group messages by date (Today, Yesterday, date)
+  - Show time for each message on tap or always visible
 
-34. Improve keyboard handling:
+- [ ] 34. Improve keyboard handling:
 
-    - Smooth keyboard appearance
-    - Input bar stays above keyboard
-    - Auto-scroll when keyboard opens
+  - Smooth keyboard appearance
+  - Input bar stays above keyboard
+  - Auto-scroll when keyboard opens
 
-35. Add pull-to-refresh on Home screen:
-    - Refresh user list
-    - Update presence data
-    - Reload conversations
+- [ ] 35. Add pull-to-refresh on Home screen:
+  - Refresh user list
+  - Update presence data
+  - Reload conversations
 
 **Performance Optimization:**
 
-36. Optimize FlatList rendering:
+- [ ] 36. Optimize FlatList rendering:
 
-    - Use `getItemLayout` if fixed height messages
-    - Add `windowSize` prop
-    - Use `maxToRenderPerBatch`
+  - Use `getItemLayout` if fixed height messages
+  - Add `windowSize` prop
+  - Use `maxToRenderPerBatch`
 
-37. Memoize components:
+- [ ] 37. Memoize components:
 
-    - Wrap MessageBubble in React.memo
-    - Wrap UserListItem in React.memo
-    - Use useMemo for expensive calculations
+  - Wrap MessageBubble in React.memo
+  - Wrap UserListItem in React.memo
+  - Use useMemo for expensive calculations
 
-38. Optimize image loading:
+- [ ] 38. Optimize image loading:
 
-    - Add image placeholders while loading
-    - Compress images before upload
-    - Cache images properly
+  - Add image placeholders while loading
+  - Compress images before upload
+  - Cache images properly
 
-39. Reduce unnecessary re-renders:
-    - Use useCallback for functions passed as props
-    - Optimize Zustand selectors (select only what's needed)
+- [ ] 39. Reduce unnecessary re-renders:
+  - Use useCallback for functions passed as props
+  - Optimize Zustand selectors (select only what's needed)
 
 **Add Message Features (Time Permitting):**
 
-40. Long press message for options menu:
+- [ ] 40. Long press message for options menu:
 
-    - Copy text
-    - Delete (local only, not from Firestore)
+  - Copy text
+  - Delete (local only, not from Firestore)
 
-41. Copy message text to clipboard
+- [ ] 41. Copy message text to clipboard
 
-42. Timestamp display:
+- [ ] 42. Timestamp display:
 
-    - Show full timestamp on tap
-    - Or always visible in smaller text
+  - Show full timestamp on tap
+  - Or always visible in smaller text
 
-43. Read receipts:
-    - Mark messages as "read" when conversation viewed
-    - Update status in Firestore
-    - Show blue checkmarks for read messages
+- [ ] 43. Read receipts:
+  - Mark messages as "read" when conversation viewed
+  - Update status in Firestore
+  - Show blue checkmarks for read messages
 
 **Testing & Bug Fixes:**
 
-44. Test all features end-to-end on physical device
+- [ ] 44. Test all features end-to-end on physical device
 
-45. Test with 3+ devices simultaneously:
+- [ ] 45. Test with 3+ devices simultaneously:
 
-    - All receive messages
-    - Presence updates correctly
-    - Notifications work for all
+  - All receive messages
+  - Presence updates correctly
+  - Notifications work for all
 
-46. Test offline scenarios:
+- [ ] 46. Test offline scenarios:
 
-    - Send messages in airplane mode
-    - Turn off/on WiFi
-    - Verify queued messages send
-    - Verify presence updates correctly
+  - Send messages in airplane mode
+  - Turn off/on WiFi
+  - Verify queued messages send
+  - Verify presence updates correctly
 
-47. Test push notifications in various states:
+- [ ] 47. Test push notifications in various states:
 
-    - App completely closed
-    - App in background
-    - App in foreground
-    - Multiple notifications
+  - App completely closed
+  - App in background
+  - App in foreground
+  - Multiple notifications
 
-48. Test AI features with edge cases:
+- [ ] 48. Test AI features with edge cases:
 
-    - Very long prompts
-    - Empty prompts
-    - API errors
-    - Network timeouts
+  - Very long prompts
+  - Empty prompts
+  - API errors
+  - Network timeouts
 
-49. Fix any bugs discovered during testing
+- [ ] 49. Fix any bugs discovered during testing
 
-50. Polish any rough UI edges
+- [ ] 50. Polish any rough UI edges
 
 **Create Demo Video:**
 
-51. Record screen on physical device
+- [ ] 51. Record screen on physical device
 
-52. Demo in 3-5 minutes showing:
+- [ ] 52. Demo in 3-5 minutes showing:
 
-    - Sign up and profile creation (30 seconds)
-    - User list with presence indicators (15 seconds)
-    - Sending messages with status indicators (30 seconds)
-    - Offline message queuing (30 seconds)
-    - Group chat creation and messaging (45 seconds)
-    - Push notifications (show notification arriving) (20 seconds)
-    - AI chat features (summary, smart replies) (60 seconds)
-    - Profile editing (20 seconds)
+  - Sign up and profile creation (30 seconds)
+  - User list with presence indicators (15 seconds)
+  - Sending messages with status indicators (30 seconds)
+  - Offline message queuing (30 seconds)
+  - Group chat creation and messaging (45 seconds)
+  - Push notifications (show notification arriving) (20 seconds)
+  - AI chat features (summary, smart replies) (60 seconds)
+  - Profile editing (20 seconds)
 
-53. Add voiceover or captions explaining features
+- [ ] 53. Add voiceover or captions explaining features
 
-54. Export video in high quality
+- [ ] 54. Export video in high quality
 
 **Documentation:**
 
-55. Update `README.md` with:
+- [ ] 55. Update `README.md` with:
 
-    - Complete setup instructions
-    - Prerequisites (Node, Expo CLI, Expo Go app)
-    - How to add Firebase config to `.env`
-    - How to add OpenAI key to `.env`
-    - How to run: `npx expo start`
-    - How to test on phone (scan QR code)
-    - Feature list (bullet points)
-    - Screenshots of main screens
+  - Complete setup instructions
+  - Prerequisites (Node, Expo CLI, Expo Go app)
+  - How to add Firebase config to `.env`
+  - How to add OpenAI key to `.env`
+  - How to run: `npx expo start`
+  - How to test on phone (scan QR code)
+  - Feature list (bullet points)
+  - Screenshots of main screens
 
-56. Create `ARCHITECTURE.md` file:
+- [ ] 56. Create `ARCHITECTURE.md` file:
 
-    - Explain 3-store Zustand architecture
-    - Explain message status flow (sending → sent → delivered → read)
-    - Explain presence tracking with Realtime Database
-    - Explain offline support
-    - Include diagrams or code examples
+  - Explain 3-store Zustand architecture
+  - Explain message status flow (sending → sent → delivered → read)
+  - Explain presence tracking with Realtime Database
+  - Explain offline support
+  - Include diagrams or code examples
 
-57. Add code comments to complex sections:
+- [ ] 57. Add code comments to complex sections:
 
-    - 3-store interactions
-    - Message status updates
-    - Presence tracking logic
-    - AI service functions
+  - 3-store interactions
+  - Message status updates
+  - Presence tracking logic
+  - AI service functions
 
-58. Document any known limitations or future improvements
+- [ ] 58. Document any known limitations or future improvements
 
 **Deploy Production Build:**
 
-59. Install EAS CLI (Expo Application Services):
+- [ ] 59. Install EAS CLI (Expo Application Services):
 
-    ```bash
-    npm install -g eas-cli
-    ```
+  ```bash
+  npm install -g eas-cli
+  ```
 
-60. Login to Expo account:
+- [ ] 60. Login to Expo account:
 
-    ```bash
-    eas login
-    ```
+  ```bash
+  eas login
+  ```
 
-61. Configure EAS build:
+- [ ] 61. Configure EAS build:
 
-    ```bash
-    eas build:configure
-    ```
+  ```bash
+  eas build:configure
+  ```
 
-62. Build for iOS (if you have Mac/iOS):
+- [ ] 62. Build for iOS (if you have Mac/iOS):
 
-    ```bash
-    eas build --platform ios
-    ```
+  ```bash
+  eas build --platform ios
+  ```
 
-63. Build for Android:
+- [ ] 63. Build for Android:
 
-    ```bash
-    eas build --platform android
-    ```
+  ```bash
+  eas build --platform android
+  ```
 
-64. Wait for builds to complete (can take 10-30 minutes)
+- [ ] 64. Wait for builds to complete (can take 10-30 minutes)
 
-65. Download APK (Android) or IPA (iOS) from Expo dashboard
+- [ ] 65. Download APK (Android) or IPA (iOS) from Expo dashboard
 
-66. Test production build on physical devices:
+- [ ] 66. Test production build on physical devices:
 
-    - Install APK on Android device
-    - Install IPA on iOS device (requires TestFlight or enterprise cert)
+  - Install APK on Android device
+  - Install IPA on iOS device (requires TestFlight or enterprise cert)
 
-67. Verify all features work in production build:
-    - Sometimes features work in Expo Go but not in production
-    - Test notifications especially
+- [ ] 67. Verify all features work in production build:
+  - Sometimes features work in Expo Go but not in production
+  - Test notifications especially
 
 **Final Cleanup:**
 
-68. Remove any console.logs used for debugging
+- [ ] 68. Remove any console.logs used for debugging
 
-69. Remove any commented-out code
+- [ ] 69. Remove any commented-out code
 
-70. Format code consistently (use Prettier if available)
+- [ ] 70. Format code consistently (use Prettier if available)
 
-71. Check for any TODO comments and address them
+- [ ] 71. Check for any TODO comments and address them
 
-72. Verify `.env` is in `.gitignore`
+- [ ] 72. Verify `.env` is in `.gitignore`
 
-73. Verify no sensitive data in code (API keys, Firebase config should be in .env)
+- [ ] 73. Verify no sensitive data in code (API keys, Firebase config should be in .env)
 
-74. Make final Git commit with all changes
+- [ ] 74. Make final Git commit with all changes
 
 **Files Created:**
 
