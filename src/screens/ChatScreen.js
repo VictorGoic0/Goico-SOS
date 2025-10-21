@@ -372,9 +372,9 @@ export default function ChatScreen({ route, navigation }) {
         )}
         contentContainerStyle={styles.messagesList}
         onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: false })
+          flatListRef.current?.scrollToEnd({ animated: true })
         }
-        onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
+        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
@@ -489,17 +489,14 @@ const styles = StyleSheet.create({
     marginRight: spacing[4],
     paddingHorizontal: spacing[2],
     paddingVertical: spacing[2],
-    borderRadius: 8,
-    backgroundColor: colors.error.main,
     minWidth: 40,
     alignItems: "center",
     justifyContent: "center",
   },
   deleteButtonDisabled: {
-    backgroundColor: colors.neutral.mediumLight,
-    opacity: 0.5,
+    opacity: 0.3,
   },
   deleteButtonText: {
-    fontSize: 20,
+    fontSize: 22,
   },
 });
