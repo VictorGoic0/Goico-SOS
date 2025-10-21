@@ -1353,6 +1353,19 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - Ensure users can delete their own conversations
   - Verify both participants can delete the conversation
 
+  **Implementation:**
+
+  - Created Firebase security rules for Firestore, Realtime Database, and Storage
+  - Added comprehensive Firebase setup guide to README.md
+  - Documented all rules with copy-paste instructions for Firebase Console
+  - Rules ensure authenticated users can read all data, but only modify their own
+  - Conversation participants can delete conversations
+  - Message senders can delete their own messages
+
+  **Files Modified:**
+
+  - `README.md` - Added Firebase setup section, security rules, development workflow, and contributing guidelines
+
 - [ ] 15. Handle edge cases:
   - What happens if other user is viewing conversation while it's deleted
   - Handle deletion errors (network issues, permission errors)
