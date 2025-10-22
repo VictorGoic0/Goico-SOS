@@ -17,7 +17,7 @@ import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import { signOutUser } from "../utils/auth";
 import { deleteConversation, getConversationId } from "../utils/conversation";
-import { getAvatarColor, getInitials } from "../utils/helpers";
+import { formatTimestamp, getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function HomeScreen({ navigation }) {
   const currentUser = useFirebaseStore((state) => state.currentUser);
@@ -25,6 +25,7 @@ export default function HomeScreen({ navigation }) {
   const setUsers = useFirebaseStore((state) => state.setUsers);
   const conversationsMap = useFirebaseStore((state) => state.conversationsMap);
   const conversations = useFirebaseStore((state) => state.conversations);
+  const usersMap = useFirebaseStore((state) => state.usersMap);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -221,6 +222,7 @@ export default function HomeScreen({ navigation }) {
     const isCurrentUser = item.userId === currentUser.uid;
     const conversationId = getConversationId(currentUser.uid, item.userId);
     const isDeleting = deletingConversationId === conversationId;
+    const conversation = conversationsMap[conversationId];
 
     return (
       <UserListItem
@@ -229,12 +231,49 @@ export default function HomeScreen({ navigation }) {
         onLongPress={() => handleUserLongPress(item)}
         isCurrentUser={isCurrentUser}
         isDeleting={isDeleting}
+        lastMessage={conversation?.lastMessage}
+        lastMessageTimestamp={conversation?.lastMessageTimestamp}
+        lastMessageSenderId={conversation?.lastMessageSenderId}
+        currentUserId={currentUser.uid}
       />
     );
   };
 
   const renderGroupConversation = ({ item }) => {
     const isDeleting = deletingConversationId === item.conversationId;
+    const hasMessages = item.lastMessage && item.lastMessage.trim() !== "";
+
+    // Get timestamp
+    let timestampText = "";
+    if (item.lastMessageTimestamp) {
+      // Handle Firestore timestamp
+      const timestamp = item.lastMessageTimestamp.seconds
+        ? new Date(item.lastMessageTimestamp.seconds * 1000)
+        : item.lastMessageTimestamp;
+      timestampText = formatTimestamp(timestamp);
+    }
+
+    // Format last message preview
+    let messagePreview = "";
+    if (hasMessages) {
+      const isSentByCurrentUser = item.lastMessageSenderId === currentUser.uid;
+      let prefix = "";
+
+      if (isSentByCurrentUser) {
+        prefix = "You: ";
+      } else if (item.lastMessageSenderId) {
+        // Get sender info from usersMap
+        const sender = usersMap[item.lastMessageSenderId];
+        if (sender) {
+          const senderName = sender.displayName || sender.username;
+          prefix = `${senderName}: `;
+        }
+      }
+
+      messagePreview = `${prefix}${item.lastMessage}`;
+    } else {
+      messagePreview = `${item.participants?.length || 0} members`;
+    }
 
     return (
       <TouchableOpacity
@@ -265,17 +304,17 @@ export default function HomeScreen({ navigation }) {
 
         {/* Group Info */}
         <View style={styles.groupInfo}>
-          <Text style={styles.groupName} numberOfLines={1}>
-            {item.groupName || "Unnamed Group"}
+          <View style={styles.groupHeaderRow}>
+            <Text style={styles.groupName} numberOfLines={1}>
+              {item.groupName || "Unnamed Group"}
+            </Text>
+            {timestampText !== "" && (
+              <Text style={styles.timestamp}>{timestampText}</Text>
+            )}
+          </View>
+          <Text style={styles.lastMessagePreview} numberOfLines={1}>
+            {messagePreview}
           </Text>
-          <Text style={styles.groupMembers} numberOfLines={1}>
-            {item.participants?.length || 0} members
-          </Text>
-        </View>
-
-        {/* Group Badge */}
-        <View style={styles.groupBadge}>
-          <Text style={styles.groupBadgeText}>Group</Text>
         </View>
 
         {isDeleting && (
@@ -518,27 +557,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
+  groupHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing[1],
+  },
   groupName: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary,
-    marginBottom: spacing[1],
+    flex: 1,
   },
-  groupMembers: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-  },
-  groupBadge: {
-    backgroundColor: colors.primary.lighter,
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
-    borderRadius: 4,
+  timestamp: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.tertiary,
     marginLeft: spacing[2],
   },
-  groupBadgeText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.base,
+  lastMessagePreview: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
   },
   deletingIndicator: {
     marginLeft: spacing[2],

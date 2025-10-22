@@ -9,7 +9,12 @@ import {
 } from "react-native";
 import usePresenceStore from "../stores/presenceStore";
 import { colors, spacing, typography } from "../styles/tokens";
-import { formatLastSeen, getAvatarColor, getInitials } from "../utils/helpers";
+import {
+  formatLastSeen,
+  formatTimestamp,
+  getAvatarColor,
+  getInitials,
+} from "../utils/helpers";
 
 /**
  * UserListItem - Display a user in a list with presence indicator
@@ -18,6 +23,10 @@ import { formatLastSeen, getAvatarColor, getInitials } from "../utils/helpers";
  * @param {Function} onLongPress - Callback when user is long-pressed
  * @param {boolean} isCurrentUser - Whether this is the current logged-in user
  * @param {boolean} isDeleting - Whether the conversation is being deleted
+ * @param {string} lastMessage - Last message text in conversation
+ * @param {Object} lastMessageTimestamp - Timestamp of last message
+ * @param {string} lastMessageSenderId - User ID who sent last message
+ * @param {string} currentUserId - Current user ID
  */
 export default function UserListItem({
   user,
@@ -25,6 +34,10 @@ export default function UserListItem({
   onLongPress,
   isCurrentUser = false,
   isDeleting = false,
+  lastMessage = null,
+  lastMessageTimestamp = null,
+  lastMessageSenderId = null,
+  currentUserId = null,
 }) {
   const isOnline = usePresenceStore((state) => state.isUserOnline(user.userId));
   const presenceData = usePresenceStore(
@@ -33,6 +46,26 @@ export default function UserListItem({
 
   const initials = getInitials(user.displayName || user.username);
   const avatarColor = getAvatarColor(user.userId);
+
+  // Check if there's a conversation with messages
+  const hasConversation = lastMessage && lastMessage.trim() !== "";
+
+  // Format timestamp
+  let timestampText = "";
+  if (lastMessageTimestamp) {
+    const timestamp = lastMessageTimestamp.seconds
+      ? new Date(lastMessageTimestamp.seconds * 1000)
+      : lastMessageTimestamp;
+    timestampText = formatTimestamp(timestamp);
+  }
+
+  // Format last message preview
+  let messagePreview = "";
+  if (hasConversation) {
+    const isSentByCurrentUser = lastMessageSenderId === currentUserId;
+    const prefix = isSentByCurrentUser ? "You: " : "";
+    messagePreview = `${prefix}${lastMessage}`;
+  }
 
   return (
     <TouchableOpacity
@@ -77,19 +110,32 @@ export default function UserListItem({
             {user.displayName || user.username}
           </Text>
           {isCurrentUser && <Text style={styles.youBadge}>You</Text>}
+          {!isCurrentUser && hasConversation && timestampText !== "" && (
+            <Text style={styles.timestamp}>{timestampText}</Text>
+          )}
         </View>
-        <Text style={styles.username} numberOfLines={1}>
-          @{user.username}
-        </Text>
-        {!isOnline && presenceData?.lastSeen && (
-          <Text style={styles.lastSeen} numberOfLines={1}>
-            {formatLastSeen(presenceData.lastSeen)}
+
+        {/* Show last message if conversation exists, otherwise show username/status */}
+        {hasConversation ? (
+          <Text style={styles.lastMessageText} numberOfLines={1}>
+            {messagePreview}
           </Text>
-        )}
-        {isOnline && (
-          <Text style={styles.status} numberOfLines={1}>
-            {user.status || "Available"}
-          </Text>
+        ) : (
+          <>
+            <Text style={styles.username} numberOfLines={1}>
+              @{user.username}
+            </Text>
+            {!isOnline && presenceData?.lastSeen && (
+              <Text style={styles.lastSeen} numberOfLines={1}>
+                {formatLastSeen(presenceData.lastSeen)}
+              </Text>
+            )}
+            {isOnline && (
+              <Text style={styles.status} numberOfLines={1}>
+                {user.status || "Available"}
+              </Text>
+            )}
+          </>
         )}
       </View>
 
@@ -164,6 +210,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary,
+    flex: 1,
   },
   youBadge: {
     marginLeft: spacing[2],
@@ -175,10 +222,20 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[1],
     borderRadius: 8,
   },
+  timestamp: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.tertiary,
+    marginLeft: spacing[2],
+  },
   username: {
     fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
     marginBottom: spacing[0],
+  },
+  lastMessageText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    marginTop: spacing[1],
   },
   lastSeen: {
     fontSize: typography.fontSize.xs,

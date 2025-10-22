@@ -1691,10 +1691,55 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - All group conversations user is part of now display in HomeScreen
   - No linter errors
 
-- [ ] 44. For each conversation:
+- [x] 44. For each conversation:
+
   - Show group icon for group chats (✅ Implemented above)
   - Display last message preview
   - Display timestamp of last message
+
+  **Implementation:**
+
+  **HomeScreen.js:**
+
+  - Added `formatTimestamp` to imports from helpers
+  - Updated `renderUser` to pass conversation data to UserListItem:
+    - `lastMessage`, `lastMessageTimestamp`, `lastMessageSenderId`, `currentUserId`
+  - Updated `renderGroupConversation` to display last message and timestamp:
+    - Checks if `lastMessage` exists and is not empty
+    - Handles Firestore timestamp conversion (`.seconds` property)
+    - Formats timestamp using `formatTimestamp` helper
+    - Shows "You: " prefix for messages sent by current user
+    - Falls back to member count if no messages exist
+    - Displays timestamp in top right of group name row
+    - Shows message preview below group name
+  - Removed group badge in favor of message preview
+  - Updated styles: Added `groupHeaderRow`, `timestamp`, `lastMessagePreview`
+
+  **UserListItem.js:**
+
+  - Added new props: `lastMessage`, `lastMessageTimestamp`, `lastMessageSenderId`, `currentUserId`
+  - Added `formatTimestamp` to imports from helpers
+  - Checks if conversation has messages (`hasConversation`)
+  - Formats timestamp and message preview with "You: " prefix for sent messages
+  - Updated rendering logic:
+    - If conversation exists: Shows last message preview and timestamp
+    - If no conversation: Shows username and presence/status (existing behavior)
+  - Timestamp displays in nameRow, aligned to the right
+  - Updated styles:
+    - `displayName` now has `flex: 1` to allow timestamp alignment
+    - Added `timestamp` style
+    - Added `lastMessageText` style
+  - No linter errors
+
+  **Result:**
+
+  - Both 1-on-1 conversations and group chats now show last message preview
+  - Timestamps display in user-friendly format ("Just now", "5m ago", "Yesterday", etc.)
+  - "You: " prefix indicates messages sent by current user
+  - For group chats: Shows sender's display name/username for messages from others (e.g., "Alice: message")
+  - For 1-on-1 chats: No sender prefix for received messages (redundant with avatar/name display)
+  - Falls back gracefully when no messages exist
+  - Consistent styling across group and user conversations
 
 **Files Created:**
 
