@@ -4,7 +4,7 @@
 
 Each PR represents a complete, testable feature. PRs build on each other sequentially. Test thoroughly with physical devices before merging each PR.
 
-**Total PRs:** 12
+**Total PRs:** 11
 **Timeline:** 7 days with checkpoints at Day 2, Day 5, and Day 7
 
 ---
@@ -1242,58 +1242,148 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - Delete the conversation document from Firestore
   - Handle errors gracefully
 
-- [ ] 8. In `HomeScreen.js`, add long-press/context menu to user list items:
+- [x] 8. In `HomeScreen.js`, add long-press/context menu to user list items:
 
   - Only show delete option if a conversation exists with that user
   - Check `conversationsMap` for existing conversation with user
   - Display menu with "Delete Conversation" option
 
-- [ ] 9. On delete tap from HomeScreen:
+  **Implementation:**
+
+  - Added `conversationsMap` from global firebaseStore (instead of local state)
+  - Created `handleUserLongPress(user)` function that checks if conversation exists
+  - Uses `getConversationId(currentUser.uid, user.userId)` to determine conversation ID
+  - Only shows alert if `conversationsMap[conversationId]` exists
+  - Passes `onLongPress` prop to `UserListItem` component
+
+  **Architectural Decision:**
+
+  - Moved conversation listener from HomeScreen to AppNavigator (global)
+  - Created `listenToConversations(userId)` utility in `conversation.js`
+  - Follows same pattern as `listenToPresence()` for consistency
+  - Stores full conversation data (not just IDs) in global store for future features (last message, timestamps, etc.)
+
+- [x] 9. On delete tap from HomeScreen:
 
   - Show confirmation modal/alert: "Delete conversation with [username]?"
   - Include message: "This will delete all messages. You can message them again to start a new conversation."
   - Add "Cancel" and "Delete" buttons
 
-- [ ] 10. On confirmation, call `deleteConversation(conversationId)`
+  **Implementation:**
+
+  - Uses React Native's `Alert.alert()` with custom title and message
+  - Displays user's display name or username in confirmation
+  - Two buttons: "Cancel" (style: "cancel") and "Delete" (style: "destructive")
+  - Destructive button triggers `handleDeleteConversation(conversationId, user)`
+
+- [x] 10. On confirmation, call `deleteConversation(conversationId)`
 
   - Show loading indicator while deleting
   - Navigate away or refresh list after deletion
   - Show success feedback (toast or brief message)
 
-- [ ] 11. In `ChatScreen.js`, add "Delete Conversation" button to header:
+  **Implementation:**
+
+  - `handleDeleteConversation` calls `deleteConversation(conversationId)` from utils
+  - Sets `deletingConversationId` state to show loading indicator in UserListItem
+  - UserListItem receives `isDeleting` prop and shows ActivityIndicator instead of chevron
+  - Disables user interaction while deleting (disabled prop on TouchableOpacity)
+  - Shows success Alert after deletion completes
+  - Shows error Alert if deletion fails
+  - Firestore listener automatically updates global store (no optimistic update needed)
+
+  **Files Modified:**
+
+  - `src/screens/HomeScreen.js` - Added delete handlers, consuming conversationsMap from global store
+  - `src/components/UserListItem.js` - Added onLongPress, isDeleting props, loading indicator
+  - `src/utils/conversation.js` - Added listenToConversations(userId) utility function
+  - `src/navigation/AppNavigator.js` - Added conversations listener alongside presence listener
+
+- [x] 11. In `ChatScreen.js`, add "Delete Conversation" button to header:
 
   - Button should always be visible (trash icon or text)
   - Disable button if no messages exist (0 messages)
   - Enable button only if 1 or more messages exist
 
-- [ ] 12. On delete button tap from ChatScreen:
+  **Implementation:**
+
+  - Added `isDeleting` state to track deletion in progress
+  - Updated navigation header useEffect to include `headerRight` with delete button
+  - Button shows trash emoji (🗑️) when active
+  - Shows ActivityIndicator when `isDeleting` is true
+  - Button disabled when no messages exist (`conversationMessages.length === 0`) or when deleting
+  - Uses red background (`colors.error.main`) when enabled, gray when disabled
+  - Dependencies include `conversationMessages.length` to re-render when messages change
+
+- [x] 12. On delete button tap from ChatScreen:
 
   - Show confirmation modal/alert: "Delete this entire conversation?"
   - Include message: "This will permanently delete all messages. This cannot be undone."
   - Add "Cancel" and "Delete" buttons
 
-- [ ] 13. On confirmation from ChatScreen:
+  **Implementation:**
+
+  - Created `handleDeleteConversation` function that shows Alert.alert confirmation
+  - More severe message than HomeScreen version ("cannot be undone" vs "can message again")
+  - Two buttons: "Cancel" and "Delete" (destructive style)
+  - Delete button triggers async deletion flow
+
+- [x] 13. On confirmation from ChatScreen:
 
   - Call `deleteConversation(conversationId)`
   - Show loading indicator while deleting
   - Navigate back to HomeScreen after successful deletion
   - Show success feedback
 
-- [ ] 14. Update Firestore security rules (if needed):
+  **Implementation:**
+
+  - Sets `isDeleting` to true before deletion (shows spinner in header button)
+  - Calls `deleteConversation(conversationId)` utility function
+  - Navigates back with `navigation.goBack()` immediately after successful deletion
+  - Shows success Alert with setTimeout (300ms delay so it appears after navigation)
+  - Error handling: resets `isDeleting` and shows error Alert if deletion fails
+  - Firestore listener automatically cleans up global store
+
+  **Files Modified:**
+
+  - `src/screens/ChatScreen.js` - Added delete button to header, delete handler, loading state
+
+- [x] 14. Update Firestore security rules (if needed):
 
   - Ensure users can delete their own conversations
   - Verify both participants can delete the conversation
 
-- [ ] 15. Handle edge cases:
+  **Implementation:**
+
+  - Created Firebase security rules for Firestore, Realtime Database, and Storage
+  - Added comprehensive Firebase setup guide to README.md
+  - Documented all rules with copy-paste instructions for Firebase Console
+  - Rules ensure authenticated users can read all data, but only modify their own
+  - Conversation participants can delete conversations
+  - Message senders can delete their own messages
+
+  **Files Modified:**
+
+  - `README.md` - Added Firebase setup section, security rules, development workflow, and contributing guidelines
+
+- [x] 15. Handle edge cases:
+
   - What happens if other user is viewing conversation while it's deleted
   - Handle deletion errors (network issues, permission errors)
   - Prevent double-deletion (disable button after first tap)
 
+  **Implementation:**
+
+  - Edge case handled: When other user is viewing conversation while it's deleted, messages disappear rapidly as Firestore listener detects deletions
+  - Error handling: Already implemented in deleteConversation with try-catch and error alerts
+  - Double-deletion prevented: Button disabled via isDeleting state during deletion process
+
 **Create Group Chat Screen:**
 
-- [ ] 16. Create file: `src/screens/CreateGroupScreen.js`
+- [x] 16. Create file: `src/screens/CreateGroupScreen.js`
 
-- [ ] 17. Add UI Components:
+- [x] 17. Add UI Components:
+
   - Header: "Create Group"
   - Group Name TextInput
   - "Add Group Photo" Button (optional)
@@ -1302,35 +1392,79 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - Selected count display: "3 selected"
   - "Create Group" Button (bottom)
 
+  **Implementation:**
+
+  - Created complete CreateGroupScreen component with all required UI elements
+  - Group name input with 50 character limit
+  - "Add Group Photo" button (placeholder for image picker)
+  - Section header showing "Select Participants" with dynamic selected count
+  - FlatList rendering all users (except current user) with checkboxes
+  - Selected count displays in real-time (e.g., "3 selected")
+  - Create Group button fixed at bottom (disabled when name empty or < 2 users selected)
+  - User items show avatar (or initials), display name, username
+  - Checkbox UI with checkmark when selected (✓)
+  - KeyboardAvoidingView for proper input behavior
+  - ScrollView to handle long user lists
+  - Loading state while fetching users
+  - Empty state when no other users exist
+
+  **Files Created:**
+
+  - `src/screens/CreateGroupScreen.js` - Complete group creation UI
+
 **Multi-Select User List:**
 
-- [ ] 18. In `CreateGroupScreen.js`:
+- [x] 18. In `CreateGroupScreen.js`:
 
   - Add state to track selected user IDs: `const [selectedUsers, setSelectedUsers] = useState([])`
 
-- [ ] 19. Render all users (except current user) with checkboxes
+  **Implementation:**
 
-- [ ] 20. Toggle selection on checkbox tap
+  - Added `selectedUsers` state initialized to empty array (line 28)
+  - State tracks array of user IDs that are currently selected
 
-- [ ] 21. Add validation: Minimum 2 users required to create group
+- [x] 19. Render all users (except current user) with checkboxes
+
+  **Implementation:**
+
+  - Filter current user from list: `availableUsers = users.filter((user) => user.userId !== currentUser.uid)`
+  - FlatList renders all available users with checkbox UI
+  - Each user item shows avatar, display name, username, and checkbox
+  - Checkbox shows checkmark (✓) when selected
+
+- [x] 20. Toggle selection on checkbox tap
+
+  **Implementation:**
+
+  - `toggleUserSelection(userId)` function adds/removes user from selectedUsers array
+  - Called on TouchableOpacity press for entire user item
+  - If user is already selected, removes them; otherwise adds them
+  - Visual feedback with checkbox state change
+
+- [x] 21. Add validation: Minimum 2 users required to create group
+
+  **Implementation:**
+
+  - Create Group button disabled when: `!groupName.trim() || selectedUsers.length < 2`
+  - Validates both group name (not empty) and minimum 2 participants
+  - Button visually disabled until validation passes
 
 **Implement Create Group:**
 
-- [ ] 22. In `src/utils/messaging.js`:
+- [x] 22. In `src/utils/conversation.js`:
 
   - Add function: `createGroupConversation(groupName, participantIds, groupImageURL)`
 
-- [ ] 23. Inside `createGroupConversation`:
+- [x] 23. Inside `createGroupConversation`:
 
-  - Generate conversationId (auto-generated)
+  - Generate conversationId (auto-generated by Firestore addDoc)
   - Add current user to participants
   - Get usernames for all participants from Firebase store
 
-- [ ] 24. Create conversation document in Firestore:
+- [x] 24. Create conversation document in Firestore:
 
   ```javascript
   {
-    conversationId,
     participants: [currentUserId, ...participantIds],
     participantUsernames: [currentUsername, ...usernames],
     isGroup: true,
@@ -1344,25 +1478,46 @@ Since you've never used React Native, this PR focuses on getting your developmen
   }
   ```
 
-- [ ] 25. Return conversationId
+- [x] 25. Return conversationId (docRef.id)
 
 **Connect Create Button:**
 
-- [ ] 26. In `CreateGroupScreen.js`:
+- [x] 26. In `CreateGroupScreen.js`:
 
   - On "Create Group" button press:
     - Validate group name not empty
     - Validate at least 2 users selected
 
-- [ ] 27. If group photo selected, upload it first (to Firebase Storage)
+- [x] 27. If group photo selected, upload it first (to Firebase Storage)
 
-- [ ] 28. Call `createGroupConversation` with group data
+  **Implementation:**
 
-- [ ] 29. Navigate to ChatScreen with new conversationId
+  - Created `uploadGroupPhoto(conversationId, imageUri)` function in `conversation.js`
+  - Uploads to correct path: `conversation-files/{conversationId}/group-photo.jpg`
+  - Created `updateGroupConversation(conversationId, updates)` utility function
+  - Accepts updates object with optional `groupName`, `imageUri`, or `groupImageURL`
+  - Handles photo upload internally when `imageUri` provided
+  - Automatically adds `lastEdit` timestamp
+  - Fixed: Added missing `updateDoc` import to `conversation.js`
+
+- [x] 28. Call `createGroupConversation` with group data
+
+  **Implementation:**
+
+  - Creates group conversation first without photo (to get conversationId)
+  - Then calls `updateGroupConversation` to upload and attach photo
+  - Two-step process: create → update with photo
+
+- [x] 29. Navigate to ChatScreen with new conversationId
+
+  **Implementation:**
+
+  - Uses `navigation.replace()` to prevent going back to create screen
+  - Passes `conversationId`, `isGroup: true`, and `groupName` params
 
 **Update ChatScreen for Groups:**
 
-- [ ] 30. In `src/screens/ChatScreen.js`:
+- [x] 30. In `src/screens/ChatScreen.js`:
 
   - Detect if conversation is group:
     ```javascript
@@ -1372,80 +1527,219 @@ Since you've never used React Native, this PR focuses on getting your developmen
     const isGroup = conversation?.isGroup || false;
     ```
 
-- [ ] 31. If group, update header to show:
+- [x] 31. If group, update header to show:
   - Group name instead of user name
   - Participant count (e.g., "3 members")
-  - Tap header → navigate to GroupInfoScreen
+    tasks.md file. - Tap header → navigate to GroupInfoScreen (prepared for future)
 
 **Update MessageBubble for Groups:**
 
-- [ ] 32. In `src/components/MessageBubble.js`:
+- [x] 32. In `src/components/MessageBubble.js`:
 
-  - Add prop: `isGroup` and `senderUsername`
+  - Add prop: `isGroup` (boolean to indicate if conversation is a group)
+  - **DO NOT add senderUsername prop** - instead, access sender info via `usersMap`
+  - Get `usersMap` from firebaseStore: `const usersMap = useFirebaseStore((s) => s.usersMap)`
+  - Get sender object: `const sender = usersMap[message.senderId]`
+  - Access sender.displayName, sender.username, sender.imageURL as needed
 
-- [ ] 33. If group and message is from another user:
-  - Show sender's name above message
-  - Use different colors for different senders (optional)
+- [x] 33. If group AND message is from another user (not current user):
+
+  - **Only render sender info for received messages in groups**
+  - Show sender's small profile photo (24x24 circular) OR initials in colored circle
+  - Show sender's display name (or username as fallback) above/beside message
+  - Show message bubble below sender info
+  - Layout: [Photo] [Name + Bubble] (left-aligned for received messages)
+
+  **For 1-on-1 chats OR sent messages:**
+
+  - Keep current rendering (just the bubble, no sender info)
+  - Sent messages always right-aligned, received always left-aligned
+
+  **Conditional rendering logic:**
+
+  ```javascript
+  // Show sender info only if:
+  // 1. It's a group chat (isGroup === true)
+  // 2. Message is from another user (!isSent)
+  const showSenderInfo = isGroup && !isSent;
+  ```
+
+  **Implementation:**
+
+  - Added `isGroup` prop to MessageBubble component
+  - Gets `usersMap` from firebaseStore to access sender info
+  - Added `showSenderInfo = isGroup && !isSent` conditional logic
+  - Renders sender avatar (24x24 circular) with colored initials placeholder
+  - Shows sender's displayName (or username fallback) above bubble
+  - Created `bubbleWrapper` container for name + bubble
+  - Updated ChatScreen to pass `isGroup` prop to MessageBubble
+  - All existing 1-on-1 and sent message styling preserved
+  - No linting errors
 
 **Update Message Sending for Groups:**
 
-- [ ] 34. Verify `sendMessage` function in `src/utils/messaging.js` works for both 1-on-1 and groups
-  - Should already work without changes
+- [x] 34. Verify `sendMessage` function in `src/utils/conversation.js` works for both 1-on-1 and groups
+  - ✅ Verified: Works without changes
   - Messages go to same subcollection structure
+  - Function uses conversationId regardless of isGroup flag
 
 **Update Delivered Status for Groups:**
 
-- [ ] 35. In `ChatScreen.js`:
+- [x] 35. In `ChatScreen.js`:
   - For groups, mark as "delivered" when current user receives
-  - (Advanced: track delivered status per user - optional for MVP)
+  - Already implemented: existing delivered status logic works for both 1-on-1 and groups
+  - Messages marked as delivered when viewed, regardless of conversation type
 
 **Create Group Info Screen:**
 
-- [ ] 36. Create file: `src/screens/GroupInfoScreen.js`
+- [x] 36. Create file: `src/screens/GroupInfoScreen.js`
 
-- [ ] 37. Add UI Components:
-  - Group photo (large, circular)
-  - Group name (editable TextInput for creator, read-only for others)
-  - Participants section title
+- [x] 37. Add UI Components:
+
+  - Group photo (large, 120x120 circular) - tappable to change
+  - Group name (editable TextInput) with 50 character limit
+  - Participants section title with member count
   - List of participants (with photos and names)
-  - "Add Participants" Button (for future)
-  - "Leave Group" Button (bottom, red)
+  - "You" badge for current user
+  - "Save Changes" Button (saves name and/or photo)
+  - "Leave Group" Button (bottom, red, danger variant)
+
+  **Implementation:**
+
+  - Created GroupInfoScreen similar to CreateGroupScreen but for viewing/editing
+  - Shows current group photo or placeholder (👥)
+  - Allows editing group name and photo
+  - Uses `updateGroupConversation` to save changes
+  - Lists all participants with avatars and usernames
+  - "Leave Group" button prepared (placeholder alert for now)
+  - Added to AppNavigator as "GroupInfo" screen
+  - Enabled header tap in ChatScreen for groups to navigate to GroupInfo
+  - No linting errors
 
 **Implement Leave Group:**
 
-- [ ] 38. In `GroupInfoScreen.js`:
+- [x] 38. In `GroupInfoScreen.js`:
 
   - "Leave Group" button:
     - Remove current user from participants array in Firestore
     - Update conversation document
 
-- [ ] 39. Navigate back to Home screen after leaving
+  **Implementation:**
+
+  - Created `leaveGroupConversation` function in `src/utils/conversation.js`
+  - Uses Firestore's `arrayRemove` to remove user from participants array
+  - Updates `lastEdit` timestamp
+  - Added import for `arrayRemove` from firebase/firestore
+  - In GroupInfoScreen, added `isLeaving` state for loading indicator
+  - Shows confirmation alert before leaving
+  - Alert displays group name and warning message
+
+- [x] 39. Navigate back to Home screen after leaving
+
+  **Implementation:**
+
+  - Uses `navigation.reset()` to navigate to Home screen
+  - Resets navigation stack to prevent going back to group chat
+  - Leaves group → immediately returns to Home
+  - Error handling shows alert if leave fails
+  - Button shows "Leaving..." text and loading state while processing
 
 **Add Navigation:**
 
-- [ ] 40. In `src/navigation/AppNavigator.js`:
-  - Add CreateGroupScreen to Main Stack
-  - Add GroupInfoScreen to Main Stack
+- [x] 40. In `src/navigation/AppNavigator.js`:
+
+  - ✅ CreateGroupScreen already added to Main Stack (completed in earlier tasks)
+  - ✅ GroupInfoScreen already added to Main Stack (completed in task 37)
 
 **Add "Create Group" Button to Home Screen:**
 
-- [ ] 41. In `src/screens/HomeScreen.js`:
+- [x] 41. In `src/screens/HomeScreen.js`:
 
-  - Add floating action button (FAB) or header button for "Create Group"
+  - ✅ Already implemented: floating action button in bottom right
+  - Blue primary button with "Create Group" text
+  - Includes shadow/elevation for material design effect
 
-- [ ] 42. On tap, navigate to CreateGroupScreen
+- [x] 42. On tap, navigate to CreateGroupScreen
+
+  - ✅ Already implemented: `onPress={() => navigation.navigate("CreateGroup")}`
+  - Button navigates correctly to CreateGroupScreen
 
 **Update Conversations List (Optional Enhancement):**
 
-- [ ] 43. In `src/screens/HomeScreen.js`:
+- [x] 43. In `src/screens/HomeScreen.js`:
 
   - Fetch user's conversations from Firestore
   - Display both 1-on-1 and group conversations
 
-- [ ] 44. For each conversation:
-  - Show group icon for group chats
+  **Implementation:**
+
+  - Added `conversations` from firebaseStore (already being listened to via `listenToConversations`)
+  - Created `groupConversations` by filtering conversations where `isGroup === true`
+  - Combined group conversations and users into a single `combinedList` with type markers
+  - Groups appear first in the list, followed by users
+  - Created `renderGroupConversation` function to display group items:
+    - Shows group avatar (photo or 👥 placeholder with colored background)
+    - Displays group name and member count
+    - Includes "Group" badge for easy identification
+    - Shows loading indicator when deleting
+  - Added `handleGroupPress` to navigate to group chat
+  - Added `handleGroupLongPress` to allow deleting groups
+  - Updated `handleDeleteConversation` to handle both user and group deletions
+  - Updated header subtitle to show count: "X groups • Y users"
+  - Updated empty state message to be more generic
+  - FlatList now uses `combinedList` with proper key extraction
+  - All group conversations user is part of now display in HomeScreen
+  - No linter errors
+
+- [x] 44. For each conversation:
+
+  - Show group icon for group chats (✅ Implemented above)
   - Display last message preview
   - Display timestamp of last message
+
+  **Implementation:**
+
+  **HomeScreen.js:**
+
+  - Added `formatTimestamp` to imports from helpers
+  - Updated `renderUser` to pass conversation data to UserListItem:
+    - `lastMessage`, `lastMessageTimestamp`, `lastMessageSenderId`, `currentUserId`
+  - Updated `renderGroupConversation` to display last message and timestamp:
+    - Checks if `lastMessage` exists and is not empty
+    - Handles Firestore timestamp conversion (`.seconds` property)
+    - Formats timestamp using `formatTimestamp` helper
+    - Shows "You: " prefix for messages sent by current user
+    - Falls back to member count if no messages exist
+    - Displays timestamp in top right of group name row
+    - Shows message preview below group name
+  - Removed group badge in favor of message preview
+  - Updated styles: Added `groupHeaderRow`, `timestamp`, `lastMessagePreview`
+
+  **UserListItem.js:**
+
+  - Added new props: `lastMessage`, `lastMessageTimestamp`, `lastMessageSenderId`, `currentUserId`
+  - Added `formatTimestamp` to imports from helpers
+  - Checks if conversation has messages (`hasConversation`)
+  - Formats timestamp and message preview with "You: " prefix for sent messages
+  - Updated rendering logic:
+    - If conversation exists: Shows last message preview and timestamp
+    - If no conversation: Shows username and presence/status (existing behavior)
+  - Timestamp displays in nameRow, aligned to the right
+  - Updated styles:
+    - `displayName` now has `flex: 1` to allow timestamp alignment
+    - Added `timestamp` style
+    - Added `lastMessageText` style
+  - No linter errors
+
+  **Result:**
+
+  - Both 1-on-1 conversations and group chats now show last message preview
+  - Timestamps display in user-friendly format ("Just now", "5m ago", "Yesterday", etc.)
+  - "You: " prefix indicates messages sent by current user
+  - For group chats: Shows sender's display name/username for messages from others (e.g., "Alice: message")
+  - For 1-on-1 chats: No sender prefix for received messages (redundant with avatar/name display)
+  - Falls back gracefully when no messages exist
+  - Consistent styling across group and user conversations
 
 **Files Created:**
 
@@ -1462,18 +1756,22 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Before Merge:**
 
-- [ ] Can navigate to Create Group screen
-- [ ] Can select multiple users (checkboxes work)
-- [ ] Can enter group name
-- [ ] Can upload group photo (optional, can skip)
-- [ ] "Create Group" creates conversation in Firestore (verify in console)
-- [ ] Navigates to ChatScreen with new group
-- [ ] Can send messages in group
-- [ ] All group members receive messages
-- [ ] Sender names display above messages (for others' messages)
-- [ ] Can tap header to view Group Info screen
-- [ ] Can leave group (removes from participants in Firestore)
-- [ ] Group appears in Home screen with other conversations
+- [x] Can navigate to Create Group screen
+- [x] Can select multiple users (checkboxes work)
+- [x] Can enter group name
+- [x] Can upload group photo (optional, can skip)
+- [x] "Create Group" creates conversation in Firestore (verify in console)
+- [x] Navigates to ChatScreen with new group
+- [x] Can send messages in group
+- [x] All group members receive messages
+- [x] Sender names display above messages (for others' messages)
+- [x] Can tap header to view Group Info screen
+- [x] Can leave group (removes from participants in Firestore)
+- [x] Group appears in Home screen with other conversations
+- [x] Last message preview shows with sender name for groups
+- [x] Timestamps display correctly
+
+**✅ PR #9: Group Chats - COMPLETE AND TESTED!**
 
 ---
 
@@ -1676,592 +1974,160 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 ---
 
-## PR #11: AI Agent Integration - Basic
+## PR #11: Read Receipts Implementation
 
-**Goal**: Integrate Vercel AI SDK for basic chat assistant
-
-### Subtasks
-
-**Install Vercel AI SDK:**
-
-- [ ] 1. Install packages:
-  ```bash
-  npm install ai openai
-  ```
-
-**Add OpenAI API Key:**
-
-- [ ] 2. In `.env` file:
-
-  ```
-  EXPO_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
-  ```
-
-- [ ] 3. Restart Expo server after adding env variable
-
-**Create AI Service:**
-
-- [ ] 4. Create file: `src/utils/aiService.js`
-
-- [ ] 5. Import OpenAI:
-
-  ```javascript
-  import OpenAI from "openai";
-  ```
-
-- [ ] 6. Initialize OpenAI client:
-
-  ```javascript
-  const openai = new OpenAI({
-    apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
-  });
-  ```
-
-- [ ] 7. Add function: `sendToAI(prompt, conversationHistory = [])`
-
-- [ ] 8. Inside `sendToAI`:
-  - Create messages array with system prompt and conversation history
-  - Call OpenAI chat completions API:
-    ```javascript
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "You are a helpful assistant." },
-        ...conversationHistory,
-        { role: "user", content: prompt },
-      ],
-      stream: false,
-    });
-    ```
-
-9. Return response content:
-
-   ```javascript
-   return response.choices[0].message.content;
-   ```
-
-- [ ] 10. Add error handling (try/catch) with user-friendly error message
-
-**Create AI Chat Screen:**
-
-- [ ] 11. Create file: `src/screens/AIChatScreen.js`
-
-- [ ] 12. Structure similar to ChatScreen but simplified:
-
-  - Header shows "AI Assistant" instead of user name
-  - No online status indicator
-  - Messages from AI have robot icon or different avatar
-
-- [ ] 13. Add state for messages:
-  ```javascript
-  const [messages, setMessages] = useState([]);
-  const [inputText, setInputText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  ```
-
-**Implement AI Message Flow:**
-
-- [ ] 14. In `AIChatScreen.js`:
-
-  - When user sends message:
-    - Add user message to messages array immediately
-
-- [ ] 15. Set loading state: `setIsLoading(true)`
-
-- [ ] 16. Show "AI is typing..." indicator at bottom of message list
-
-- [ ] 17. Build conversation history from messages array:
-
-  ```javascript
-  const history = messages.map((msg) => ({
-    role: msg.isAI ? "assistant" : "user",
-    content: msg.text,
-  }));
-  ```
-
-- [ ] 18. Call `sendToAI(inputText, history)`
-
-- [ ] 19. Add AI response to messages array:
-
-  ```javascript
-  setMessages((prev) => [
-    ...prev,
-    {
-      id: generateId(),
-      text: aiResponse,
-      isAI: true,
-      timestamp: Date.now(),
-    },
-  ]);
-  ```
-
-- [ ] 20. Set loading state: `setIsLoading(false)`
-
-- [ ] 21. Clear input field
-
-- [ ] 22. Store conversation in LOCAL state only (not Firestore for MVP)
-
-**Style AI Messages Differently:**
-
-- [ ] 23. In `src/components/MessageBubble.js` or create new `AIMessageBubble.js`:
-  - Different background color for AI messages
-  - Add robot icon or AI badge
-  - Align left (like received messages)
-
-**Add Navigation to AI Chat:**
-
-- [ ] 24. In `src/navigation/AppNavigator.js`:
-  - Add AIChatScreen to Main Stack
-
-**Add AI Chat Button:**
-
-- [ ] 25. In `src/screens/HomeScreen.js`:
-
-  - Add "Chat with AI" button to header or as menu item
-
-- [ ] 26. On tap, navigate to AIChatScreen
-
-**Handle Streaming (Optional - Skip for MVP):**
-
-- [ ] 27. If time permits later, implement streaming:
-  - Set `stream: true` in OpenAI request
-  - Display response word by word as it arrives
-  - More complex, save for post-MVP
-
-**Add Error Handling:**
-
-- [ ] 28. Show error message if OpenAI API fails
-
-- [ ] 29. Allow user to retry failed message
-
-- [ ] 30. Handle network errors gracefully
-
-**Files Created:**
-
-- `src/utils/aiService.js`
-- `src/screens/AIChatScreen.js`
-
-**Files Modified:**
-
-- `.env`
-- `src/screens/HomeScreen.js`
-- `src/navigation/AppNavigator.js`
-- `src/components/MessageBubble.js` (optional, for AI styling)
-
-**Test Before Merge:**
-
-- [ ] Can navigate to AI Chat screen from Home
-- [ ] Can type and send messages to AI
-- [ ] "AI is typing..." indicator shows while waiting
-- [ ] AI responds with relevant answers
-- [ ] AI messages display with different styling (robot icon, different color)
-- [ ] Conversation history maintained within session
-- [ ] Can have multi-turn conversation (AI remembers context)
-- [ ] Error handling works (test by using invalid API key)
-- [ ] Messages display correctly (user vs AI)
-- [ ] Scroll behavior works correctly
-
----
-
-## PR #12: AI Agent Advanced Features & Final Polish
-
-**Goal**: Add conversation summaries, smart replies, and final UI polish
+**Goal**: Implement read receipts for both 1-on-1 and group chats to show when messages have been read
 
 ### Subtasks
 
-**Implement Conversation Summary:**
+**Update Message Schema for Read Receipts:**
 
-- [ ] 1. In `src/utils/aiService.js`:
+- [ ] 1. In `src/utils/conversation.js`:
 
-  - Add function: `summarizeConversation(messages)`
+  - Add function: `markMessagesAsRead(conversationId, currentUserId)`
+  - Query messages that are not from current user and have status "sent" or "delivered"
+  - Update status to "read" using batch write
 
-- [ ] 2. Inside `summarizeConversation`:
+- [ ] 2. For group chats, add `readBy` array field to messages:
+  - Track which users have read each message
+  - Use `arrayUnion` to add current user to readBy array
+  - Keep backward compatibility with simple status field
 
-  - Take last 50 messages from conversation (or all if less than 50)
-  - Format as string with sender names and text
+**Implement Read Receipt Detection:**
 
-- [ ] 3. Create prompt:
+- [ ] 3. In `src/screens/ChatScreen.js`:
 
-  ```javascript
-  "Summarize the following conversation in 2-3 sentences:\n\n" +
-    formattedMessages;
-  ```
+  - Add useEffect to detect when conversation is viewed
+  - Call `markMessagesAsRead` when ChatScreen mounts or becomes focused
+  - Only mark messages as read if they're from other users
 
-- [ ] 4. Call OpenAI API with summary prompt
+- [ ] 4. Handle app state changes:
+  - Mark messages as read when app comes to foreground
+  - Don't mark as read if user just backgrounded the app
 
-- [ ] 5. Return summary text
+**Update Message Status Indicators:**
 
-**Add Summary Button to Chat:**
+- [ ] 5. In `src/components/MessageBubble.js`:
+  - Add "read" status indicator: Blue double checkmark ✓✓
+  - Update status display logic:
+    - "sending": Gray clock 🕐
+    - "sent": Single checkmark ✓
+    - "delivered": Double checkmark ✓✓
+    - "read": Blue double checkmark ✓✓
 
-- [ ] 6. In `src/screens/ChatScreen.js`:
+**Group Chat Read Receipts:**
 
-  - Add "Summarize" button to header menu (three dots icon)
+- [ ] 6. For group messages, show read count:
 
-- [ ] 7. On tap:
+  - Display "Read by X of Y" below message
+  - Calculate from `readBy` array length vs total participants
+  - Show individual names on long-press (optional)
 
-  - Show loading indicator
-  - Get messages from Firebase store
+- [ ] 7. Update group message status logic:
+  - Mark as "delivered" when any user receives
+  - Mark as "read" when any user reads
+  - Show blue checkmarks when all participants have read
 
-- [ ] 8. Call `summarizeConversation(messages)`
+**Add Read Receipt UI Components:**
 
-- [ ] 9. Display summary in modal or alert dialog
+- [ ] 8. Create `ReadReceiptIndicator` component:
 
-- [ ] 10. Add "Close" button to dismiss modal
+  - Shows read count for group messages
+  - Handles long-press to show individual readers
+  - Different styling for 1-on-1 vs group chats
 
-**Implement Smart Replies:**
+- [ ] 9. Update MessageBubble to include read receipt indicator:
+  - Position below timestamp
+  - Only show for sent messages (not received)
+  - Different layout for group vs 1-on-1
 
-- [ ] 11. In `src/utils/aiService.js`:
+**Handle Edge Cases:**
 
-  - Add function: `generateSmartReplies(lastMessage, conversationContext)`
+- [ ] 10. Prevent duplicate read receipts:
 
-- [ ] 12. Inside `generateSmartReplies`:
+  - Check if user already in readBy array before adding
+  - Use Firestore transactions for atomic updates
 
-  - Create prompt: "Generate 3 short, natural reply suggestions (5-10 words each) for the message: '{lastMessage}'"
-  - Include last 3-5 messages as context
+- [ ] 11. Handle offline scenarios:
 
-- [ ] 13. Call OpenAI API
+  - Queue read receipt updates when offline
+  - Sync when connection restored
 
-- [ ] 14. Parse response into array of 3 reply options
+- [ ] 12. Handle user leaving/joining groups:
+  - Update read count calculations
+  - Remove user from readBy arrays when they leave
 
-- [ ] 15. Return array of strings
+**Update Firebase Store:**
 
-**Add Smart Reply Chips to Chat:**
+- [ ] 13. In `src/stores/firebaseStore.js`:
+  - Add function: `updateMessageReadStatus(conversationId, messageId, readBy)`
+  - Update message in store when read status changes
+  - Handle both simple status and readBy array updates
 
-- [ ] 16. In `src/screens/ChatScreen.js`:
+**Add Read Receipt Settings:**
 
-  - Add state: `const [smartReplies, setSmartReplies] = useState([])`
+- [ ] 14. In `src/screens/ProfileScreen.js`:
 
-- [ ] 17. When new message received from other user:
+  - Add toggle: "Send Read Receipts" (default: enabled)
+  - Save preference to Firestore user document
+  - Respect user's privacy choice
 
-  - Call `generateSmartReplies(lastMessage, recentMessages)`
-  - Store in smartReplies state
-
-- [ ] 18. Display 3 reply chips/buttons above input bar:
-
-  - Horizontal scrollable row
-  - Rounded pill-shaped buttons
-  - Each shows one reply option
-
-- [ ] 19. On chip tap:
-
-  - Populate input field with reply text
-  - Clear smart replies (or keep them for quick send)
-
-- [ ] 20. Clear smart replies when user types their own message
-
-**Make AI Context-Aware:**
-
-- [ ] 21. Update `sendToAI` function in `aiService.js`:
-
-  - Add optional parameter for conversation context
-  - Include last 10 messages from actual conversation
-
-- [ ] 22. Create function: `getAIResponseForConversation(prompt, conversationMessages)`
-  - Format conversation messages for context
-  - Call OpenAI with context
-  - AI can reference the conversation
-
-**Add AI to Any Conversation (Optional):**
-
-- [ ] 23. In `src/screens/ChatScreen.js`:
-
-  - Add "Ask AI" button in header or input bar
-
-- [ ] 24. On tap:
-
-  - Show modal/dialog for AI query
-  - User types question about the conversation
-
-- [ ] 25. Get AI response with full conversation as context
-
-- [ ] 26. Display AI response in modal (not as message in chat)
-
-**Final UI Polish:**
-
-- [ ] 27. Consistent styling across all screens:
-
-  - Same color scheme
-  - Same button styles
-  - Same text input styles
-  - Same header styles
-
-- [ ] 28. Add smooth animations:
-
-  - Screen transitions
-  - Modal/dialog animations
-  - Message send animations
-  - Typing indicator animations
-
-- [ ] 29. Loading states for all async operations:
-
-  - Message sending
-  - Image uploading
-  - Profile saving
-  - AI responses
-  - Conversation loading
-
-- [ ] 30. Error handling with user-friendly messages:
-
-  - Network errors
-  - Firebase errors
-  - AI errors
-  - Image upload errors
-
-- [ ] 31. Empty states:
-
-  - No messages in conversation: "No messages yet. Say hi!"
-  - No users online: "No users online right now"
-  - No conversations: "Start a conversation by tapping a user"
-
-- [ ] 32. Polish message bubbles:
-
-  - Better padding and spacing
-  - Subtle shadows
-  - Rounded corners
-  - Max width for long messages
-
-- [ ] 33. Add message timestamps:
-
-  - Group messages by date (Today, Yesterday, date)
-  - Show time for each message on tap or always visible
-
-- [ ] 34. Improve keyboard handling:
-
-  - Smooth keyboard appearance
-  - Input bar stays above keyboard
-  - Auto-scroll when keyboard opens
-
-- [ ] 35. Add pull-to-refresh on Home screen:
-  - Refresh user list
-  - Update presence data
-  - Reload conversations
+- [ ] 15. Update read receipt logic:
+  - Only send read receipts if user has enabled them
+  - Still show received read receipts regardless of setting
 
 **Performance Optimization:**
 
-- [ ] 36. Optimize FlatList rendering:
+- [ ] 16. Batch read receipt updates:
 
-  - Use `getItemLayout` if fixed height messages
-  - Add `windowSize` prop
-  - Use `maxToRenderPerBatch`
+  - Update multiple messages in single batch write
+  - Reduce Firestore write operations
 
-- [ ] 37. Memoize components:
+- [ ] 17. Debounce read receipt updates:
+  - Don't update on every scroll
+  - Update when user stops scrolling for 2+ seconds
 
-  - Wrap MessageBubble in React.memo
-  - Wrap UserListItem in React.memo
-  - Use useMemo for expensive calculations
+**Test Read Receipts:**
 
-- [ ] 38. Optimize image loading:
+- [ ] 18. Test 1-on-1 read receipts:
 
-  - Add image placeholders while loading
-  - Compress images before upload
-  - Cache images properly
+  - Send message from Device A
+  - Open conversation on Device B
+  - Verify Device A shows blue checkmarks
 
-- [ ] 39. Reduce unnecessary re-renders:
-  - Use useCallback for functions passed as props
-  - Optimize Zustand selectors (select only what's needed)
+- [ ] 19. Test group read receipts:
 
-**Add Message Features (Time Permitting):**
+  - Send message in group chat
+  - Have different users read the message
+  - Verify read count updates correctly
 
-- [ ] 40. Long press message for options menu:
-
-  - Copy text
-  - Delete (local only, not from Firestore)
-
-- [ ] 41. Copy message text to clipboard
-
-- [ ] 42. Timestamp display:
-
-  - Show full timestamp on tap
-  - Or always visible in smaller text
-
-- [ ] 43. Read receipts:
-  - Mark messages as "read" when conversation viewed
-  - Update status in Firestore
-  - Show blue checkmarks for read messages
-
-**Testing & Bug Fixes:**
-
-- [ ] 44. Test all features end-to-end on physical device
-
-- [ ] 45. Test with 3+ devices simultaneously:
-
-  - All receive messages
-  - Presence updates correctly
-  - Notifications work for all
-
-- [ ] 46. Test offline scenarios:
-
-  - Send messages in airplane mode
-  - Turn off/on WiFi
-  - Verify queued messages send
-  - Verify presence updates correctly
-
-- [ ] 47. Test push notifications in various states:
-
-  - App completely closed
-  - App in background
-  - App in foreground
-  - Multiple notifications
-
-- [ ] 48. Test AI features with edge cases:
-
-  - Very long prompts
-  - Empty prompts
-  - API errors
-  - Network timeouts
-
-- [ ] 49. Fix any bugs discovered during testing
-
-- [ ] 50. Polish any rough UI edges
-
-**Create Demo Video:**
-
-- [ ] 51. Record screen on physical device
-
-- [ ] 52. Demo in 3-5 minutes showing:
-
-  - Sign up and profile creation (30 seconds)
-  - User list with presence indicators (15 seconds)
-  - Sending messages with status indicators (30 seconds)
-  - Offline message queuing (30 seconds)
-  - Group chat creation and messaging (45 seconds)
-  - Push notifications (show notification arriving) (20 seconds)
-  - AI chat features (summary, smart replies) (60 seconds)
-  - Profile editing (20 seconds)
-
-- [ ] 53. Add voiceover or captions explaining features
-
-- [ ] 54. Export video in high quality
-
-**Documentation:**
-
-- [ ] 55. Update `README.md` with:
-
-  - Complete setup instructions
-  - Prerequisites (Node, Expo CLI, Expo Go app)
-  - How to add Firebase config to `.env`
-  - How to add OpenAI key to `.env`
-  - How to run: `npx expo start`
-  - How to test on phone (scan QR code)
-  - Feature list (bullet points)
-  - Screenshots of main screens
-
-- [ ] 56. Create `ARCHITECTURE.md` file:
-
-  - Explain 3-store Zustand architecture
-  - Explain message status flow (sending → sent → delivered → read)
-  - Explain presence tracking with Realtime Database
-  - Explain offline support
-  - Include diagrams or code examples
-
-- [ ] 57. Add code comments to complex sections:
-
-  - 3-store interactions
-  - Message status updates
-  - Presence tracking logic
-  - AI service functions
-
-- [ ] 58. Document any known limitations or future improvements
-
-**Deploy Production Build:**
-
-- [ ] 59. Install EAS CLI (Expo Application Services):
-
-  ```bash
-  npm install -g eas-cli
-  ```
-
-- [ ] 60. Login to Expo account:
-
-  ```bash
-  eas login
-  ```
-
-- [ ] 61. Configure EAS build:
-
-  ```bash
-  eas build:configure
-  ```
-
-- [ ] 62. Build for iOS (if you have Mac/iOS):
-
-  ```bash
-  eas build --platform ios
-  ```
-
-- [ ] 63. Build for Android:
-
-  ```bash
-  eas build --platform android
-  ```
-
-- [ ] 64. Wait for builds to complete (can take 10-30 minutes)
-
-- [ ] 65. Download APK (Android) or IPA (iOS) from Expo dashboard
-
-- [ ] 66. Test production build on physical devices:
-
-  - Install APK on Android device
-  - Install IPA on iOS device (requires TestFlight or enterprise cert)
-
-- [ ] 67. Verify all features work in production build:
-  - Sometimes features work in Expo Go but not in production
-  - Test notifications especially
-
-**Final Cleanup:**
-
-- [ ] 68. Remove any console.logs used for debugging
-
-- [ ] 69. Remove any commented-out code
-
-- [ ] 70. Format code consistently (use Prettier if available)
-
-- [ ] 71. Check for any TODO comments and address them
-
-- [ ] 72. Verify `.env` is in `.gitignore`
-
-- [ ] 73. Verify no sensitive data in code (API keys, Firebase config should be in .env)
-
-- [ ] 74. Make final Git commit with all changes
+- [ ] 20. Test edge cases:
+  - User leaves group while message unread
+  - Multiple users read simultaneously
+  - Offline/online transitions
 
 **Files Created:**
 
-- `ARCHITECTURE.md`
-- Demo video file (mp4)
-- Screenshots folder with app screenshots
+- `src/components/ReadReceiptIndicator.js`
 
 **Files Modified:**
 
-- `src/utils/aiService.js`
-- `src/screens/ChatScreen.js`
-- `src/screens/AIChatScreen.js`
-- All screen files (UI polish)
-- All component files (optimization)
-- `README.md`
+- `src/utils/conversation.js` (add markMessagesAsRead function)
+- `src/screens/ChatScreen.js` (add read receipt detection)
+- `src/components/MessageBubble.js` (add read receipt display)
+- `src/stores/firebaseStore.js` (add read receipt updates)
+- `src/screens/ProfileScreen.js` (add read receipt settings)
 
 **Test Before Merge:**
 
-- [ ] Conversation summary works correctly
-- [ ] Summary shows in modal with correct content
-- [ ] Smart replies generate appropriate suggestions
-- [ ] Smart reply chips display above input bar
-- [ ] Tapping smart reply populates input
-- [ ] AI is context-aware in conversations
-- [ ] All UI elements polished and consistent
-- [ ] Animations smooth and not jarring
-- [ ] Loading states show for all async operations
-- [ ] Error messages display user-friendly text
-- [ ] Empty states show helpful messages
-- [ ] No performance issues or lag when scrolling
-- [ ] Images load smoothly with placeholders
-- [ ] Pull-to-refresh works on Home screen
-- [ ] All error scenarios handled gracefully
-- [ ] App works on both iOS and Android (test both if possible)
-- [ ] Production build installs and runs correctly
-- [ ] All features work in production build
-- [ ] Demo video covers all features clearly
-- [ ] Documentation is complete and accurate
-- [ ] No console errors or warnings
+- [ ] 1-on-1 messages show blue checkmarks when read
+- [ ] Group messages show "Read by X of Y" correctly
+- [ ] Read receipts work when app comes to foreground
+- [ ] Read receipts respect user privacy settings
+- [ ] Offline read receipts sync when reconnected
+- [ ] No duplicate read receipts sent
+- [ ] Performance is smooth with many messages
+- [ ] Works correctly in groups with users joining/leaving
 
 ---
 
@@ -2269,16 +2135,12 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Post-MVP (Day 3-5):**
 
-- PR #8: Profile editing
-- PR #9: Group chats
+- PR #8: Profile editing ✅
+- PR #9: Group chats 🔄 (in progress)
 - PR #10: Push notifications
+- PR #11: Read Receipts
 
-**Final (Day 6-7):**
-
-- PR #11: AI agent basics
-- PR #12: Advanced AI features + polish
-
-**Total Remaining PRs:** 5 (PR #8-12)
+**Total Remaining PRs:** 3 (PR #9-11)
 
 ---
 
@@ -2290,8 +2152,1144 @@ Since you've never used React Native, this PR focuses on getting your developmen
 - **Test offline mode after PR #8**
 - **Cloud Functions deployment can take a few tries - be patient**
 - **Production builds are different from Expo Go - test both**
-- **OpenAI API costs money - monitor usage**
-- **Smart replies can be slow - add loading states**
-- **Demo video is important - make it clear and engaging**
+- **After PR #10, transition to PRD-2 based AI features**
 
 Good luck finishing the app! 🚀
+
+---
+
+# Messaging App - AI Features Implementation Task List
+
+## Overview
+
+This document outlines the implementation of AI-powered features for the Remote Team Professional persona using Vercel AI SDK and OpenAI. These features build upon the core messaging infrastructure from tasks.md.
+
+**Total PRs:** 4
+**Timeline:** 3-4 days after core messaging is complete
+**Target Persona:** Remote Team Professional
+
+---
+
+## PR #12: AI Foundation & Basic Features Setup
+
+**Goal**: Set up Vercel AI SDK, OpenAI integration, and implement the first 2 AI features (Thread Summarization & Action Item Extraction)
+
+### Why This Matters
+
+These are the foundational AI features that provide immediate value to remote teams. Thread summarization helps with information overload, while action item extraction prevents missed tasks.
+
+### Subtasks
+
+**Install AI Dependencies:**
+
+- [ ] Install Vercel AI SDK and OpenAI provider:
+
+  ```bash
+  npm install ai @ai-sdk/openai zod
+  ```
+
+- [ ] Verify installation and check package.json includes:
+  ```json
+  {
+    "ai": "^3.0.0",
+    "@ai-sdk/openai": "^0.0.x",
+    "zod": "^3.22.0"
+  }
+  ```
+
+**Environment Setup:**
+
+- [ ] Add OpenAI API key to `.env`:
+
+  ```
+  EXPO_PUBLIC_OPENAI_API_KEY=your_openai_key
+  ```
+
+- [ ] Verify API key is accessible in app (console.log test)
+- [ ] Ensure `.env*` is in `.gitignore` (already done)
+
+**Create AI Service Layer:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Import required modules:
+
+  ```javascript
+  import { generateText, generateObject } from "ai";
+  import { openai } from "@ai-sdk/openai";
+  import { z } from "zod";
+  ```
+
+- [ ] Add error handling wrapper:
+  ```javascript
+  const withErrorHandling = async (fn, fallback) => {
+    try {
+      return await fn();
+    } catch (error) {
+      console.error("AI Service Error:", error);
+      // Handle rate limits, API errors, timeouts
+      throw new Error(
+        "AI service temporarily unavailable. Please try again later."
+      );
+    }
+  };
+  ```
+
+**Implement Thread Summarization:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Function: `summarizeThread(conversationId)`
+
+  - Fetch last 50 messages from conversation
+  - Create prompt focusing on key topics, decisions, action items
+  - Use `generateText` with GPT-4-turbo
+  - Return formatted summary
+  - Target response time: <2 seconds
+
+- [ ] Prompt template:
+
+  ```javascript
+  const prompt = `Summarize this conversation thread in 3-4 bullet points. Focus on key topics, decisions, and action items:
+  
+  ${messages.map((m) => `${m.senderUsername}: ${m.text}`).join("\n")}
+  
+  Provide a concise summary with:
+  - Main topics discussed
+  - Key decisions made
+  - Outstanding questions`;
+  ```
+
+**Implement Action Item Extraction:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Define ActionItemSchema with Zod:
+
+  ```javascript
+  const ActionItemSchema = z.object({
+    items: z.array(
+      z.object({
+        task: z.string(),
+        assignedTo: z.string().nullable(),
+        deadline: z.string().nullable(),
+        status: z.enum(["pending", "completed"]),
+        context: z.string(),
+      })
+    ),
+  });
+  ```
+
+- [ ] Function: `extractActionItems(conversationId)`
+  - Fetch last 100 messages from conversation
+  - Use `generateObject` with ActionItemSchema
+  - Extract tasks, assignments, deadlines
+  - Return structured action items
+  - Target response time: <2 seconds
+
+**Create UI Components:**
+
+- [ ] File: `src/components/ThreadSummaryModal.js`
+
+  - Modal overlay component
+  - Display AI-generated summary
+  - Loading state while processing
+  - Close button
+  - Copy summary button (bonus)
+
+- [ ] File: `src/screens/ActionItemsScreen.js`
+  - List view of extracted action items
+  - Each item shows: task, assigned person, deadline, status
+  - Checkbox to mark complete
+  - "View in conversation" links
+  - Refresh button to re-extract
+
+**Add Navigation:**
+
+- [ ] File: `src/navigation/AppNavigator.js`
+- [ ] Add ActionItemsScreen to Main Stack
+
+**Connect to Chat Screen:**
+
+- [ ] File: `src/screens/ChatScreen.js`
+- [ ] Add "📝 Summary" button to header
+- [ ] Add "📋 Action Items" button to header
+- [ ] On tap: Navigate to respective screens
+- [ ] Pass conversationId via navigation params
+
+**Add Loading States:**
+
+- [ ] Show loading indicator while AI processing
+- [ ] Disable buttons during processing
+- [ ] Handle errors gracefully with user-friendly messages
+
+**Test Basic AI Features:**
+
+- [ ] Create conversation with 50+ messages covering various topics
+- [ ] Test thread summarization:
+
+  - Tap "📝 Summary" button
+  - Verify summary captures main topics
+  - Response time <2 seconds
+  - Summary is 3-5 concise bullet points
+
+- [ ] Test action item extraction:
+  - Send messages with commitments: "I'll finish the report by Friday"
+  - Send messages with assignments: "Can you review the PR?"
+  - Tap "📋 Action Items" button
+  - Verify all action items extracted correctly
+  - Check assignedTo and deadline fields populated
+  - Response time <2 seconds
+
+**Files Created:**
+
+- `src/services/aiService.js`
+- `src/components/ThreadSummaryModal.js`
+- `src/screens/ActionItemsScreen.js`
+
+**Files Modified:**
+
+- `src/screens/ChatScreen.js` (add AI buttons)
+- `src/navigation/AppNavigator.js` (add ActionItemsScreen)
+- `.env` (add OpenAI key)
+
+**Test Before Merge:**
+
+- [ ] AI dependencies installed successfully
+- [ ] OpenAI API key accessible
+- [ ] Thread summarization works with sample conversation
+- [ ] Action item extraction identifies tasks correctly
+- [ ] UI components display results properly
+- [ ] Navigation between screens works
+- [ ] Error handling works (test with invalid API key)
+- [ ] Response times meet targets (<2 seconds)
+
+---
+
+## PR #13: Smart Search & Priority Detection
+
+**Goal**: Implement semantic search using OpenAI embeddings and automatic priority detection for messages
+
+### Subtasks
+
+**Implement Semantic Search:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Import embedding function:
+
+  ```javascript
+  import { embed } from "ai";
+  ```
+
+- [ ] Function: `semanticSearch(query, conversationId)`
+
+  - Get query embedding using text-embedding-3-small
+  - Fetch messages from conversation (last 200)
+  - Compute embeddings for all messages
+  - Calculate cosine similarity
+  - Filter results above threshold (0.7)
+  - Sort by similarity score
+  - Return top 10 results
+
+- [ ] Helper function: `cosineSimilarity(vecA, vecB)`
+  - Calculate cosine similarity between two vectors
+  - Return similarity score (0-1)
+
+**Implement Priority Detection:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Define PrioritySchema with Zod:
+
+  ```javascript
+  const PrioritySchema = z.object({
+    priority: z.enum(["high", "normal", "low"]),
+    reason: z.string(),
+    urgencyScore: z.number().min(0).max(10),
+  });
+  ```
+
+- [ ] Function: `detectPriority(messageText)`
+  - Analyze message for urgency indicators
+  - Consider: deadlines, immediate action requests, escalations, blockers
+  - Use `generateObject` with PrioritySchema
+  - Return priority level, reason, and urgency score
+  - Target response time: <8 seconds
+
+**Create Search Components:**
+
+- [ ] File: `src/components/SemanticSearchBar.js`
+
+  - Search input field
+  - Search mode toggle (semantic vs keyword)
+  - Loading indicator during search
+  - Results display with similarity scores
+  - "View in conversation" links
+
+- [ ] File: `src/screens/SearchResultsScreen.js`
+  - Display search results
+  - Show message context
+  - Highlight matching text
+  - Navigate to specific message in conversation
+
+**Update Message Schema:**
+
+- [ ] File: `src/utils/conversation.js`
+- [ ] Add priority fields to message creation:
+  ```javascript
+  {
+    text: "...",
+    priority: "high" | "normal" | "low" | null,
+    priorityReason: "Contains urgent deadline" | null,
+    urgencyScore: 0-10 | null
+  }
+  ```
+
+**Implement Auto-Priority Detection:**
+
+- [ ] File: `src/screens/ChatScreen.js`
+- [ ] On new message received (not from current user):
+  - Call `detectPriority(messageText)`
+  - Update message with priority data
+  - Show priority badge in UI
+
+**Update MessageBubble Component:**
+
+- [ ] File: `src/components/MessageBubble.js`
+- [ ] Add priority display:
+  - High priority: Red border/badge
+  - Normal priority: No special styling
+  - Low priority: Subtle indicator (optional)
+- [ ] Show priority reason on long-press (optional)
+
+**Add Search to Chat Screen:**
+
+- [ ] File: `src/screens/ChatScreen.js`
+- [ ] Add search bar below header
+- [ ] Toggle between semantic and keyword search
+- [ ] Display search results in overlay
+- [ ] Navigate to specific message on tap
+
+**Update Push Notifications:**
+
+- [ ] File: `functions/index.js` (Cloud Function)
+- [ ] Customize notification for high-priority messages:
+  ```javascript
+  const title =
+    message.priority === "high"
+      ? `🔴 ${message.senderUsername}`
+      : message.senderUsername;
+  ```
+
+**Add Navigation:**
+
+- [ ] File: `src/navigation/AppNavigator.js`
+- [ ] Add SearchResultsScreen to Main Stack
+
+**Performance Optimization:**
+
+- [ ] Cache message embeddings in Firestore (optional)
+- [ ] Implement search debouncing (500ms)
+- [ ] Limit search to recent messages for performance
+
+**Test Smart Search:**
+
+- [ ] Create messages with varied topics
+- [ ] Test semantic search:
+
+  - Search for "meeting schedule" (semantic query)
+  - Verify results include messages about "calendar", "availability", "time to meet"
+  - Compare with keyword search (should find different results)
+  - Response time <2 seconds
+
+- [ ] Test keyword search:
+  - Search for exact phrases
+  - Verify results match keywords
+  - Performance is fast (<500ms)
+
+**Test Priority Detection:**
+
+- [ ] Send urgent message: "Production is down! Need help ASAP!"
+- [ ] Verify message flagged as high priority with red border
+- [ ] Check priority reason is accurate
+- [ ] Send normal message: "Let me know when you're free"
+- [ ] Verify marked as normal priority
+- [ ] Test with various message types
+- [ ] Response time <8 seconds
+
+**Files Created:**
+
+- `src/components/SemanticSearchBar.js`
+- `src/screens/SearchResultsScreen.js`
+
+**Files Modified:**
+
+- `src/services/aiService.js` (add search and priority functions)
+- `src/components/MessageBubble.js` (add priority display)
+- `src/screens/ChatScreen.js` (add search and auto-priority)
+- `src/utils/conversation.js` (update message schema)
+- `functions/index.js` (update notifications)
+- `src/navigation/AppNavigator.js` (add SearchResultsScreen)
+
+**Test Before Merge:**
+
+- [ ] Semantic search finds contextually relevant messages
+- [ ] Keyword search works for exact matches
+- [ ] Priority detection flags urgent messages correctly
+- [ ] High-priority messages show red border/badge
+- [ ] Push notifications show priority indicators
+- [ ] Search performance meets targets
+- [ ] Auto-priority detection works on new messages
+- [ ] Search results navigate to correct messages
+
+---
+
+## PR #14: Decision Tracking & Multi-Step Agent
+
+**Goal**: Implement decision extraction and the advanced multi-step AI agent for complex workflows
+
+### Subtasks
+
+**Implement Decision Tracking:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Define DecisionSchema with Zod:
+
+  ```javascript
+  const DecisionSchema = z.object({
+    decisions: z.array(
+      z.object({
+        decision: z.string(),
+        participants: z.array(z.string()),
+        timestamp: z.string().nullable(),
+        context: z.string(),
+        confidence: z.enum(["high", "medium", "low"]),
+      })
+    ),
+  });
+  ```
+
+- [ ] Function: `extractDecisions(conversationId)`
+  - Fetch last 100 messages from conversation
+  - Look for decision phrases: "let's do...", "we agreed...", "decided to...", "going with..."
+  - Use `generateObject` with DecisionSchema
+  - Filter out low-confidence decisions
+  - Return structured decisions with participants and context
+  - Target response time: <2 seconds
+
+**Create Decision Tracking UI:**
+
+- [ ] File: `src/screens/DecisionsScreen.js`
+  - Timeline view of identified decisions
+  - Each decision shows:
+    - What was decided
+    - Participants involved
+    - Timestamp
+    - Context
+    - Confidence level
+    - "View in conversation" link
+  - Filter by date range (All, This Week, This Month)
+  - Refresh button to re-extract
+
+**Add Decision Navigation:**
+
+- [ ] File: `src/screens/ChatScreen.js`
+- [ ] Add "✓ Decisions" button to header
+- [ ] Navigate to DecisionsScreen with conversationId
+
+**Implement Multi-Step Agent:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Import streaming functions:
+
+  ```javascript
+  import { streamText, tool } from "ai";
+  ```
+
+- [ ] Define agent tools:
+
+  ```javascript
+  const agentTools = {
+    searchMessages: tool({
+      description: "Search messages in a conversation by date range or keyword",
+      parameters: z.object({
+        conversationId: z.string(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        keyword: z.string().optional(),
+      }),
+      execute: async ({ conversationId, startDate, endDate, keyword }) => {
+        // Search logic here
+        return await searchMessages(conversationId, {
+          startDate,
+          endDate,
+          keyword,
+        });
+      },
+    }),
+
+    extractActionItems: tool({
+      description: "Extract action items from a set of messages",
+      parameters: z.object({
+        messages: z.array(
+          z.object({
+            text: z.string(),
+            sender: z.string(),
+          })
+        ),
+      }),
+      execute: async ({ messages }) => {
+        return await extractActionItems(messages);
+      },
+    }),
+
+    categorizeByPerson: tool({
+      description: "Group action items by assigned person",
+      parameters: z.object({
+        actionItems: z.array(z.any()),
+      }),
+      execute: async ({ actionItems }) => {
+        return groupBy(actionItems, "assignedTo");
+      },
+    }),
+
+    generateReport: tool({
+      description: "Generate a formatted summary report",
+      parameters: z.object({
+        data: z.any(),
+        title: z.string(),
+      }),
+      execute: async ({ data, title }) => {
+        return formatReport(data, title);
+      },
+    }),
+  };
+  ```
+
+- [ ] Function: `executeAgent(userQuery, conversationId, onStepUpdate)`
+  - Use `streamText` with tools and maxSteps: 10
+  - System prompt for remote team assistant
+  - Handle step-by-step progress updates
+  - Return final formatted result
+  - Target response time: <15 seconds
+
+**Create Agent Chat Interface:**
+
+- [ ] File: `src/screens/AgentChatScreen.js`
+  - Chat interface with AI agent
+  - User can type complex queries
+  - Shows step-by-step progress:
+    - Step 1: Searching messages from last week...
+    - Step 2: Extracting action items...
+    - Step 3: Categorizing by person...
+    - Step 4: Generating report...
+  - Displays final formatted results
+  - Example queries shown for guidance
+  - Message history in conversation format
+
+**Add Agent Navigation:**
+
+- [ ] File: `src/screens/ChatScreen.js`
+- [ ] Add "🤖 Agent" button to header
+- [ ] Navigate to AgentChatScreen with conversationId
+
+**Implement Helper Functions:**
+
+- [ ] File: `src/utils/aiHelpers.js`
+- [ ] Function: `searchMessages(conversationId, filters)`
+
+  - Search messages by date range or keyword
+  - Return filtered message list
+
+- [ ] Function: `groupBy(array, key)`
+
+  - Group array items by specified key
+  - Return grouped object
+
+- [ ] Function: `formatReport(data, title)`
+  - Format data into readable report
+  - Return formatted string
+
+**Add Navigation:**
+
+- [ ] File: `src/navigation/AppNavigator.js`
+- [ ] Add DecisionsScreen to Main Stack
+- [ ] Add AgentChatScreen to Main Stack
+
+**Error Handling & Fallbacks:**
+
+- [ ] Handle agent tool failures gracefully
+- [ ] Provide fallback responses for complex queries
+- [ ] Show clear error messages to users
+- [ ] Implement retry logic for failed steps
+
+**Test Decision Tracking:**
+
+- [ ] Create conversation with clear decisions:
+  - "Let's go with option B for the architecture"
+  - "We agreed to extend the deadline to Q2"
+  - "Decided to use microservices approach"
+- [ ] Test decision extraction:
+  - Tap "✓ Decisions" button
+  - Verify decisions extracted correctly
+  - Check participants list is accurate
+  - Verify timestamp and context are correct
+  - Test filter by date range
+  - Response time <2 seconds
+
+**Test Multi-Step Agent:**
+
+- [ ] Test complex workflow:
+
+  - Query: "Find all action items from last week, categorize by person, and create a summary report"
+  - Verify step-by-step progress shown:
+    - Step 1: Searching messages from last week...
+    - Step 2: Extracting action items...
+    - Step 3: Categorizing by person...
+    - Step 4: Generating report...
+  - Check final report is well-formatted and accurate
+  - Total response time <15 seconds
+
+- [ ] Test simpler queries:
+
+  - "Summarize this conversation"
+  - "What decisions were made?"
+  - "Who has pending tasks?"
+
+- [ ] Test error handling:
+  - Query with no results
+  - Invalid conversation ID
+  - Network errors
+
+**Files Created:**
+
+- `src/screens/DecisionsScreen.js`
+- `src/screens/AgentChatScreen.js`
+- `src/utils/aiHelpers.js`
+
+**Files Modified:**
+
+- `src/services/aiService.js` (add decision extraction and agent)
+- `src/screens/ChatScreen.js` (add Decisions and Agent buttons)
+- `src/navigation/AppNavigator.js` (add new screens)
+
+**Test Before Merge:**
+
+- [ ] Decision tracking identifies decisions correctly
+- [ ] Decisions screen shows timeline view
+- [ ] Multi-step agent executes complex workflows
+- [ ] Agent shows step-by-step progress
+- [ ] Final reports are well-formatted
+- [ ] Error handling works for edge cases
+- [ ] Response times meet targets
+- [ ] Navigation between screens works
+- [ ] Agent maintains context across steps
+
+---
+
+## PR #15: Typing Indicators & Connection Status
+
+**Goal**: Implement real-time typing indicators and connection status indicators for better user experience
+
+### Why This Matters
+
+Typing indicators provide immediate feedback that someone is responding, improving the real-time feel of the app. Connection status helps users understand network state and offline capabilities.
+
+### Subtasks
+
+**Implement Typing Indicators:**
+
+- [ ] File: `src/utils/typing.js`
+- [ ] Function: `updateTypingState(conversationId, userId, isTyping)`
+
+  - Write to Realtime Database: `/typing/{conversationId}/{userId}`
+  - Set: `{ isTyping: boolean, timestamp: serverTimestamp() }`
+  - Auto-clear after 3 seconds of no activity
+
+- [ ] Function: `listenToTyping(conversationId, onTypingUpdate)`
+  - Listen to `/typing/{conversationId}` in Realtime Database
+  - Filter out current user
+  - Return typing users array
+  - Return unsubscribe function
+
+**Add Typing to Chat Screen:**
+
+- [ ] File: `src/screens/ChatScreen.js`
+- [ ] Add debounced typing handler:
+
+  ```javascript
+  const handleTyping = debounce(() => {
+    updateTypingState(conversationId, currentUserId, true);
+    // Auto-clear after 3 seconds
+    setTimeout(() => {
+      updateTypingState(conversationId, currentUserId, false);
+    }, 3000);
+  }, 1000);
+  ```
+
+- [ ] Call `handleTyping` on text input change
+- [ ] Set up typing listener on mount
+- [ ] Display typing indicator below header:
+  - "User is typing..." for 1-on-1
+  - "John, Sarah are typing..." for groups
+
+**Implement Connection Status:**
+
+- [ ] File: `src/utils/connectionStatus.js`
+- [ ] Function: `setupConnectionListener(onStatusChange)`
+
+  - Listen to Firestore connection state
+  - Return "Online", "Connecting...", "Offline"
+  - Handle network state changes
+
+- [ ] Add connection status banner to ChatScreen
+- [ ] Show "Offline" when disconnected
+- [ ] Show "Connecting..." when reconnecting
+- [ ] Hide when "Online"
+
+**Update Presence Store:**
+
+- [ ] File: `src/stores/presenceStore.js`
+- [ ] Add typing state:
+  ```javascript
+  typingData: {
+    conversationId: {
+      userId: boolean;
+    }
+  }
+  setTypingUsers(conversationId, users);
+  ```
+
+**Test Typing Indicators:**
+
+- [ ] User A starts typing → User B sees "User A is typing..."
+- [ ] User A stops typing → Indicator disappears after 3 seconds
+- [ ] In group: Multiple users typing → Shows "John, Sarah are typing..."
+- [ ] Verify <100ms latency
+- [ ] Test with 2+ devices
+
+**Test Connection Status:**
+
+- [ ] Turn on airplane mode → Shows "Offline" banner
+- [ ] Turn off airplane mode → Shows "Connecting..." then disappears
+- [ ] Test with slow network connection
+- [ ] Verify status updates accurately
+
+**Files Created:**
+
+- `src/utils/typing.js`
+- `src/utils/connectionStatus.js`
+
+**Files Modified:**
+
+- `src/screens/ChatScreen.js` (add typing and connection status)
+- `src/stores/presenceStore.js` (add typing state)
+
+**Test Before Merge:**
+
+- [ ] Typing indicators work in real-time (<100ms)
+- [ ] Auto-clear after 3 seconds of inactivity
+- [ ] Group typing shows multiple users
+- [ ] Connection status updates accurately
+- [ ] Works offline/online transitions
+- [ ] No memory leaks from listeners
+
+---
+
+## PR #16: Dark Mode & Message Reactions
+
+**Goal**: Implement dark mode theme system and message reactions for enhanced user experience
+
+### Why This Matters
+
+Dark mode is a standard expectation for modern apps and provides better usability in low-light conditions. Message reactions add engagement and quick feedback without cluttering the chat.
+
+### Subtasks
+
+**Implement Dark Mode:**
+
+- [ ] File: `src/contexts/ThemeContext.js`
+- [ ] Create theme context with light/dark color palettes:
+
+  ```javascript
+  const lightTheme = {
+    background: "#FFFFFF",
+    text: "#000000",
+    messageBubble: "#F0F0F0",
+    userMessageBubble: "#007AFF",
+    border: "#E0E0E0",
+    statusAvailable: "#00D856",
+    statusBusy: "#FF3B30",
+    statusAway: "#FFCC00",
+  };
+
+  const darkTheme = {
+    background: "#000000",
+    text: "#FFFFFF",
+    messageBubble: "#1C1C1E",
+    userMessageBubble: "#0A84FF",
+    border: "#38383A",
+    statusAvailable: "#00FF00", // Brighter for dark mode
+    statusBusy: "#FF0000",
+    statusAway: "#FFD700",
+  };
+  ```
+
+- [ ] Add theme toggle to Profile screen
+- [ ] Save theme preference to Firestore user document
+- [ ] Load theme preference on app start
+- [ ] Apply theme to all screens
+
+**Update All Components for Dark Mode:**
+
+- [ ] File: `src/screens/ChatScreen.js`
+- [ ] File: `src/screens/HomeScreen.js`
+- [ ] File: `src/screens/ProfileScreen.js`
+- [ ] File: `src/components/MessageBubble.js`
+- [ ] File: `src/components/UserListItem.js`
+- [ ] All AI feature screens
+- [ ] Use theme colors instead of hardcoded colors
+
+**Implement Message Reactions:**
+
+- [ ] File: `src/utils/reactions.js`
+- [ ] Function: `addReaction(conversationId, messageId, userId, emoji)`
+
+  - Add reaction to message document in Firestore
+  - Use `arrayUnion` to add reaction object
+  - Structure: `{ userId, emoji, timestamp }`
+
+- [ ] Function: `removeReaction(conversationId, messageId, userId, emoji)`
+
+  - Remove specific reaction from message
+  - Use `arrayRemove` to remove reaction object
+
+- [ ] Function: `listenToReactions(conversationId, messageId, onReactionsUpdate)`
+  - Listen to message document changes
+  - Return reactions array
+  - Return unsubscribe function
+
+**Create Reaction UI:**
+
+- [ ] File: `src/components/MessageReactions.js`
+- [ ] Display reactions below message
+- [ ] Show emoji with count (👍 3)
+- [ ] Tap reaction to add/remove
+- [ ] Long-press to see who reacted
+- [ ] Available emojis: 👍 ❤️ 😂 🎉 😮 😢
+
+**Add Reaction Picker:**
+
+- [ ] File: `src/components/ReactionPicker.js`
+- [ ] Modal with emoji grid
+- [ ] Tap emoji to add reaction
+- [ ] Close on tap outside
+- [ ] Position near message
+
+**Update MessageBubble:**
+
+- [ ] File: `src/components/MessageBubble.js`
+- [ ] Add long-press handler to show reaction picker
+- [ ] Display MessageReactions component
+- [ ] Handle reaction tap events
+
+**Update Message Schema:**
+
+- [ ] File: `src/utils/conversation.js`
+- [ ] Add reactions field to message creation:
+  ```javascript
+  {
+    text: "...",
+    reactions: [
+      { userId: "user1", emoji: "👍", timestamp: serverTimestamp() },
+      { userId: "user2", emoji: "❤️", timestamp: serverTimestamp() }
+    ]
+  }
+  ```
+
+**Test Dark Mode:**
+
+- [ ] Toggle dark mode in Profile settings
+- [ ] Verify theme updates immediately across all screens
+- [ ] Check status colors are brighter in dark mode
+- [ ] Verify text contrast is readable (WCAG AA)
+- [ ] Test theme persistence (close app, reopen)
+- [ ] Test with all AI features
+
+**Test Message Reactions:**
+
+- [ ] Long-press message → reaction picker appears
+- [ ] Tap emoji → reaction added to message
+- [ ] Tap existing reaction → removes reaction
+- [ ] Multiple users can react to same message
+- [ ] Reactions sync in real-time across devices
+- [ ] Long-press reaction → shows who reacted
+
+**Files Created:**
+
+- `src/contexts/ThemeContext.js`
+- `src/components/MessageReactions.js`
+- `src/components/ReactionPicker.js`
+- `src/utils/reactions.js`
+
+**Files Modified:**
+
+- All screen components (dark mode support)
+- `src/components/MessageBubble.js` (reactions)
+- `src/screens/ProfileScreen.js` (theme toggle)
+- `src/utils/conversation.js` (reactions schema)
+
+**Test Before Merge:**
+
+- [ ] Dark mode works across all screens
+- [ ] Theme persistence works correctly
+- [ ] Text contrast meets accessibility standards
+- [ ] Message reactions work in real-time
+- [ ] Reaction picker appears on long-press
+- [ ] Multiple users can react simultaneously
+- [ ] Reactions display correctly in both themes
+
+---
+
+## PR #17: AI Features Polish & Integration
+
+**Goal**: Polish all AI features, implement rate limiting, and ensure production readiness
+
+### Subtasks
+
+**Implement Rate Limiting:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Add rate limiting configuration:
+
+  ```javascript
+  const AI_RATE_LIMIT = {
+    maxRequests: 20,
+    windowMs: 60 * 1000, // 1 minute
+  };
+  ```
+
+- [ ] Function: `checkRateLimit()`
+
+  - Track request timestamps
+  - Check if user exceeded limit
+  - Throw error if limit exceeded
+  - Clean up old timestamps
+
+- [ ] Integrate rate limiting into all AI functions
+- [ ] Show user-friendly error messages for rate limits
+
+**Add Dark Mode Support:**
+
+- [ ] File: `src/components/ThreadSummaryModal.js`
+- [ ] Update styling to use theme colors
+- [ ] Ensure readability in dark mode
+
+- [ ] File: `src/screens/ActionItemsScreen.js`
+- [ ] Apply dark theme colors
+- [ ] Update list item styling
+
+- [ ] File: `src/screens/DecisionsScreen.js`
+- [ ] Apply dark theme colors
+- [ ] Update timeline styling
+
+- [ ] File: `src/screens/AgentChatScreen.js`
+- [ ] Apply dark theme colors
+- [ ] Update chat interface styling
+
+- [ ] File: `src/components/SemanticSearchBar.js`
+- [ ] Apply dark theme colors
+- [ ] Update search input styling
+
+**Improve AI Feature UX:**
+
+- [ ] Add loading skeletons for all AI screens
+- [ ] Implement pull-to-refresh on AI screens
+- [ ] Add confirmation dialogs for expensive operations
+- [ ] Show progress indicators for long-running operations
+- [ ] Add tooltips explaining AI features
+
+**Add AI Feature Settings:**
+
+- [ ] File: `src/screens/ProfileScreen.js`
+- [ ] Add AI settings section:
+
+  - "Enable Auto-Priority Detection" toggle
+  - "AI Response Speed" slider (fast vs accurate)
+  - "Max Messages to Analyze" setting
+  - "Enable AI Features" master toggle
+
+- [ ] Save settings to Firestore user document
+- [ ] Respect user preferences in AI functions
+
+**Implement Caching:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Add caching for expensive operations:
+
+  - Cache thread summaries (24 hours)
+  - Cache action item extractions (12 hours)
+  - Cache decision extractions (12 hours)
+  - Cache search results (1 hour)
+
+- [ ] Use Firestore for cache storage
+- [ ] Implement cache invalidation
+
+**Add Analytics:**
+
+- [ ] File: `src/services/aiService.js`
+- [ ] Track AI feature usage:
+
+  - Which features are used most
+  - Response times
+  - Error rates
+  - User satisfaction (optional)
+
+- [ ] Log to Firestore analytics collection
+- [ ] Use for optimization and debugging
+
+**Improve Error Handling:**
+
+- [ ] Add specific error messages for different failure types
+- [ ] Implement retry logic with exponential backoff
+- [ ] Add fallback responses for AI failures
+- [ ] Show helpful suggestions when AI fails
+
+**Add AI Feature Onboarding:**
+
+- [ ] File: `src/components/AIOnboardingModal.js`
+- [ ] Show on first AI feature use
+- [ ] Explain each AI feature briefly
+- [ ] Show example queries for agent
+- [ ] Allow users to skip onboarding
+
+**Performance Optimization:**
+
+- [ ] Implement lazy loading for AI screens
+- [ ] Optimize re-renders in AI components
+- [ ] Add memoization where appropriate
+- [ ] Implement virtual scrolling for large result sets
+
+**Add AI Feature Indicators:**
+
+- [ ] File: `src/screens/ChatScreen.js`
+- [ ] Show AI feature availability indicators
+- [ ] Display when AI analysis is in progress
+- [ ] Show AI feature usage statistics
+
+**Test All AI Features:**
+
+- [ ] Test thread summarization with various conversation types
+- [ ] Test action item extraction with different task formats
+- [ ] Test semantic search with complex queries
+- [ ] Test priority detection with various urgency levels
+- [ ] Test decision tracking with different decision types
+- [ ] Test multi-step agent with complex workflows
+
+**Test Dark Mode:**
+
+- [ ] Toggle dark mode in Profile settings
+- [ ] Verify all AI screens adapt to dark theme
+- [ ] Check text contrast and readability
+- [ ] Test theme persistence
+
+**Test Rate Limiting:**
+
+- [ ] Send 20+ AI requests quickly
+- [ ] Verify rate limit error appears
+- [ ] Wait 1 minute and verify requests work again
+- [ ] Test rate limit reset
+
+**Test Performance:**
+
+- [ ] Test AI features with large conversations (500+ messages)
+- [ ] Verify response times meet targets
+- [ ] Test offline behavior
+- [ ] Test with slow network connection
+
+**Files Created:**
+
+- `src/components/AIOnboardingModal.js`
+
+**Files Modified:**
+
+- `src/services/aiService.js` (add rate limiting, caching, analytics)
+- `src/screens/ProfileScreen.js` (add AI settings)
+- All AI screen components (dark mode support)
+- `src/screens/ChatScreen.js` (add AI indicators)
+
+**Test Before Merge:**
+
+- [ ] All AI features work in dark mode
+- [ ] Rate limiting prevents abuse
+- [ ] Caching improves performance
+- [ ] Error handling is user-friendly
+- [ ] AI settings are respected
+- [ ] Performance meets targets
+- [ ] Onboarding helps new users
+- [ ] Analytics track usage correctly
+- [ ] All features work offline (with cached data)
+
+---
+
+## Summary
+
+**AI Features Implementation Timeline:**
+
+- **PR #12**: AI Foundation & Basic Features (Day 1)
+
+  - Thread Summarization ✅
+  - Action Item Extraction ✅
+
+- **PR #13**: Smart Search & Priority Detection (Day 2)
+
+  - Semantic Search ✅
+  - Priority Detection ✅
+
+- **PR #14**: Decision Tracking & Multi-Step Agent (Day 3)
+
+  - Decision Tracking ✅
+  - Multi-Step Agent ✅
+
+- **PR #15**: Typing Indicators & Connection Status (Day 4)
+
+  - Real-time Typing Indicators ✅
+  - Connection Status Indicators ✅
+
+- **PR #16**: Dark Mode & Message Reactions (Day 5)
+
+  - Dark Mode Theme System ✅
+  - Message Reactions ✅
+
+- **PR #17**: AI Features Polish & Integration (Day 6)
+  - Rate Limiting ✅
+  - Performance Optimization ✅
+  - Production Readiness ✅
+
+**Total AI Features:** 5 Core + 1 Advanced
+
+- Thread Summarization
+- Action Item Extraction
+- Smart Semantic Search
+- Priority Detection
+- Decision Tracking
+- Multi-Step Agent (Advanced)
+
+**Additional MVP Features:** 3 Core + 2 Bonus
+
+- Typing Indicators (MVP)
+- Connection Status (MVP)
+- Dark Mode (MVP)
+- Message Reactions (Bonus +2 points)
+- Rich Media Previews (Bonus +2 points)
+
+---
+
+## Key Reminders
+
+- **Test each AI feature thoroughly before moving to next**
+- **Use real conversations for testing (not dummy data)**
+- **Monitor OpenAI API usage and costs**
+- **Implement proper error handling and fallbacks**
+- **Ensure all features work offline (with cached data)**
+- **Test with various conversation lengths and types**
+- **Verify response times meet performance targets**
+- **After PR #17, transition to final polish and deployment**
+
+Good luck implementing the AI features! 🤖✨

@@ -19,11 +19,14 @@ import SignupScreen from "../screens/SignupScreen";
 
 // Main Screens
 import ChatScreen from "../screens/ChatScreen";
+import CreateGroupScreen from "../screens/CreateGroupScreen";
+import GroupInfoScreen from "../screens/GroupInfoScreen";
 import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 
 // Utils
 import { colors, spacing, typography } from "../styles/tokens";
+import { listenToConversations } from "../utils/conversation";
 import {
   initializePresence,
   listenToPresence,
@@ -96,9 +99,23 @@ export default function AppNavigator() {
 
   // Listen to presence changes in Realtime Database
   useEffect(() => {
+    if (!currentUser?.uid) {
+      return;
+    }
+
     const unsubscribe = listenToPresence();
     return unsubscribe;
-  }, []);
+  }, [currentUser?.uid]);
+
+  // Listen to conversations for current user
+  useEffect(() => {
+    if (!currentUser?.uid || !hasUsername) {
+      return;
+    }
+
+    const unsubscribe = listenToConversations(currentUser.uid);
+    return unsubscribe;
+  }, [currentUser?.uid, hasUsername]);
 
   // Handle app state changes (foreground/background)
   useEffect(() => {
@@ -151,7 +168,7 @@ export default function AppNavigator() {
               name="Home"
               component={HomeScreen}
               options={{
-                title: "Messaging App",
+                title: "Goico SOS",
                 headerShown: true,
               }}
             />
@@ -168,6 +185,24 @@ export default function AppNavigator() {
               component={ProfileScreen}
               options={{
                 title: "Profile",
+                headerShown: true,
+                headerBackTitle: "Back",
+              }}
+            />
+            <Stack.Screen
+              name="CreateGroup"
+              component={CreateGroupScreen}
+              options={{
+                title: "Create Group",
+                headerShown: true,
+                headerBackTitle: "Back",
+              }}
+            />
+            <Stack.Screen
+              name="GroupInfo"
+              component={GroupInfoScreen}
+              options={{
+                title: "Group Info",
                 headerShown: true,
                 headerBackTitle: "Back",
               }}

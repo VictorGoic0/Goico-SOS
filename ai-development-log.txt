@@ -1,0 +1,117 @@
+# AI Development Log
+
+## Purpose
+This file captures the best prompts and interactions from development sessions that demonstrate:
+- **Product sense** - Understanding user needs, UX, and feature design
+- **Coding sense** - Technical decisions, architecture, performance optimization
+- **Cursor usage** - Effective AI pair programming patterns and workflows
+
+Use this log to:
+1. Document exemplary prompts that should be used as templates
+2. Track effective development patterns
+3. Build a library of best practices for AI-assisted development
+4. Add new entries after each session when notable interactions occur
+
+---
+
+## Session 1: PR #9 - Delete Conversations & Group Chat Setup
+**Date**: 2025-01-21
+
+### Prompt #1: Performance Optimization - Conversation Data Loading
+**Category**: Coding Sense (Performance & Memory Optimization)
+
+**User Prompt**:
+> "So I believe your useEffect from lines 91 to 119 is basically just looking for instances where the current user has a conversation. Now if I'm not mistaken, you are spreading in the entire conversation as a result of this query into a mapping. This is because you want to if that conversation exists. Now I'm seeing a possible issue here where you're storing all this data when it's not really necessary, as conversations in general in their full list data we don't fetch until we click on a conversation. Now I do also see the need to fetch in order to see whether you should be able to delete one or not. Since from having all users be viewable, all of them are clickable. How do you know without loading it in right? Well, is there a way for you to change this query? Basically, we just want to know all the conversations that exist that contain the current user. We don't actually want the contents of that conversation, as long as there's at least one item. Now, under our current implementation, we can assume that if the conversation ID exists, it has at least one item. So we don't even technically need the one item returned. Now, is there a way to change the query so we're only ever querying for whether that conversation exists? What are the user IDs associated if you need them? We should probably do and then only saving that information in the mapping?"
+
+**Why It's Great**:
+- Identifies a memory optimization issue proactively
+- Understands the tradeoff between data fetching and functionality needs
+- Proposes a clear solution: store only IDs in a Set instead of full objects
+- Shows deep understanding of the data flow and what's actually needed
+- Demonstrates thinking about scale (what happens with many conversations)
+
+**Outcome**: 
+Refactored from storing full conversation objects in a map to storing just conversation IDs in a Set, reducing memory footprint significantly.
+
+---
+
+### Prompt #2: Architectural Decision - Global Data Management
+**Category**: Coding Sense (Architecture & State Management)
+
+**User Prompt**:
+> "If I'm correct in making these assumptions, then I just want to add one more thing. There may be other places, whether it's within this component or maybe in a different component down the line, where we want these updates and yet right now we're doing it. We're saving the result of this snapshot into a local state. Now looking at my firebase zendesk score store whatever it was, whatever it is, Zest End. I see that we actually have a conversationsMap here. Why don't we just update that one and use that one? And now we'll have a central place to access it that other components can use down the line."
+
+**Why It's Great**:
+- Thinks beyond the immediate feature to future needs
+- Recognizes the value of centralized state management
+- Identifies that global Zustand store already has the pattern established
+- Prevents technical debt by choosing the right architecture now
+- Shows understanding of component coupling and reusability
+
+**Outcome**:
+- Moved conversation tracking to global firebaseStore
+- Created `listenToConversations()` utility in AppNavigator (mirrors presence pattern)
+- Made conversations data available app-wide for future features
+
+---
+
+### Prompt #3: Developer Experience - Design System Documentation
+**Category**: Cursor Usage (Preventing Repeated Mistakes & Knowledge Management)
+
+**User Prompt**:
+> "Can we document how to use all the design system components somewhere in the memory bank? You keep getting basic usage patterns wrong."
+
+**Why It's Great**:
+- Identifies a pattern of repeated mistakes
+- Understands that documentation prevents future errors
+- Knows to use memory-bank for persistent knowledge across sessions
+- Takes ownership of improving the development workflow
+- Direct, actionable feedback that improves long-term efficiency
+
+**Outcome**:
+Created `memory-bank/design-system.md` with comprehensive documentation including:
+- All component APIs with correct usage patterns
+- Common mistakes highlighted (e.g., Button uses `children` not `title`)
+- Design tokens reference
+- Code examples for every component
+- Best practices section
+
+**Key Learning**: 
+Button component uses `children` for text content, not a `title` prop:
+- ❌ `<Button title="Click Me" />`
+- ✅ `<Button>Click Me</Button>`
+
+---
+
+## Templates for Future Sessions
+
+### Template: Performance Review
+When reviewing AI-generated code, check:
+1. Are we loading more data than needed?
+2. Are we re-rendering unnecessarily?
+3. Can we defer expensive operations?
+4. Are we using the right data structures (Set vs Array vs Object)?
+
+### Template: Architecture Review
+When implementing new features, consider:
+1. Does this belong in local state or global state?
+2. Will other components need this data?
+3. Does this follow existing patterns in the codebase?
+4. Are we creating the right abstractions?
+
+### Template: Documentation Request
+When encountering repeated mistakes:
+1. Identify the pattern of errors
+2. Request documentation in memory-bank
+3. Include examples of correct usage
+4. Highlight common mistakes to avoid
+
+---
+
+## Notes
+
+- Continue adding notable prompts after each session
+- Focus on prompts that teach transferable patterns, not one-off fixes
+- Include context about why the prompt was effective
+- Document the outcome and what was learned
+
