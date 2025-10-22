@@ -1783,20 +1783,35 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Install Expo Notifications:**
 
-- [ ] 1. Install package:
+- [x] 1. Install package:
   ```bash
   npx expo install expo-notifications
   ```
 
 **Request Notification Permissions:**
 
-- [ ] 2. Create file: `src/utils/notifications.js`
+- [x] 2. Create file: `src/utils/notifications.js`
 
-- [ ] 3. Add function: `registerForPushNotifications()`
+- [x] 3. Add function: `registerForPushNotifications()`
 
   - Request permissions using Expo Notifications API
   - Get Expo push token
   - Return token
+
+  **Implementation:**
+
+  - Created `src/utils/notifications.js` with complete notification handling
+  - `registerForPushNotifications()` function:
+    - Checks if running on physical device (required for push notifications)
+    - Requests notification permissions from user
+    - Gets Expo push token using `Notifications.getExpoPushTokenAsync()`
+    - Sets up Android notification channel for proper notification display
+    - Returns token or null if failed
+  - Added `setNotificationHandler` to configure foreground notification behavior
+  - Added helper functions: `addNotificationReceivedListener` and `addNotificationResponseListener`
+  - Includes error handling and logging
+  - **Note**: Need to install `expo-device` package: `npx expo install expo-device`
+  - **Note**: Replace `"your-project-id"` in the code with actual Expo project ID
 
 - [ ] 4. In `src/screens/HomeScreen.js` or `App.js`:
 
