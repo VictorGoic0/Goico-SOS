@@ -201,8 +201,7 @@ export default function ChatScreen({ route, navigation }) {
           onPress={() => {
             // Task 31: Tap header to navigate to GroupInfoScreen (for groups)
             if (isGroup) {
-              // TODO: Navigate to GroupInfoScreen
-              // navigation.navigate("GroupInfo", { conversationId });
+              navigation.navigate("GroupInfo", { conversationId });
             }
           }}
         >
@@ -431,6 +430,7 @@ export default function ChatScreen({ route, navigation }) {
           <MessageBubble
             message={item}
             isSent={item.senderId === currentUser.uid}
+            isGroup={isGroup}
           />
         )}
         contentContainerStyle={styles.messagesList}
