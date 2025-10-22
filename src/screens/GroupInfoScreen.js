@@ -32,6 +32,7 @@ export default function GroupInfoScreen({ route, navigation }) {
   const [groupName, setGroupName] = useState(conversation?.groupName || "");
   const [groupPhoto, setGroupPhoto] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Set group name when conversation loads
@@ -101,6 +102,42 @@ export default function GroupInfoScreen({ route, navigation }) {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  // Handle leave group
+  const handleLeaveGroup = () => {
+    Alert.alert(
+      "Leave Group",
+      `Are you sure you want to leave "${
+        conversation?.groupName || "this group"
+      }"? You won't be able to see any messages from this group.`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Leave",
+          style: "destructive",
+          onPress: async () => {
+            setIsLeaving(true);
+            try {
+              await leaveGroupConversation(conversationId, currentUser.uid);
+
+              // Navigate back to Home screen
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Home" }],
+              });
+            } catch (error) {
+              console.error("Error leaving group:", error);
+              Alert.alert("Error", "Failed to leave group. Please try again.");
+              setIsLeaving(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   // Get participants info
@@ -249,17 +286,13 @@ export default function GroupInfoScreen({ route, navigation }) {
       {/* Leave Group Button (Fixed at bottom) */}
       <View style={styles.dangerButtonContainer}>
         <Button
-          onPress={() => {
-            // TODO: Implement leave group functionality
-            Alert.alert(
-              "Leave Group",
-              "This feature will be implemented soon."
-            );
-          }}
+          onPress={handleLeaveGroup}
           variant="danger"
           fullWidth
+          disabled={isLeaving}
+          loading={isLeaving}
         >
-          Leave Group
+          {isLeaving ? "Leaving..." : "Leave Group"}
         </Button>
       </View>
     </KeyboardAvoidingView>

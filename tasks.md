@@ -1618,27 +1618,51 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Implement Leave Group:**
 
-- [ ] 38. In `GroupInfoScreen.js`:
+- [x] 38. In `GroupInfoScreen.js`:
 
   - "Leave Group" button:
     - Remove current user from participants array in Firestore
     - Update conversation document
 
-- [ ] 39. Navigate back to Home screen after leaving
+  **Implementation:**
+
+  - Created `leaveGroupConversation` function in `src/utils/conversation.js`
+  - Uses Firestore's `arrayRemove` to remove user from participants array
+  - Updates `lastEdit` timestamp
+  - Added import for `arrayRemove` from firebase/firestore
+  - In GroupInfoScreen, added `isLeaving` state for loading indicator
+  - Shows confirmation alert before leaving
+  - Alert displays group name and warning message
+
+- [x] 39. Navigate back to Home screen after leaving
+
+  **Implementation:**
+
+  - Uses `navigation.reset()` to navigate to Home screen
+  - Resets navigation stack to prevent going back to group chat
+  - Leaves group → immediately returns to Home
+  - Error handling shows alert if leave fails
+  - Button shows "Leaving..." text and loading state while processing
 
 **Add Navigation:**
 
-- [ ] 40. In `src/navigation/AppNavigator.js`:
-  - Add CreateGroupScreen to Main Stack
-  - Add GroupInfoScreen to Main Stack
+- [x] 40. In `src/navigation/AppNavigator.js`:
+
+  - ✅ CreateGroupScreen already added to Main Stack (completed in earlier tasks)
+  - ✅ GroupInfoScreen already added to Main Stack (completed in task 37)
 
 **Add "Create Group" Button to Home Screen:**
 
-- [ ] 41. In `src/screens/HomeScreen.js`:
+- [x] 41. In `src/screens/HomeScreen.js`:
 
-  - Add floating action button (FAB) or header button for "Create Group"
+  - ✅ Already implemented: floating action button in bottom right
+  - Blue primary button with "Create Group" text
+  - Includes shadow/elevation for material design effect
 
-- [ ] 42. On tap, navigate to CreateGroupScreen
+- [x] 42. On tap, navigate to CreateGroupScreen
+
+  - ✅ Already implemented: `onPress={() => navigation.navigate("CreateGroup")}`
+  - Button navigates correctly to CreateGroupScreen
 
 **Update Conversations List (Optional Enhancement):**
 

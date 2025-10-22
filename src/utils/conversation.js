@@ -380,3 +380,24 @@ export const createGroupConversation = async (
     throw error;
   }
 };
+
+/**
+ * Leave a group conversation (remove current user from participants)
+ * @param {string} conversationId - Conversation ID to leave
+ * @param {string} userId - User ID leaving the group
+ * @returns {Promise<void>}
+ */
+export const leaveGroupConversation = async (conversationId, userId) => {
+  try {
+    const conversationRef = doc(db, "conversations", conversationId);
+
+    // Remove user from participants array
+    await updateDoc(conversationRef, {
+      participants: arrayRemove(userId),
+      lastEdit: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error("Error leaving group conversation:", error);
+    throw error;
+  }
+};
