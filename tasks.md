@@ -1813,16 +1813,27 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - **Note**: Need to install `expo-device` package: `npx expo install expo-device`
   - **Note**: Replace `"your-project-id"` in the code with actual Expo project ID
 
-- [ ] 4. In `src/screens/HomeScreen.js` or `App.js`:
+- [x] 4. In `src/screens/HomeScreen.js` or `App.js`:
 
   - On app start (after login), call `registerForPushNotifications()`
 
-- [ ] 5. Save push token to Firestore user document:
+- [x] 5. Save push token to Firestore user document:
+
   ```javascript
   await updateDoc(doc(db, "users", userId), {
     pushToken: token,
   });
   ```
+
+  **Implementation:**
+
+  - Added push notification registration to `AppNavigator.js`
+  - Created useEffect that runs when user is authenticated and has username
+  - Calls `registerForPushNotifications()` to get push token
+  - Saves token to Firestore user document using `updateDoc`
+  - Only runs on physical devices (gracefully skips on emulators)
+  - Includes error handling and logging
+  - Token is automatically updated in Firestore when user logs in
 
 **Set Up Firebase Cloud Functions:**
 

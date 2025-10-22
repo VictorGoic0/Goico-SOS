@@ -25,8 +25,11 @@ import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 
 // Utils
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../config/firebase";
 import { colors, spacing, typography } from "../styles/tokens";
 import { listenToConversations } from "../utils/conversation";
+import { registerForPushNotifications } from "../utils/notifications";
 import {
   initializePresence,
   listenToPresence,
@@ -137,6 +140,32 @@ export default function AppNavigator() {
       subscription.remove();
     };
   }, [currentUser, hasUsername]);
+
+  // Register for push notifications and save token to Firestore
+  useEffect(() => {
+    if (!currentUser?.uid || !hasUsername) {
+      return;
+    }
+
+    const registerNotifications = async () => {
+      try {
+        const token = await registerForPushNotifications();
+
+        if (token) {
+          // Save push token to user's Firestore document
+          const userRef = doc(db, "users", currentUser.uid);
+          await updateDoc(userRef, {
+            pushToken: token,
+          });
+          console.log("Push token saved to Firestore:", token);
+        }
+      } catch (error) {
+        console.error("Error registering for push notifications:", error);
+      }
+    };
+
+    registerNotifications();
+  }, [currentUser?.uid, hasUsername]);
 
   // Show loading screen while checking profile
   if (currentUser && isCheckingProfile) {
