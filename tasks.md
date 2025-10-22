@@ -1666,13 +1666,33 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Update Conversations List (Optional Enhancement):**
 
-- [ ] 43. In `src/screens/HomeScreen.js`:
+- [x] 43. In `src/screens/HomeScreen.js`:
 
   - Fetch user's conversations from Firestore
   - Display both 1-on-1 and group conversations
 
+  **Implementation:**
+
+  - Added `conversations` from firebaseStore (already being listened to via `listenToConversations`)
+  - Created `groupConversations` by filtering conversations where `isGroup === true`
+  - Combined group conversations and users into a single `combinedList` with type markers
+  - Groups appear first in the list, followed by users
+  - Created `renderGroupConversation` function to display group items:
+    - Shows group avatar (photo or 👥 placeholder with colored background)
+    - Displays group name and member count
+    - Includes "Group" badge for easy identification
+    - Shows loading indicator when deleting
+  - Added `handleGroupPress` to navigate to group chat
+  - Added `handleGroupLongPress` to allow deleting groups
+  - Updated `handleDeleteConversation` to handle both user and group deletions
+  - Updated header subtitle to show count: "X groups • Y users"
+  - Updated empty state message to be more generic
+  - FlatList now uses `combinedList` with proper key extraction
+  - All group conversations user is part of now display in HomeScreen
+  - No linter errors
+
 - [ ] 44. For each conversation:
-  - Show group icon for group chats
+  - Show group icon for group chats (✅ Implemented above)
   - Display last message preview
   - Display timestamp of last message
 
