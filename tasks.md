@@ -1756,18 +1756,22 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Before Merge:**
 
-- [ ] Can navigate to Create Group screen
-- [ ] Can select multiple users (checkboxes work)
-- [ ] Can enter group name
-- [ ] Can upload group photo (optional, can skip)
-- [ ] "Create Group" creates conversation in Firestore (verify in console)
-- [ ] Navigates to ChatScreen with new group
-- [ ] Can send messages in group
-- [ ] All group members receive messages
-- [ ] Sender names display above messages (for others' messages)
-- [ ] Can tap header to view Group Info screen
-- [ ] Can leave group (removes from participants in Firestore)
-- [ ] Group appears in Home screen with other conversations
+- [x] Can navigate to Create Group screen
+- [x] Can select multiple users (checkboxes work)
+- [x] Can enter group name
+- [x] Can upload group photo (optional, can skip)
+- [x] "Create Group" creates conversation in Firestore (verify in console)
+- [x] Navigates to ChatScreen with new group
+- [x] Can send messages in group
+- [x] All group members receive messages
+- [x] Sender names display above messages (for others' messages)
+- [x] Can tap header to view Group Info screen
+- [x] Can leave group (removes from participants in Firestore)
+- [x] Group appears in Home screen with other conversations
+- [x] Last message preview shows with sender name for groups
+- [x] Timestamps display correctly
+
+**✅ PR #9: Group Chats - COMPLETE AND TESTED!**
 
 ---
 

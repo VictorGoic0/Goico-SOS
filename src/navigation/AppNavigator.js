@@ -99,9 +99,13 @@ export default function AppNavigator() {
 
   // Listen to presence changes in Realtime Database
   useEffect(() => {
+    if (!currentUser?.uid) {
+      return;
+    }
+
     const unsubscribe = listenToPresence();
     return unsubscribe;
-  }, []);
+  }, [currentUser?.uid]);
 
   // Listen to conversations for current user
   useEffect(() => {
