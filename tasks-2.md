@@ -526,8 +526,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Create Thread Summary UI:**
 
-- [ ] 8. File: `mobile-app/src/components/ThreadSummaryModal.js`
-- [ ] 9. Create modal component:
+- [x] 8. File: `mobile-app/src/components/ThreadSummaryModal.js`
+- [x] 9. Create modal component:
 
   ```javascript
   import React from "react";
