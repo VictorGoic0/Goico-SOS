@@ -2087,12 +2087,55 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Handle Notification Permissions Edge Cases:**
 
-- [ ] 23. If user denies permissions:
+- [x] 23. If user denies permissions:
 
   - Show message explaining notifications won't work
   - Provide button to open settings (optional)
 
-- [ ] 24. Save permission status to avoid repeatedly asking
+- [x] 24. Save permission status to avoid repeatedly asking
+
+**Format Group Chat Notifications:**
+
+- [x] 25. Update `backend/app/api/send-notification/route.ts` to format notifications differently for groups:
+
+  ```typescript
+  // Fetch conversation data to check if it's a group
+  const conversationData = conversation.data();
+  const isGroup = conversationData?.isGroup || false;
+
+  // Format notification title and body based on conversation type
+  let notificationTitle;
+  let notificationBody;
+
+  if (isGroup) {
+    // For groups: Title = Group Name, Body = Sender: Message
+    notificationTitle = conversationData?.groupName || "Group Chat";
+    notificationBody = `${senderDisplayName}: ${messageText}`;
+  } else {
+    // For 1-on-1: Title = Sender Name, Body = Message
+    notificationTitle = senderDisplayName;
+    notificationBody = messageText;
+  }
+
+  // Use formatted title and body in notification payload
+  const messages = pushTokens.map((token) => ({
+    to: token,
+    sound: "default",
+    title: notificationTitle,
+    body: notificationBody,
+    data: {
+      conversationId,
+      messageId,
+      type: "new_message",
+      senderImageURL,
+    },
+  }));
+  ```
+
+- [ ] 26. Test group chat notifications:
+  - Send message in group chat
+  - Verify notification shows: `Group Name` as title, `Sender: Message` as body
+  - Verify 1-on-1 notifications still work correctly
 
 **Files Created:**
 

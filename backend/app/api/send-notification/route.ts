@@ -24,7 +24,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const participants = conversation.data()?.participants || [];
+    const conversationData = conversation.data();
+    const participants = conversationData?.participants || [];
     const recipients = participants.filter((id: string) => id !== senderId);
 
     // Get sender's user data for display name and profile photo
@@ -32,6 +33,21 @@ export async function POST(req: Request) {
     const senderData = senderDoc.data();
     const senderDisplayName = senderData?.displayName || senderUsername;
     const senderImageURL = senderData?.imageURL || null;
+
+    // Check if this is a group chat and format notification accordingly
+    const isGroup = conversationData?.isGroup || false;
+    let notificationTitle: string;
+    let notificationBody: string;
+
+    if (isGroup) {
+      // For groups: Title = Group Name, Body = Sender: Message
+      notificationTitle = conversationData?.groupName || "Group Chat";
+      notificationBody = `${senderDisplayName}: ${messageText}`;
+    } else {
+      // For 1-on-1: Title = Sender Name, Body = Message
+      notificationTitle = senderDisplayName;
+      notificationBody = messageText;
+    }
 
     // Get push tokens for recipients
     const pushTokens: string[] = [];
@@ -51,8 +67,8 @@ export async function POST(req: Request) {
     const messages = pushTokens.map((token) => ({
       to: token,
       sound: "default",
-      title: senderDisplayName,
-      body: messageText,
+      title: notificationTitle,
+      body: notificationBody,
       data: { 
         conversationId, 
         messageId, 
