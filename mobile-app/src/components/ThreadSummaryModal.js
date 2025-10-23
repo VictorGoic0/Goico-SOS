@@ -8,7 +8,13 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
-import { tokens } from "../styles/tokens";
+import {
+  colors,
+  spacing,
+  typography,
+  borderRadius,
+  shadows,
+} from "../styles/tokens";
 
 export default function ThreadSummaryModal({
   visible,
@@ -34,10 +40,7 @@ export default function ThreadSummaryModal({
 
           <ScrollView style={styles.content}>
             {loading ? (
-              <ActivityIndicator
-                size="large"
-                color={tokens.colors.primary.base}
-              />
+              <ActivityIndicator size="large" color={colors.primary.base} />
             ) : summary ? (
               <Text style={styles.summaryText}>{summary}</Text>
             ) : (
@@ -58,39 +61,39 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modal: {
-    backgroundColor: tokens.colors.background.paper,
-    borderRadius: tokens.borderRadius.md,
-    padding: tokens.spacing[5],
+    backgroundColor: colors.background.paper,
+    borderRadius: borderRadius.md,
+    padding: spacing[5],
     width: "90%",
     maxHeight: "70%",
-    ...tokens.shadows.lg,
+    ...shadows.lg,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: tokens.spacing[4],
+    marginBottom: spacing[4],
   },
   title: {
-    fontSize: tokens.typography.fontSize.xl,
-    fontWeight: tokens.typography.fontWeight.bold,
-    color: tokens.colors.text.primary,
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.primary,
   },
   closeButton: {
     fontSize: 24,
-    color: tokens.colors.neutral.mediumDark,
+    color: colors.neutral.mediumDark,
   },
   content: {
     maxHeight: 400,
   },
   summaryText: {
-    fontSize: tokens.typography.fontSize.base,
+    fontSize: typography.fontSize.base,
     lineHeight: 24,
-    color: tokens.colors.text.primary,
+    color: colors.text.primary,
   },
   errorText: {
-    fontSize: tokens.typography.fontSize.base,
-    color: tokens.colors.neutral.base,
+    fontSize: typography.fontSize.base,
+    color: colors.neutral.base,
     textAlign: "center",
   },
 });

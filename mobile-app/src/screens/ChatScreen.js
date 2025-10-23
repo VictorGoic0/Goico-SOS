@@ -21,7 +21,9 @@ import {
 } from "react-native";
 import CompactInput from "../components/CompactInput";
 import MessageBubble from "../components/MessageBubble";
+import ThreadSummaryModal from "../components/ThreadSummaryModal";
 import { db } from "../config/firebase";
+import { summarizeThread } from "../services/aiService";
 import useFirebaseStore from "../stores/firebaseStore";
 import useLocalStore from "../stores/localStore";
 import usePresenceStore from "../stores/presenceStore";
@@ -57,6 +59,11 @@ export default function ChatScreen({ route, navigation }) {
   const [conversationId, setConversationId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const flatListRef = useRef(null);
+
+  // AI Features state
+  const [showSummary, setShowSummary] = useState(false);
+  const [summary, setSummary] = useState("");
+  const [loadingSummary, setLoadingSummary] = useState(false);
 
   // Get messages for this conversation
   const conversationMessages = messages[conversationId] || [];
@@ -284,21 +291,42 @@ export default function ChatScreen({ route, navigation }) {
         </TouchableOpacity>
       ),
       headerRight: () => (
-        <TouchableOpacity
-          style={[
-            styles.deleteButton,
-            (!hasMessages || isDeleting) && styles.deleteButtonDisabled,
-          ]}
-          onPress={handleDeleteConversation}
-          disabled={!hasMessages || isDeleting}
-          activeOpacity={0.7}
-        >
-          {isDeleting ? (
-            <ActivityIndicator size="small" color={colors.neutral.white} />
-          ) : (
-            <Text style={styles.deleteButtonText}>🗑️</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.headerRightContainer}>
+          {/* AI Buttons */}
+          <TouchableOpacity
+            style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
+            onPress={handleSummarize}
+            disabled={!hasMessages}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.aiButtonText}>📝</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
+            onPress={handleActionItems}
+            disabled={!hasMessages}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.aiButtonText}>📋</Text>
+          </TouchableOpacity>
+
+          {/* Delete Button */}
+          <TouchableOpacity
+            style={[
+              styles.deleteButton,
+              (!hasMessages || isDeleting) && styles.deleteButtonDisabled,
+            ]}
+            onPress={handleDeleteConversation}
+            disabled={!hasMessages || isDeleting}
+            activeOpacity={0.7}
+          >
+            {isDeleting ? (
+              <ActivityIndicator size="small" color={colors.neutral.white} />
+            ) : (
+              <Text style={styles.deleteButtonText}>🗑️</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       ),
     });
   }, [
@@ -347,6 +375,28 @@ export default function ChatScreen({ route, navigation }) {
   // Handle input text change
   const handleInputChange = (text) => {
     setDraft(conversationId, text);
+  };
+
+  // Handle summarize thread
+  const handleSummarize = async () => {
+    setShowSummary(true);
+    setLoadingSummary(true);
+    setSummary("");
+
+    try {
+      const result = await summarizeThread(conversationId);
+      setSummary(result.summary);
+    } catch (error) {
+      console.error("Summarization failed:", error);
+      setSummary("Failed to generate summary. Please try again.");
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+
+  // Handle action items navigation
+  const handleActionItems = () => {
+    navigation.navigate("ActionItems", { conversationId });
   };
 
   // Handle delete conversation
@@ -460,6 +510,14 @@ export default function ChatScreen({ route, navigation }) {
           placeholder="Type a message..."
         />
       </View>
+
+      {/* Thread Summary Modal */}
+      <ThreadSummaryModal
+        visible={showSummary}
+        onClose={() => setShowSummary(false)}
+        summary={summary}
+        loading={loadingSummary}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -551,8 +609,26 @@ const styles = StyleSheet.create({
     color: colors.success.main,
     marginTop: spacing[0],
   },
+  headerRightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: spacing[2],
+  },
+  aiButton: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[2],
+    marginRight: spacing[1],
+    minWidth: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  aiButtonDisabled: {
+    opacity: 0.3,
+  },
+  aiButtonText: {
+    fontSize: 18,
+  },
   deleteButton: {
-    marginRight: spacing[4],
     paddingHorizontal: spacing[2],
     paddingVertical: spacing[2],
     minWidth: 40,

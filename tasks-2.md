@@ -417,8 +417,8 @@ Provide a concise summary with:
 
 **Create Action Item Extraction Backend:**
 
-- [ ] 3. File: `backend/app/api/extract-actions/route.ts`
-- [ ] 4. Define Zod schema and implement extraction:
+- [x] 3. File: `backend/app/api/extract-actions/route.ts`
+- [x] 4. Define Zod schema and implement extraction:
 
 ```typescript
 import { generateObject } from "ai";
@@ -623,8 +623,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Create Action Items Screen:**
 
-- [ ] 10. File: `mobile-app/src/screens/ActionItemsScreen.js`
-- [ ] 11. Implement action items list view:
+- [x] 10. File: `mobile-app/src/screens/ActionItemsScreen.js`
+- [x] 11. Implement action items list view:
 
   ```javascript
   import React, { useState, useEffect } from "react";
@@ -702,8 +702,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Connect to ChatScreen:**
 
-- [ ] 12. File: `mobile-app/src/screens/ChatScreen.js`
-- [ ] 13. Add AI buttons to header:
+- [x] 12. File: `mobile-app/src/screens/ChatScreen.js`
+- [x] 13. Add AI buttons to header:
 
   ```javascript
   import { summarizeThread } from '../services/aiService';
@@ -747,8 +747,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Add Navigation:**
 
-- [ ] 14. File: `mobile-app/src/navigation/AppNavigator.js`
-- [ ] 15. Add ActionItemsScreen to stack:
+- [x] 14. File: `mobile-app/src/navigation/AppNavigator.js`
+- [x] 15. Add ActionItemsScreen to stack:
 
   ```javascript
   <Stack.Screen
