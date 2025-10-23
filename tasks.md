@@ -2035,7 +2035,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   }));
   ```
 
-- [ ] 14. Deploy backend and test notification shows:
+- [x] 14. Deploy backend and test notification shows:
   - Sender's display name (not username) in notification title
   - Profile photo displays correctly (iOS/Android behavior may vary)
 
