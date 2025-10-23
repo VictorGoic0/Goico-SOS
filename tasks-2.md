@@ -300,8 +300,8 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Create Backend Documentation:**
 
-- [ ] 26. File: `backend/README.md`
-- [ ] 27. Document:
+- [x] 26. File: `backend/README.md`
+- [x] 27. Document:
   - Project setup instructions
   - Environment variables needed
   - Deployment process
@@ -324,12 +324,12 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Test Before Merge:**
 
-- [ ] 28. Vercel project deploys successfully
-- [ ] 29. Test endpoint returns JSON response
-- [ ] 30. Environment variables accessible in backend
-- [ ] 31. Mobile app can call backend successfully
-- [ ] 32. Firebase Admin SDK initializes without errors
-- [ ] 33. Backend logs show no errors in Vercel dashboard
+- [x] 28. Vercel project deploys successfully
+- [x] 29. Test endpoint returns JSON response
+- [x] 30. Environment variables accessible in backend
+- [x] 31. Mobile app can call backend successfully
+- [x] 32. Firebase Admin SDK initializes without errors
+- [x] 33. Backend logs show no errors in Vercel dashboard
 
 ---
 
@@ -345,8 +345,8 @@ These are the foundational AI features that provide immediate value to remote te
 
 **Create Thread Summarization Backend:**
 
-- [ ] 1. File: `backend/app/api/summarize/route.ts`
-- [ ] 2. Implement summarization endpoint:
+- [x] 1. File: `backend/app/api/summarize/route.ts`
+- [x] 2. Implement summarization endpoint:
 
   ```typescript
   import { generateText } from 'ai';
@@ -382,22 +382,22 @@ These are the foundational AI features that provide immediate value to remote te
         .map(m => `${m.senderUsername}: ${m.text}`)
         .join('\n');
 
-  const prompt = `Summarize this conversation thread in 3-4 bullet points. Focus on key topics, decisions, and action items:
+  const prompt = `Summarize this conversation thread in 3-4 bullet points. Focus on key topics, decisions, and action items: ${conversationText}
   ```
-
-${conversationText}
 
 Provide a concise summary with:
 
 - Main topics discussed
 - Key decisions made
 - Outstanding questions`;
-  // Generate summary with OpenAI
-  const { text } = await generateText({
-  model: openai('gpt-4-turbo'),
-  prompt,
-  maxTokens: 300,
-  });
+
+```javascript
+      // Generate summary with OpenAI
+      const { text } = await generateText({
+        model: openai('gpt-4-turbo'),
+        prompt,
+        maxTokens: 300,
+      });
 
       return NextResponse.json({
         summary: text,
@@ -405,68 +405,67 @@ Provide a concise summary with:
         conversationId
       });
 
-} catch (error) {
-console.error('Summarization error:', error);
-return NextResponse.json(
-{ error: 'Failed to generate summary' },
-{ status: 500 }
-);
+  } catch (error) {
+  console.error('Summarization error:', error);
+  return NextResponse.json(
+  { error: 'Failed to generate summary' },
+  { status: 500 }
+  );
 }
-}
-
-```
 
 ```
 
 **Create Action Item Extraction Backend:**
 
-- [ ] 3. File: `backend/app/api/extract-actions/route.ts`
-- [ ] 4. Define Zod schema and implement extraction:
+- [x] 3. File: `backend/app/api/extract-actions/route.ts`
+- [x] 4. Define Zod schema and implement extraction:
 
-  ```typescript
-  import { generateObject } from 'ai';
-  import { openai } from '@ai-sdk/openai';
-  import { NextResponse } from 'next/server';
-  import { z } from 'zod';
-  import { getMessagesFromFirebase } from '@/lib/firebase-admin';
+```typescript
+import { generateObject } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { getMessagesFromFirebase } from "@/lib/firebase-admin";
 
-  const ActionItemSchema = z.object({
-    items: z.array(
-      z.object({
-        task: z.string(),
-        assignedTo: z.string().nullable(),
-        deadline: z.string().nullable(),
-        status: z.enum(['pending', 'completed']),
-        context: z.string(),
-      })
-    ),
-  });
+const ActionItemSchema = z.object({
+  items: z.array(
+    z.object({
+      task: z.string(),
+      assignedTo: z.string().nullable(),
+      deadline: z.string().nullable(),
+      status: z.enum(["pending", "completed"]),
+      context: z.string(),
+    })
+  ),
+});
 
-  export async function POST(req: Request) {
-    try {
-      const { conversationId, messageCount = 100 } = await req.json();
+export async function POST(req: Request) {
+  try {
+    const { conversationId, messageCount = 100 } = await req.json();
 
-      if (!conversationId) {
-        return NextResponse.json(
-          { error: 'conversationId is required' },
-          { status: 400 }
-        );
-      }
+    if (!conversationId) {
+      return NextResponse.json(
+        { error: "conversationId is required" },
+        { status: 400 }
+      );
+    }
 
-      // Fetch messages from Firebase
-      const messages = await getMessagesFromFirebase(conversationId, messageCount);
+    // Fetch messages from Firebase
+    const messages = await getMessagesFromFirebase(
+      conversationId,
+      messageCount
+    );
 
-      if (messages.length === 0) {
-        return NextResponse.json({ actionItems: [] });
-      }
+    if (messages.length === 0) {
+      return NextResponse.json({ actionItems: [] });
+    }
 
-      const conversationText = messages
-        .reverse()
-        .map(m => `${m.senderUsername}: ${m.text}`)
-        .join('\n');
+    const conversationText = messages
+      .reverse()
+      .map((m) => `${m.senderUsername}: ${m.text}`)
+      .join("\n");
 
-      const prompt = `Extract all action items from this conversation. Format as a list with:
-  ```
+    const prompt = `Extract all action items from this conversation. Format as a list with:
 
 - Task description
 - Assigned to (if mentioned)
@@ -476,45 +475,42 @@ return NextResponse.json(
 Conversation:
 ${conversationText}`;
 
-      // Use generateObject for structured output
-      const { object } = await generateObject({
-        model: openai('gpt-4-turbo'),
-        schema: ActionItemSchema,
-        prompt,
-      });
+    // Use generateObject for structured output
+    const { object } = await generateObject({
+      model: openai("gpt-4-turbo"),
+      schema: ActionItemSchema,
+      prompt,
+    });
 
-      return NextResponse.json({
-        actionItems: object.items,
-        conversationId
-      });
-
-    } catch (error) {
-      console.error('Action extraction error:', error);
-      return NextResponse.json(
-        { error: 'Failed to extract action items' },
-        { status: 500 }
-      );
-    }
-
+    return NextResponse.json({
+      actionItems: object.items,
+      conversationId,
+    });
+  } catch (error) {
+    console.error("Action extraction error:", error);
+    return NextResponse.json(
+      { error: "Failed to extract action items" },
+      { status: 500 }
+    );
+  }
 }
-
-````
+```
 
 **Update Mobile AI Service:**
 
-- [ ] 5. File: `mobile-app/src/services/aiService.js`
-- [ ] 6. Add summarization function:
+- [x] 5. File: `mobile-app/src/services/aiService.js`
+- [x] 6. Add summarization function:
 
 ```javascript
 export const summarizeThread = async (conversationId, messageCount = 50) => {
-  return await callBackend('summarize', {
+  return await callBackend("summarize", {
     conversationId,
-    messageCount
+    messageCount,
   });
 };
-````
+```
 
-- [ ] 7. Add action item extraction function:
+- [x] 7. Add action item extraction function:
 
   ```javascript
   export const extractActionItems = async (
@@ -530,8 +526,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Create Thread Summary UI:**
 
-- [ ] 8. File: `mobile-app/src/components/ThreadSummaryModal.js`
-- [ ] 9. Create modal component:
+- [x] 8. File: `mobile-app/src/components/ThreadSummaryModal.js`
+- [x] 9. Create modal component:
 
   ```javascript
   import React from "react";
@@ -627,8 +623,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Create Action Items Screen:**
 
-- [ ] 10. File: `mobile-app/src/screens/ActionItemsScreen.js`
-- [ ] 11. Implement action items list view:
+- [x] 10. File: `mobile-app/src/screens/ActionItemsScreen.js`
+- [x] 11. Implement action items list view:
 
   ```javascript
   import React, { useState, useEffect } from "react";
@@ -706,8 +702,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Connect to ChatScreen:**
 
-- [ ] 12. File: `mobile-app/src/screens/ChatScreen.js`
-- [ ] 13. Add AI buttons to header:
+- [x] 12. File: `mobile-app/src/screens/ChatScreen.js`
+- [x] 13. Add AI buttons to header:
 
   ```javascript
   import { summarizeThread } from '../services/aiService';
@@ -751,8 +747,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Add Navigation:**
 
-- [ ] 14. File: `mobile-app/src/navigation/AppNavigator.js`
-- [ ] 15. Add ActionItemsScreen to stack:
+- [x] 14. File: `mobile-app/src/navigation/AppNavigator.js`
+- [x] 15. Add ActionItemsScreen to stack:
 
   ```javascript
   <Stack.Screen
@@ -948,11 +944,12 @@ Respond with:
 - priority: "high" | "normal" | "low"
 - reason: brief explanation
 - urgencyScore: 0-10`;
-  const { object } = await generateObject({
-  model: openai('gpt-4-turbo'),
-  schema: PrioritySchema,
-  prompt,
-  });
+
+      const { object } = await generateObject({
+        model: openai('gpt-4-turbo'),
+        schema: PrioritySchema,
+        prompt,
+      });
 
       return NextResponse.json(object);
 
@@ -1178,7 +1175,571 @@ Respond with:
 
 ---
 
-## PR #16: Decision Tracking & Multi-Step Agent
+## PR #16: AI Agent as a Conversation
+
+**Goal**: Implement the AI agent as a pinned conversation at the top of HomeScreen. Users interact with the agent through the existing ChatScreen UI, making AI feel like a natural team member rather than a separate feature.
+
+### Why This Approach
+
+The AI agent appears as a regular conversation that's always visible at the top of HomeScreen:
+
+- **Familiar UX**: Users interact with the agent like any other chat
+- **Reuses existing UI**: ChatScreen handles all the conversation UI
+- **Natural interface**: AI feels like a team member, not a separate feature
+- **Scalable**: Easy to add more AI capabilities through conversation
+- **Simplifies architecture**: One chat interface instead of multiple modals/screens
+
+This PR completes the full transition: it creates the agent conversation AND refactors existing Summary/Action Items buttons (from PR14) to use pre-filled prompts that navigate to the agent chat. By the end of this PR, all AI features use the unified conversational interface.
+
+### Subtasks
+
+**Create Static AI Agent Profile:**
+
+- [ ] 1. File: `mobile-app/src/utils/aiAgent.js`
+- [ ] 2. Create static AI agent object:
+
+  ```javascript
+  // Static AI agent profile (not a real Firebase user)
+  export const AI_AGENT = {
+    userId: "ai-agent",
+    username: "assistant",
+    displayName: "AI Assistant",
+    photoURL: null, // or use a robot icon URL
+    bio: "Your AI team assistant - ask me anything about your conversations",
+    status: "Available",
+    isAI: true, // Flag to identify AI agent
+  };
+
+  // Helper to check if a user/conversation is with the AI agent
+  export const isAIAgent = (userId) => userId === AI_AGENT.userId;
+
+  // Get agent conversation ID for current user
+  export const getAgentConversationId = (currentUserId) => {
+    return `${currentUserId}_${AI_AGENT.userId}`;
+  };
+  ```
+
+**Update HomeScreen to Show AI Agent at Top:**
+
+- [ ] 3. File: `mobile-app/src/screens/HomeScreen.js`
+- [ ] 4. Import AI agent and modify user list:
+
+  ```javascript
+  import { AI_AGENT, getAgentConversationId } from "../utils/aiAgent";
+  import { useFirebaseStore } from "../stores/firebaseStore";
+
+  // In HomeScreen component:
+  const currentUser = useFirebaseStore((s) => s.currentUser);
+  const users = useFirebaseStore((s) => s.users);
+
+  // Filter out AI agent from regular user list
+  const regularUsers = users.filter((u) => u.userId !== AI_AGENT.userId);
+
+  // Render AI agent as first item
+  <FlatList
+    data={regularUsers}
+    renderItem={({ item }) => (
+      <UserListItem
+        user={item}
+        onPress={() => navigation.navigate("Chat", { userId: item.userId })}
+      />
+    )}
+    ListHeaderComponent={() => (
+      <TouchableOpacity
+        style={styles.aiAgentItem}
+        onPress={() =>
+          navigation.navigate("Chat", {
+            userId: AI_AGENT.userId,
+            conversationId: getAgentConversationId(currentUser.userId),
+          })
+        }
+      >
+        <View style={styles.aiAgentAvatar}>
+          <Text style={styles.aiAgentIcon}>🤖</Text>
+        </View>
+        <View style={styles.aiAgentInfo}>
+          <Text style={styles.aiAgentName}>{AI_AGENT.displayName}</Text>
+          <Text style={styles.aiAgentBio}>{AI_AGENT.bio}</Text>
+        </View>
+        <View style={styles.aiAgentBadge}>
+          <Text style={styles.aiAgentBadgeText}>AI</Text>
+        </View>
+      </TouchableOpacity>
+    )}
+  />;
+  ```
+
+- [ ] 5. Add styling for AI agent list item:
+
+  ```javascript
+  const styles = StyleSheet.create({
+    aiAgentItem: {
+      flexDirection: "row",
+      padding: 16,
+      backgroundColor: "#F0F9FF", // Light blue background
+      borderBottomWidth: 2,
+      borderBottomColor: "#3B82F6",
+      alignItems: "center",
+    },
+    aiAgentAvatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: "#3B82F6",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    aiAgentIcon: {
+      fontSize: 28,
+    },
+    aiAgentInfo: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    aiAgentName: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "#1E40AF",
+    },
+    aiAgentBio: {
+      fontSize: 14,
+      color: "#64748B",
+      marginTop: 2,
+    },
+    aiAgentBadge: {
+      backgroundColor: "#3B82F6",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    aiAgentBadgeText: {
+      color: "white",
+      fontSize: 12,
+      fontWeight: "bold",
+    },
+  });
+  ```
+
+**Create Agent Backend Endpoint:**
+
+- [ ] 6. File: `backend/app/api/agent/route.ts`
+- [ ] 7. Implement conversational AI agent with streaming:
+
+  ```typescript
+  import { streamText, tool } from 'ai';
+  import { openai } from '@ai-sdk/openai';
+  import { NextResponse } from 'next/server';
+  import { z } from 'zod';
+  import { getMessagesFromFirebase } from '@/lib/firebase-admin';
+
+  export async function POST(req: Request) {
+    try {
+      const { message, conversationId, context } = await req.json();
+
+      if (!message) {
+        return NextResponse.json(
+          { error: 'message is required' },
+          { status: 400 }
+        );
+      }
+
+      // Get conversation history for context (last 20 messages)
+      let conversationHistory = '';
+      if (conversationId && context?.includeHistory) {
+        try {
+          const messages = await getMessagesFromFirebase(conversationId, 20);
+          conversationHistory = messages
+            .reverse()
+            .map(m => `${m.senderUsername}: ${m.text}`)
+            .join('\n');
+        } catch (error) {
+          console.error('Failed to fetch conversation history:', error);
+        }
+      }
+
+      const systemPrompt = `You are an AI assistant for a remote team messaging app. You help users with:
+  ```
+
+- Summarizing conversations
+- Extracting action items and decisions
+- Finding information in their messages
+- Answering questions about their conversations
+
+Be concise, helpful, and professional. When asked to analyze conversations, provide clear, structured responses.
+
+${conversationHistory ? `Recent conversation history:\n${conversationHistory}\n` : ''}`;
+
+      const result = await streamText({
+        model: openai('gpt-4-turbo'),
+        system: systemPrompt,
+        prompt: message,
+        maxTokens: 500,
+      });
+
+      // Return streaming response
+      return result.toAIStreamResponse();
+
+    } catch (error) {
+      console.error('Agent error:', error);
+      return NextResponse.json(
+        { error: 'Failed to process message' },
+        { status: 500 }
+      );
+    }
+
+}
+
+````
+
+**Update AI Service for Agent:**
+
+- [ ] 8. File: `mobile-app/src/services/aiService.js`
+- [ ] 9. Add agent chat function:
+
+```javascript
+// Send message to AI agent with streaming
+export const sendAgentMessage = async (message, conversationId, onChunk) => {
+  try {
+    const response = await fetch(`${API_URL}/api/agent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        conversationId,
+        context: {
+          includeHistory: true
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Agent error: ${response.status}`);
+    }
+
+    // Handle streaming response
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      fullText += chunk;
+
+      // Call onChunk callback for real-time UI updates
+      if (onChunk) {
+        onChunk(chunk, fullText);
+      }
+    }
+
+    return fullText;
+  } catch (error) {
+    console.error('Agent message failed:', error);
+    throw error;
+  }
+};
+````
+
+**Update ChatScreen to Handle AI Agent:**
+
+- [ ] 10. File: `mobile-app/src/screens/ChatScreen.js`
+- [ ] 11. Detect AI agent and route messages appropriately:
+
+  ```javascript
+  import { AI_AGENT, isAIAgent } from "../utils/aiAgent";
+  import { sendAgentMessage } from "../services/aiService";
+
+  // In ChatScreen component:
+  const { userId, conversationId } = route.params;
+  const [messages, setMessages] = useState([]);
+  const [inputText, setInputText] = useState("");
+  const [agentTyping, setAgentTyping] = useState(false);
+
+  // Check if this is an AI agent conversation
+  const isAIConversation = isAIAgent(userId);
+
+  const handleSend = async () => {
+    if (!inputText.trim()) return;
+
+    const messageText = inputText.trim();
+    setInputText("");
+
+    // Add user message to UI immediately
+    const userMessage = {
+      messageId: Date.now().toString(),
+      text: messageText,
+      senderId: currentUser.userId,
+      senderUsername: currentUser.username,
+      timestamp: new Date(),
+      isUser: true,
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+
+    if (isAIConversation) {
+      // Handle AI agent conversation
+      setAgentTyping(true);
+
+      try {
+        let agentResponse = "";
+        const agentMessageId = (Date.now() + 1).toString();
+
+        // Create placeholder for agent message
+        const agentMessage = {
+          messageId: agentMessageId,
+          text: "",
+          senderId: AI_AGENT.userId,
+          senderUsername: AI_AGENT.username,
+          timestamp: new Date(),
+          isUser: false,
+          isStreaming: true,
+        };
+
+        setMessages((prev) => [...prev, agentMessage]);
+
+        // Stream response from agent
+        await sendAgentMessage(
+          messageText,
+          conversationId,
+          (chunk, fullText) => {
+            agentResponse = fullText;
+            // Update the agent message with streaming text
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.messageId === agentMessageId
+                  ? { ...msg, text: fullText }
+                  : msg
+              )
+            );
+          }
+        );
+
+        // Mark streaming complete
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.messageId === agentMessageId
+              ? { ...msg, isStreaming: false }
+              : msg
+          )
+        );
+      } catch (error) {
+        console.error("Agent failed:", error);
+        // Show error message
+        const errorMessage = {
+          messageId: Date.now().toString(),
+          text: "Sorry, I encountered an error. Please try again.",
+          senderId: AI_AGENT.userId,
+          senderUsername: AI_AGENT.username,
+          timestamp: new Date(),
+          isUser: false,
+          isError: true,
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      } finally {
+        setAgentTyping(false);
+      }
+    } else {
+      // Handle regular Firebase conversation
+      await sendMessage(conversationId, messageText);
+    }
+  };
+
+  // Modify header to show AI agent info
+  const otherUser = isAIConversation ? AI_AGENT : getUserById(userId);
+  ```
+
+- [ ] 12. Add typing indicator for agent:
+
+  ```javascript
+  // In render, after messages list:
+  {
+    isAIConversation && agentTyping && (
+      <View style={styles.typingIndicator}>
+        <Text style={styles.typingText}>AI Assistant is thinking...</Text>
+        <ActivityIndicator size="small" color="#3B82F6" />
+      </View>
+    );
+  }
+  ```
+
+- [ ] 13. Update MessageBubble to handle streaming:
+
+  ```javascript
+  // In MessageBubble component:
+  export default function MessageBubble({ message, isSent }) {
+    const isStreaming = message.isStreaming;
+
+    return (
+      <View style={[styles.bubble, isSent ? styles.sent : styles.received]}>
+        <Text style={styles.text}>{message.text}</Text>
+        {isStreaming && (
+          <ActivityIndicator
+            size="small"
+            color={isSent ? "#fff" : "#666"}
+            style={styles.streamingIndicator}
+          />
+        )}
+        {/* ... rest of component */}
+      </View>
+    );
+  }
+  ```
+
+**Deploy Backend:**
+
+- [ ] 14. Deploy agent endpoint to Vercel:
+
+  ```bash
+  cd backend
+  vercel --prod
+  ```
+
+**Test AI Agent Conversation:**
+
+- [ ] 15. Test basic conversation flow:
+
+  - Open HomeScreen and verify AI Agent appears at top
+  - Tap AI Agent to open chat
+  - Send message: "Hello, what can you help me with?"
+  - Verify agent responds with capabilities
+  - Verify streaming works (text appears gradually)
+
+- [ ] 16. Test with conversation context:
+
+  - Go to a regular conversation with messages
+  - Navigate to AI Agent chat
+  - Ask: "Summarize my recent conversation"
+  - Verify agent can access conversation context
+
+- [ ] 17. Test conversation persistence:
+
+  - Have a conversation with agent
+  - Close app
+  - Reopen and verify conversation history shows
+  - (Note: For MVP, can store in local state. Firebase storage is optional)
+
+- [ ] 18. Test error handling:
+
+  - Turn off internet
+  - Try to send message to agent
+  - Verify error message appears
+  - Reconnect and verify it works again
+
+- [ ] 19. Test UI/UX polish:
+  - Verify AI agent has distinct visual style
+  - Verify streaming animation is smooth
+  - Verify typing indicator appears
+  - Verify agent badge shows clearly
+
+**Refactor Existing AI Buttons to Use Agent Chat:**
+
+- [ ] 20. File: `mobile-app/src/screens/ChatScreen.js`
+- [ ] 21. Update Summary button to navigate to agent with pre-filled prompt:
+
+  ```javascript
+  // Remove old summarization modal state
+  // const [showSummary, setShowSummary] = useState(false);
+  // const [summary, setSummary] = useState('');
+
+  // Update Summary button handler
+  const handleSummarize = () => {
+    navigation.navigate("Chat", {
+      userId: AI_AGENT.userId,
+      conversationId: getAgentConversationId(currentUser.userId),
+      initialMessage: `Please summarize the last 50 messages from conversation ${conversationId}`,
+    });
+  };
+
+  // In header:
+  <TouchableOpacity onPress={handleSummarize}>
+    <Text>📝 Summary</Text>
+  </TouchableOpacity>;
+  ```
+
+- [ ] 22. Update Action Items button to navigate to agent:
+
+  ```javascript
+  const handleActionItems = () => {
+    navigation.navigate("Chat", {
+      userId: AI_AGENT.userId,
+      conversationId: getAgentConversationId(currentUser.userId),
+      initialMessage: `Please extract all action items from conversation ${conversationId}`,
+    });
+  };
+
+  // In header:
+  <TouchableOpacity onPress={handleActionItems}>
+    <Text>📋 Actions</Text>
+  </TouchableOpacity>;
+  ```
+
+- [ ] 23. Update ChatScreen to handle initialMessage prop:
+
+  ```javascript
+  // In ChatScreen component:
+  const { userId, conversationId, initialMessage } = route.params;
+
+  useEffect(() => {
+    if (initialMessage && isAIConversation) {
+      // Auto-send the initial message when screen opens
+      setInputText(initialMessage);
+      // Optionally auto-submit after a brief delay
+      setTimeout(() => {
+        handleSend();
+      }, 300);
+    }
+  }, [initialMessage]);
+  ```
+
+- [ ] 24. Remove old AI UI components (if any were created in PR14):
+
+  - Remove ThreadSummaryModal component (if exists)
+  - Remove ActionItemsScreen navigation (if exists)
+  - Clean up any modal state management
+
+- [ ] 25. Test refactored buttons:
+  - Tap Summary button in a conversation
+  - Verify it navigates to AI Agent chat
+  - Verify pre-filled prompt appears and auto-sends
+  - Verify agent provides summary
+  - Repeat for Action Items button
+  - Verify UX feels seamless
+
+**Files Created:**
+
+- `mobile-app/src/utils/aiAgent.js` (AI agent profile and helpers)
+- `backend/app/api/agent/route.ts` (agent endpoint with streaming)
+
+**Files Modified:**
+
+- `mobile-app/src/screens/HomeScreen.js` (add AI agent at top)
+- `mobile-app/src/screens/ChatScreen.js` (detect and handle AI conversations)
+- `mobile-app/src/services/aiService.js` (add sendAgentMessage function)
+- `mobile-app/src/components/MessageBubble.js` (handle streaming indicator)
+
+**Test Before Merge:**
+
+- [ ] 26. AI agent appears at top of HomeScreen
+- [ ] 27. AI agent has distinct visual styling
+- [ ] 28. Tapping agent opens ChatScreen correctly
+- [ ] 29. Messages to agent stream in real-time
+- [ ] 30. Agent responses are helpful and contextual
+- [ ] 31. Conversation history persists (at least in session)
+- [ ] 32. Error handling works for network failures
+- [ ] 33. Typing indicator shows while agent processes
+- [ ] 34. Agent can access conversation context when provided
+- [ ] 35. Response time is acceptable (<5s for simple queries)
+- [ ] 36. UI feels natural and integrated
+- [ ] 37. Summary button navigates to agent chat with pre-filled prompt
+- [ ] 38. Action Items button navigates to agent chat with pre-filled prompt
+- [ ] 39. Pre-filled prompts auto-send correctly
+- [ ] 40. All AI features now use unified agent interface
+
+---
+
+## PR #17: Decision Tracking & Multi-Step Agent
 
 **Goal**: Implement decision extraction and the advanced multi-step AI agent for complex workflows
 
@@ -1275,7 +1836,7 @@ Return JSON array with decision, participants, timestamp, context, and confidenc
 - [ ] 4. Create helper functions for agent tools:
 
 ```typescript
-import { getMessagesFromFirebase, db } from './firebase-admin';
+import { getMessagesFromFirebase, db } from "./firebase-admin";
 
 export async function searchMessages(
   conversationId: string,
@@ -1286,26 +1847,26 @@ export async function searchMessages(
   }
 ) {
   let query = db
-    .collection('conversations')
+    .collection("conversations")
     .doc(conversationId)
-    .collection('messages');
+    .collection("messages");
 
   if (filters.startDate) {
-    query = query.where('timestamp', '>=', new Date(filters.startDate));
+    query = query.where("timestamp", ">=", new Date(filters.startDate));
   }
 
   if (filters.endDate) {
-    query = query.where('timestamp', '<=', new Date(filters.endDate));
+    query = query.where("timestamp", "<=", new Date(filters.endDate));
   }
 
   const snapshot = await query.get();
-  let messages = snapshot.docs.map(doc => ({
+  let messages = snapshot.docs.map((doc) => ({
     messageId: doc.id,
-    ...doc.data()
+    ...doc.data(),
   }));
 
   if (filters.keyword) {
-    messages = messages.filter(m =>
+    messages = messages.filter((m) =>
       m.text.toLowerCase().includes(filters.keyword.toLowerCase())
     );
   }
@@ -1315,7 +1876,7 @@ export async function searchMessages(
 
 export function groupBy(array: any[], key: string) {
   return array.reduce((grouped, item) => {
-    const groupKey = item[key] || 'Unassigned';
+    const groupKey = item[key] || "Unassigned";
     if (!grouped[groupKey]) {
       grouped[groupKey] = [];
     }
@@ -1334,7 +1895,7 @@ export function formatReport(data: any, title: string) {
         report += `${i + 1}. ${item.task || JSON.stringify(item)}\n`;
       });
     }
-    report += '\n';
+    report += "\n";
   }
 
   return report;
@@ -1456,12 +2017,12 @@ Break down complex requests into steps and use available tools to complete the t
 - [ ] 8. Add decision extraction function:
 
 ```javascript
-export const extractDecisions = async (conversationId, messageCount = 100) => {
+  export const extractDecisions = async (conversationId, messageCount = 100) => {
   return await callBackend('decisions', {
-    conversationId,
-    messageCount
+  conversationId,
+  messageCount
   });
-};
+  };
 ````
 
 - [ ] 9. Add agent function with streaming support:
@@ -1787,7 +2348,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 ---
 
-## PR #17: AI Features Polish & Integration
+## PR #18: AI Features Polish & Integration
 
 **Goal**: Polish all AI features, implement rate limiting, caching, and ensure production readiness
 
@@ -2244,12 +2805,12 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   - Semantic search with embeddings ✅
   - Priority detection for messages ✅
 
-- **PR #16**: Decision Tracking & Multi-Step Agent (Day 3)
+- **PR #17**: Decision Tracking & Multi-Step Agent (Day 3)
 
   - Decision extraction ✅
   - Multi-step agent with streaming ✅
 
-- **PR #17**: AI Features Polish & Integration (Day 4)
+- **PR #18**: AI Features Polish & Integration (Day 4)
   - Rate limiting and caching ✅
   - Error handling and analytics ✅
   - Production readiness ✅

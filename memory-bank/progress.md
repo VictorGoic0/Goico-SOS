@@ -1,8 +1,8 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **AI Features Implementation - PR #11.5 In Progress (Vercel Backend Setup)**
+## Current Status: **AI Features Implementation - PR #14 In Progress (Thread Summarization & Actions)**
 
-### Overall Progress: 47% Complete (8/17 PRs Done, PR #11.5 In Progress)
+### Overall Progress: 53% Complete (9/17 PRs Done, PR #14 In Progress)
 
 - ✅ **Planning Phase**: 100% Complete
 - ✅ **Foundation Phase**: 100% Complete (PRs #1-2)
@@ -116,26 +116,38 @@
 - ✅ Button component enhanced with "danger" variant
 - ✅ Loading states for photo upload and save operations
 
-### PR #11.5: Vercel Backend Setup & Test Function 🔄 (In Progress)
+### PR #13: Vercel Backend Setup & Test Function ✅ (Complete)
 
-**Architecture Addition**: Implementing separate Vercel backend for AI features
+**Architecture Addition**: Implemented separate Vercel backend for AI features
 
-- ✅ Created backend directory
-- ⏳ Initialize Next.js project (discussing requirements)
-- ⏳ Install Vercel AI SDK + Firebase Admin SDK
-- ⏳ Create Firebase Admin initialization
-- ⏳ Create test API endpoint
-- ⏳ Deploy to Vercel
-- ⏳ Configure mobile app to call backend
-- ⏳ Test backend connection
+- ✅ Created backend directory with Next.js project
+- ✅ Installed Vercel AI SDK + Firebase Admin SDK
+- ✅ Created Firebase Admin initialization
+- ✅ Created test API endpoint
+- ✅ Deployed to Vercel
+- ✅ Configured mobile app to call backend
+- ✅ Tested backend connection successfully
 
-**Why Vercel Backend:**
+**Architecture Benefits:**
 
 - Security: API keys never exposed to mobile app
 - Rate limiting and cost control
 - Independent scaling
 - Caching capabilities
 - Easier AI provider switching
+
+### PR #14: Thread Summarization & Action Item Extraction 🔄 (In Progress)
+
+**Current Work**: Building first AI features
+
+- ✅ Thread summarization backend endpoint created
+- ✅ Backend deployed and tested
+- ⏳ Action item extraction endpoint
+- ⏳ Mobile AI service functions
+- ⏳ UI components (ThreadSummaryModal, ActionItemsScreen)
+- ⏳ ChatScreen integration
+- ⏳ Navigation setup
+- ⏳ End-to-end testing
 
 ### PR #9: Group Chats 🔄 (Paused, Partially Complete)
 
@@ -218,28 +230,34 @@
 - [ ] **Background Handling**: Handle notifications when app is closed
 - [ ] **Cross-platform**: Ensure notifications work on iOS and Android
 
-### Phase 7: AI Features Implementation (PRs #12-17)
+### Phase 7: AI Features Implementation (PRs #14-18)
 
-**Status**: Not Started
+**Status**: PR #14 In Progress
 
-- [ ] **PR #12**: AI Foundation & Basic Features Setup
-  - Thread Summarization
-  - Action Item Extraction
-- [ ] **PR #13**: Smart Search & Priority Detection
+- 🔄 **PR #14**: Thread Summarization & Action Item Extraction
+  - ✅ Backend summarization endpoint deployed
+  - ⏳ Backend action items endpoint
+  - ⏳ Mobile UI integration
+  - ⏳ ChatScreen integration
+- [ ] **PR #15**: Smart Search & Priority Detection
   - Semantic Search using OpenAI embeddings
   - Automatic Priority Detection for messages
-- [ ] **PR #14**: Decision Tracking & Multi-Step Agent
+- [ ] **PR #16**: AI Agent as a Conversation ⭐ NEW ARCHITECTURE
+  - AI agent as pinned conversation in HomeScreen
+  - Reuses existing ChatScreen for conversation UI
+  - Streaming responses in real-time
+  - Refactor Summary/Actions buttons to use agent with pre-filled prompts
+  - Complete transition to unified conversational AI interface
+- [ ] **PR #17**: Decision Tracking & Multi-Step Agent
   - Decision extraction from conversations
-  - Advanced multi-step AI agent for complex workflows
-- [ ] **PR #15**: Typing Indicators & Connection Status
-  - Real-time typing indicators
-  - Connection status indicators
-- [ ] **PR #16**: Dark Mode & Message Reactions
-  - Dark mode theme system
-  - Message reactions with emojis
-- [ ] **PR #17**: AI Features Polish & Integration
-  - Rate limiting and performance optimization
-  - Production readiness
+  - Advanced multi-step AI agent with tools
+  - Complex workflow execution (5+ steps)
+- [ ] **PR #18**: AI Features Polish & Integration
+  - Rate limiting and caching for all AI endpoints
+  - Error handling improvements and analytics
+  - Dark mode support for AI features
+  - Performance optimization
+  - Production readiness and monitoring
 
 ### Phase 8: Final Polish (Day 7)
 
