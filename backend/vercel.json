@@ -9,6 +9,11 @@
         { "key": "Access-Control-Max-Age", "value": "86400" }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "app/api/**": {
+      "maxDuration": 60
+    }
+  }
 }
 
