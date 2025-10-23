@@ -2035,13 +2035,13 @@ Since you've never used React Native, this PR focuses on getting your developmen
   }));
   ```
 
-- [ ] 14. Deploy backend and test notification shows:
+- [x] 14. Deploy backend and test notification shows:
   - Sender's display name (not username) in notification title
   - Profile photo displays correctly (iOS/Android behavior may vary)
 
 **Handle Notification Tap:**
 
-- [ ] 15. In `App.js`:
+- [x] 15. In `App.js`:
 
   - Set up notification response listener:
     ```javascript
@@ -2056,21 +2056,21 @@ Since you've never used React Native, this PR focuses on getting your developmen
     }, []);
     ```
 
-- [ ] 16. Create navigation reference in App.js to allow navigation from listener
+- [x] 16. Create navigation reference in App.js to allow navigation from listener
 
 **Test Notifications:**
 
-- [ ] 17. Close app completely on device A (not just background, fully quit)
+- [x] 17. Close app completely on device A (not just background, fully quit)
 
-- [ ] 18. Send message from device B
+- [x] 18. Send message from device B
 
-- [ ] 19. Verify device A receives notification on lock screen
+- [x] 19. Verify device A receives notification on lock screen
 
-- [ ] 20. Tap notification → verify app opens to correct conversation
+- [x] 20. Tap notification → verify app opens to correct conversation
 
 **Handle Notifications While App is Open:**
 
-- [ ] 21. In `App.js`:
+- [x] 21. In `App.js`:
 
   - Set up foreground notification handler:
     ```javascript
@@ -2083,7 +2083,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
     });
     ```
 
-- [ ] 22. Test: Send message while app is open → should show in-app notification
+- [x] 22. Test: Send message while app is open → should show in-app notification
 
 **Handle Notification Permissions Edge Cases:**
 

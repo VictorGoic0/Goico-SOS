@@ -36,13 +36,15 @@ import {
 import { getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function ChatScreen({ route, navigation }) {
-  const { otherUser, conversationId: routeConversationId } = route.params;
+  const { otherUser: routeOtherUser, conversationId: routeConversationId } =
+    route.params;
 
   // Firebase Store
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const messages = useFirebaseStore((state) => state.messages);
   const setMessages = useFirebaseStore((state) => state.setMessages);
   const conversationsMap = useFirebaseStore((state) => state.conversationsMap);
+  const usersMap = useFirebaseStore((state) => state.usersMap);
 
   // Local Store (drafts and UI state only)
   const drafts = useLocalStore((state) => state.drafts);
@@ -78,20 +80,20 @@ export default function ChatScreen({ route, navigation }) {
       }
 
       // Otherwise, get or create 1-on-1 conversation
-      if (!otherUser) {
+      if (!routeOtherUser) {
         console.error("No otherUser or conversationId provided");
         return;
       }
 
-      const tempConvId = `${currentUser.uid}_${otherUser.userId}`; // Temp ID for loading state
+      const tempConvId = `${currentUser.uid}_${routeOtherUser.userId}`; // Temp ID for loading state
       setIsLoadingConversation(tempConvId, true);
 
       try {
         const conversation = await getOrCreateConversation(
           currentUser.uid,
-          otherUser.userId,
+          routeOtherUser.userId,
           currentUser.username,
-          otherUser.username
+          routeOtherUser.username
         );
 
         setConversationId(conversation.conversationId);
@@ -103,7 +105,12 @@ export default function ChatScreen({ route, navigation }) {
     };
 
     initConversation();
-  }, [currentUser, otherUser, routeConversationId, setIsLoadingConversation]);
+  }, [
+    currentUser,
+    routeOtherUser,
+    routeConversationId,
+    setIsLoadingConversation,
+  ]);
 
   // Set up real-time message listener with metadata changes
   useEffect(() => {
@@ -190,6 +197,21 @@ export default function ChatScreen({ route, navigation }) {
   // Task 30: Detect if conversation is a group
   const conversation = conversationsMap[conversationId];
   const isGroup = conversation?.isGroup || false;
+
+  // Derive otherUser from conversation participants if not provided
+  // (e.g., when navigating from notification)
+  let otherUser = routeOtherUser;
+  if (!otherUser && conversation && !isGroup) {
+    // Get the other participant's user ID (filter out current user)
+    const otherUserId = conversation.participants?.find(
+      (id) => id !== currentUser.uid
+    );
+
+    // Look up user data from usersMap
+    if (otherUserId && usersMap[otherUserId]) {
+      otherUser = usersMap[otherUserId];
+    }
+  }
 
   // Get online status (only for 1-on-1 chats)
   const isOnline = usePresenceStore((state) =>

@@ -12,7 +12,7 @@ const ActionItemSchema = z.object({
       assignedTo: z.string().nullable(),
       deadline: z.string().nullable(),
       status: z.enum(['pending', 'completed']),
-      context: z.string(),
+      context: z.string().optional().default(''), // Optional with empty string default
     })
   ),
 });
@@ -54,10 +54,11 @@ export async function POST(req: Request) {
       .join('\n');
 
     const prompt = `Extract all action items from this conversation. Format as a list with:
-- Task description
-- Assigned to (if mentioned)
-- Deadline (if mentioned)
+- Task description (required)
+- Assigned to (if mentioned, otherwise null)
+- Deadline (if mentioned, otherwise null)
 - Status (pending/completed based on context)
+- Context (optional - brief context about where this was mentioned)
 
 Conversation:
 ${conversationText}`;
