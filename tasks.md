@@ -1987,14 +1987,14 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Deploy to Vercel:**
 
-- [ ] 10. Deploy updated backend:
+- [x] 10. Deploy updated backend:
 
   ```bash
   cd backend
   vercel --prod
   ```
 
-- [ ] 11. Test endpoint manually (optional):
+- [x] 11. Test endpoint manually (optional):
 
   ```bash
   curl -X POST https://your-app.vercel.app/api/send-notification \
@@ -2002,9 +2002,46 @@ Since you've never used React Native, this PR focuses on getting your developmen
     -d '{"conversationId":"test","messageId":"test","senderId":"test","senderUsername":"Test","messageText":"Hello"}'
   ```
 
+**Enhance Notification with Display Name and Profile Photo:**
+
+- [x] 12. Update `backend/app/api/send-notification/route.ts` to fetch sender's user data:
+
+  ```typescript
+  // After getting recipients, also fetch sender's data
+  const senderDoc = await db.collection("users").doc(senderId).get();
+  const senderData = senderDoc.data();
+
+  // Use displayName with fallback to username
+  const senderDisplayName = senderData?.displayName || senderUsername;
+
+  // Get profile image URL if available
+  const senderImageURL = senderData?.imageURL || null;
+  ```
+
+- [x] 13. Include displayName and image in notification payload:
+
+  ```typescript
+  const messages = pushTokens.map((token) => ({
+    to: token,
+    sound: "default",
+    title: senderDisplayName, // ← Use displayName instead of username
+    body: messageText,
+    data: {
+      conversationId,
+      messageId,
+      type: "new_message",
+      senderImageURL, // ← Include sender's profile photo
+    },
+  }));
+  ```
+
+- [ ] 14. Deploy backend and test notification shows:
+  - Sender's display name (not username) in notification title
+  - Profile photo displays correctly (iOS/Android behavior may vary)
+
 **Handle Notification Tap:**
 
-- [ ] 12. In `App.js`:
+- [ ] 15. In `App.js`:
 
   - Set up notification response listener:
     ```javascript
@@ -2019,21 +2056,21 @@ Since you've never used React Native, this PR focuses on getting your developmen
     }, []);
     ```
 
-- [ ] 13. Create navigation reference in App.js to allow navigation from listener
+- [ ] 16. Create navigation reference in App.js to allow navigation from listener
 
 **Test Notifications:**
 
-- [ ] 14. Close app completely on device A (not just background, fully quit)
+- [ ] 17. Close app completely on device A (not just background, fully quit)
 
-- [ ] 15. Send message from device B
+- [ ] 18. Send message from device B
 
-- [ ] 16. Verify device A receives notification on lock screen
+- [ ] 19. Verify device A receives notification on lock screen
 
-- [ ] 17. Tap notification → verify app opens to correct conversation
+- [ ] 20. Tap notification → verify app opens to correct conversation
 
 **Handle Notifications While App is Open:**
 
-- [ ] 18. In `App.js`:
+- [ ] 21. In `App.js`:
 
   - Set up foreground notification handler:
     ```javascript
@@ -2046,16 +2083,16 @@ Since you've never used React Native, this PR focuses on getting your developmen
     });
     ```
 
-- [ ] 19. Test: Send message while app is open → should show in-app notification
+- [ ] 22. Test: Send message while app is open → should show in-app notification
 
 **Handle Notification Permissions Edge Cases:**
 
-- [ ] 20. If user denies permissions:
+- [ ] 23. If user denies permissions:
 
   - Show message explaining notifications won't work
   - Provide button to open settings (optional)
 
-- [ ] 21. Save permission status to avoid repeatedly asking
+- [ ] 24. Save permission status to avoid repeatedly asking
 
 **Files Created:**
 
