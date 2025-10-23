@@ -1,17 +1,18 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **AI Features Implementation - PR #14 In Progress (Thread Summarization & Actions)**
+## Current Status: **Core Features Complete - Push Notifications & AI Features Implemented**
 
-### Overall Progress: 53% Complete (9/17 PRs Done, PR #14 In Progress)
+### Overall Progress: 65% Complete (11/17 PRs Done)
 
 - ✅ **Planning Phase**: 100% Complete
 - ✅ **Foundation Phase**: 100% Complete (PRs #1-2)
 - ✅ **Core Features**: 100% Complete (PRs #3-8)
-- 🔄 **Advanced Features**: 20% Complete (PR #9 partial, PRs #10-11 remaining)
-- 🔄 **AI Features**: 5% Complete (PR #11.5 in progress, PRs #14-17 remaining)
+- 🔄 **Advanced Features**: 50% Complete (PR #9 partial, PR #10 done, PR #11 remaining)
+- ✅ **AI Features (Phase 1)**: 50% Complete (PRs #13-14 done)
+- ⏳ **AI Features (Phase 2)**: 0% Complete (PRs #15-18 remaining)
 - ⏳ **Polish & Deployment**: 0% Complete
 
-**Current Focus**: Setting up Vercel serverless backend for AI features. This is a new architectural component that will handle all AI processing via OpenAI API, separate from the React Native mobile app.
+**Current Focus**: Core messaging features and AI capabilities are operational. Push notifications working with Vercel backend. Thread summarization and action item extraction fully functional. Next steps: Read receipts and advanced AI features.
 
 ## What Works (Completed)
 
@@ -136,18 +137,51 @@
 - Caching capabilities
 - Easier AI provider switching
 
-### PR #14: Thread Summarization & Action Item Extraction 🔄 (In Progress)
+### PR #10: Push Notifications Setup ✅ (Complete)
 
-**Current Work**: Building first AI features
+**Architecture**: Vercel serverless functions for notification delivery
 
-- ✅ Thread summarization backend endpoint created
-- ✅ Backend deployed and tested
-- ⏳ Action item extraction endpoint
-- ⏳ Mobile AI service functions
-- ⏳ UI components (ThreadSummaryModal, ActionItemsScreen)
-- ⏳ ChatScreen integration
-- ⏳ Navigation setup
-- ⏳ End-to-end testing
+- ✅ Push notification registration on login
+- ✅ Expo push tokens saved to Firestore
+- ✅ Vercel endpoint for sending notifications (`/api/send-notification`)
+- ✅ Backend fetches conversation participants and push tokens
+- ✅ Notification tap handling - navigates to correct conversation
+- ✅ Foreground notifications display in-app
+- ✅ Background/closed app notifications work correctly
+- ✅ Display name and profile photo in notifications
+- ✅ Group chat notifications formatted correctly (Group Name: Sender: Message)
+- ✅ 1-on-1 notifications show sender name and message
+- ✅ Fire-and-forget notification sending (non-blocking)
+
+**Key Implementation Details**:
+
+- Uses Expo Push Notification API
+- Vercel serverless function handles all notification logic
+- Notifications differentiate between 1-on-1 and group chats
+- Navigation reference allows deep linking from notifications
+
+### PR #14: Thread Summarization & Action Item Extraction ✅ (Complete)
+
+**Architecture**: OpenAI GPT-4o-mini via Vercel backend
+
+- ✅ Thread summarization backend endpoint (`/api/summarize`)
+- ✅ Action item extraction backend endpoint (`/api/extract-actions`)
+- ✅ Backend deployed to Vercel and tested
+- ✅ Mobile AI service functions (`aiService.js`)
+- ✅ ThreadSummaryModal component with loading states
+- ✅ ActionItemsScreen with action item list view
+- ✅ ChatScreen integration with AI buttons (📝 Summary, 📋 Actions)
+- ✅ Navigation setup for ActionItemsScreen
+- ✅ Error handling and user-friendly messages
+- ✅ End-to-end testing complete
+
+**Key Features**:
+
+- Summarizes last 50 messages into 3-4 bullet points
+- Extracts action items with task, assignee, deadline, status, context
+- AI buttons disabled when no messages present
+- Graceful error handling with partial data recovery
+- Uses structured outputs (JSON schema) for reliable parsing
 
 ### PR #9: Group Chats 🔄 (Paused, Partially Complete)
 
@@ -222,23 +256,29 @@
 
 ### Phase 6: Push Notifications (Day 4-5)
 
-**Status**: Not Started
+**Status**: ✅ Complete (PR #10)
 
-- [ ] **Expo Notifications**: Set up push notification handling
-- [ ] **Cloud Functions**: Deploy Firebase Cloud Function for notifications
-- [ ] **Notification Delivery**: Test notification delivery and tap handling
-- [ ] **Background Handling**: Handle notifications when app is closed
-- [ ] **Cross-platform**: Ensure notifications work on iOS and Android
+- ✅ **Expo Notifications**: Push notification handling set up
+- ✅ **Vercel Functions**: Deployed Vercel serverless function for notifications
+- ✅ **Notification Delivery**: Tested notification delivery and tap handling
+- ✅ **Background Handling**: Notifications work when app is closed
+- ✅ **Group Formatting**: Group chats show "Group Name: Sender: Message"
+- ✅ **Cross-platform**: Notifications work on iOS and Android
 
-### Phase 7: AI Features Implementation (PRs #14-18)
+### Phase 7: AI Features Implementation (PRs #13-18)
 
-**Status**: PR #14 In Progress
+**Status**: Phase 1 Complete (PRs #13-14)
 
-- 🔄 **PR #14**: Thread Summarization & Action Item Extraction
-  - ✅ Backend summarization endpoint deployed
-  - ⏳ Backend action items endpoint
-  - ⏳ Mobile UI integration
-  - ⏳ ChatScreen integration
+- ✅ **PR #13**: Vercel Backend Setup
+  - ✅ Next.js project with Vercel AI SDK
+  - ✅ Firebase Admin SDK integration
+  - ✅ Test endpoint deployed and verified
+- ✅ **PR #14**: Thread Summarization & Action Item Extraction
+  - ✅ Backend summarization endpoint (GPT-4o-mini)
+  - ✅ Backend action items endpoint with structured outputs
+  - ✅ Mobile UI integration (ThreadSummaryModal, ActionItemsScreen)
+  - ✅ ChatScreen integration with AI buttons
+  - ✅ Full end-to-end testing complete
 - [ ] **PR #15**: Smart Search & Priority Detection
   - Semantic Search using OpenAI embeddings
   - Automatic Priority Detection for messages

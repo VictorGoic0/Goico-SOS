@@ -2132,7 +2132,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   }));
   ```
 
-- [ ] 26. Test group chat notifications:
+- [x] 26. Test group chat notifications:
   - Send message in group chat
   - Verify notification shows: `Group Name` as title, `Sender: Message` as body
   - Verify 1-on-1 notifications still work correctly
@@ -2150,17 +2150,17 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Before Merge:**
 
-- [ ] App requests notification permission on first launch (after login)
-- [ ] Permission dialog shows correctly
-- [ ] Push token saved to Firestore user document (verify in console)
-- [ ] Close app on device A completely
-- [ ] Send message from device B
-- [ ] Device A receives notification on lock screen
-- [ ] Notification shows sender name and message preview
-- [ ] Tap notification → opens correct conversation
-- [ ] Notifications work for both 1-on-1 and group chats
-- [ ] If app is open, notification shows as in-app alert (not lock screen)
-- [ ] Check Vercel logs to verify notification endpoint is called successfully
+- [x] App requests notification permission on first launch (after login)
+- [x] Permission dialog shows correctly
+- [x] Push token saved to Firestore user document (verify in console)
+- [x] Close app on device A completely
+- [x] Send message from device B
+- [x] Device A receives notification on lock screen
+- [x] Notification shows sender name and message preview
+- [x] Tap notification → opens correct conversation
+- [x] Notifications work for both 1-on-1 and group chats
+- [x] If app is open, notification shows as in-app alert (not lock screen)
+- [x] Check Vercel logs to verify notification endpoint is called successfully
 
 ---
 

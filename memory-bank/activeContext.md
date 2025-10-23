@@ -2,11 +2,11 @@
 
 ## Current Work Focus
 
-### Project Status: **AI Features Implementation Phase - PR #11.5 In Progress (Vercel Backend Setup)**
+### Project Status: **Phase 1 AI Features Complete - Ready for Advanced Features**
 
-The project has completed PRs #1-8, establishing core messaging functionality, optimistic updates, and profile management. PR #9 (Group Chats) is partially complete. Now transitioning to **AI features implementation** using Vercel serverless backend architecture.
+The project has completed PRs #1-8 (core messaging), PR #10 (Push Notifications), PR #13 (Vercel Backend Setup), and PR #14 (Thread Summarization & Action Items). The application now has fully functional messaging with push notifications and AI-powered thread analysis capabilities.
 
-**Architecture Decision**: AI features will be implemented as Vercel serverless functions (backend) called by the React Native mobile app, rather than calling OpenAI directly from the mobile app. This provides better security, rate limiting, and cost control.
+**Current Architecture**: React Native mobile app → Vercel serverless functions → OpenAI GPT-4o-mini + Firebase Firestore
 
 ### Completed PRs
 
@@ -18,26 +18,43 @@ The project has completed PRs #1-8, establishing core messaging functionality, o
 6. ✅ **PR #6**: One-on-One Messaging & Chat Screen
 7. ✅ **PR #7**: Message Sending with Firebase-Native Optimistic Updates
 8. ✅ **PR #8**: Profile Screen & Edit Profile
+9. ✅ **PR #10**: Push Notifications Setup (Vercel serverless functions)
+10. ✅ **PR #13**: Vercel Backend Setup & Test Function
+11. ✅ **PR #14**: Thread Summarization & Action Item Extraction
 
-### Current PR: **PR #14 - Thread Summarization & Action Item Extraction**
+### Recently Completed: **PR #10 - Push Notifications & PR #14 - AI Features**
 
-**Background**: PR #13 (formerly #11.5) is complete. Vercel backend is deployed and functional with test endpoint validated.
+**PR #10 Highlights:**
+- ✅ Push notification registration on login with Expo
+- ✅ Push tokens saved to Firestore user documents
+- ✅ Vercel serverless function (`/api/send-notification`) for notification delivery
+- ✅ Notification tap handling with deep linking to conversations
+- ✅ Group chat notifications formatted as "Group Name: Sender: Message"
+- ✅ 1-on-1 notifications show "Sender Name" / "Message"
+- ✅ Navigation reference for deep linking from notifications
+- ✅ Foreground and background notification support
 
-**Completed Subtasks:**
+**PR #14 Highlights:**
+- ✅ Thread summarization endpoint using GPT-4o-mini
+- ✅ Action item extraction with structured JSON outputs (Zod schema)
+- ✅ ThreadSummaryModal component with loading states
+- ✅ ActionItemsScreen with list view of extracted actions
+- ✅ AI buttons in ChatScreen (📝 Summary, 📋 Actions)
+- ✅ Error handling with partial data recovery
+- ✅ End-to-end testing complete
 
-- ✅ Backend summarization endpoint created (`backend/app/api/summarize/route.ts`)
-- ✅ Backend deployed to Vercel and tested
+**PR #9 Status**: Partially complete, will resume after more AI features or as needed
 
-**In Progress:**
+### Next Steps
 
-- [ ] Create action item extraction backend endpoint
-- [ ] Update mobile AI service functions
-- [ ] Create UI components (ThreadSummaryModal, ActionItemsScreen)
-- [ ] Connect features to ChatScreen
-- [ ] Add navigation routes
-- [ ] Test AI features end-to-end
+**Immediate Priority:**
+- PR #11: Read Receipts Implementation (showing when messages have been read)
 
-**PR #9 Status**: Partially complete, will resume after AI features or as needed
+**AI Features Roadmap:**
+- PR #15: Smart Search & Priority Detection
+- PR #16: AI Agent as a Conversation (unified conversational interface)
+- PR #17: Decision Tracking & Multi-Step Agent
+- PR #18: AI Features Polish & Integration
 
 ### Immediate Next Steps
 
@@ -55,41 +72,103 @@ The project has completed PRs #1-8, establishing core messaging functionality, o
 
 ## Recent Changes
 
-### PR #11.5: Vercel Backend Setup & Test Function (In Progress)
+### PR #10: Push Notifications Setup (Completed)
 
-**New Work Focus:**
-
-The project is transitioning to implement AI features using a **Vercel serverless backend architecture**. This represents a significant architectural addition:
-
-**Architecture**:
+**Architecture Implemented:**
 
 ```
-React Native Mobile App (Expo)
-    ↓ HTTP/HTTPS
-Vercel Serverless Functions (Next.js API Routes)
-    ↓ API calls
-OpenAI (GPT-4 Turbo + Embeddings)
-    ↓ Firebase Admin SDK
-Firebase (Firestore for messages)
+React Native Mobile App (Expo Notifications)
+    ↓ Fire-and-forget HTTP call
+Vercel Serverless Function (/api/send-notification)
+    ↓ Fetches participants & push tokens
+Firebase Firestore (conversations & users)
+    ↓ Sends formatted notifications
+Expo Push Notification Service
+    ↓ Delivers to devices
+iOS/Android Devices
 ```
 
-**Why this approach:**
+**Key Features:**
+- Push notification registration on app launch (after login)
+- Push tokens stored in Firestore user documents (`pushToken` field)
+- Vercel endpoint handles all notification logic server-side
+- Group chat notifications: "Group Name: Sender: Message"
+- 1-on-1 notifications: "Sender Name: Message Text"
+- Notification tap opens correct conversation via deep linking
+- Navigation reference created for deep linking support
+- Display names (not usernames) shown in notifications
+- Profile photo URLs included in notification data
 
-- Security: OpenAI API key never exposed to mobile app
-- Rate Limiting: Server-side control of AI usage
-- Cost Control: Monitor and limit OpenAI usage centrally
-- Scalability: Backend scales independently
-- Flexibility: Can switch AI providers without mobile app update
+**Files Created:**
+- `backend/app/api/send-notification/route.ts` - Notification delivery endpoint
+- `mobile-app/src/utils/notifications.js` - Mobile notification utilities
 
-**Current Task**: Setting up the Vercel backend infrastructure with Next.js. Discussing whether Next.js is required for serverless-only deployment (answer: recommended but not strictly required - Vercel AI SDK works best with Next.js).
+**Files Modified:**
+- `mobile-app/App.js` - Notification tap listener
+- `mobile-app/src/navigation/AppNavigator.js` - Navigation reference export
+- `mobile-app/src/utils/conversation.js` - Calls notification endpoint after sending
+- `mobile-app/src/screens/ChatScreen.js` - Derives otherUser from conversation when navigating from notifications
 
-**Files Being Created:**
+**Testing:**
+- ✅ Notifications deliver when app is closed/backgrounded
+- ✅ Tapping notification opens correct conversation
+- ✅ Group and 1-on-1 notifications formatted correctly
+- ✅ Foreground notifications display in-app
+- ✅ Display names and profile photos work
 
-- `backend/` directory (✅ created)
-- Next.js project with TypeScript (in progress)
-- Firebase Admin SDK initialization
-- Test API endpoint
-- Vercel configuration
+---
+
+### PR #14: Thread Summarization & Action Item Extraction (Completed)
+
+**Architecture Implemented:**
+
+```
+React Native Mobile App
+    ↓ HTTP POST requests
+Vercel Serverless Functions
+    ├─ /api/summarize (GPT-4o-mini with generateText)
+    └─ /api/extract-actions (GPT-4o-mini with generateObject)
+    ↓ Fetches messages via Firebase Admin SDK
+Firebase Firestore (messages)
+    ↓ AI processing
+OpenAI GPT-4o-mini API
+```
+
+**Key Features:**
+- Thread summarization into 3-4 bullet points
+- Action item extraction with structured JSON schema (Zod)
+- Action items include: task, assignedTo, deadline, status, context
+- AI buttons in ChatScreen (📝 Summary, 📋 Actions)
+- Buttons disabled when no messages present
+- ThreadSummaryModal for displaying summaries
+- ActionItemsScreen for viewing action items list
+- Graceful error handling with user-friendly messages
+- Optional context field (handles partial data from AI)
+
+**Files Created:**
+- `backend/app/api/summarize/route.ts` - Summarization endpoint
+- `backend/app/api/extract-actions/route.ts` - Action extraction endpoint
+- `mobile-app/src/services/aiService.js` - AI backend communication
+- `mobile-app/src/components/ThreadSummaryModal.js` - Summary modal UI
+- `mobile-app/src/screens/ActionItemsScreen.js` - Action items list UI
+
+**Files Modified:**
+- `mobile-app/src/screens/ChatScreen.js` - Added AI buttons and summary modal
+- `mobile-app/src/navigation/AppNavigator.js` - Added ActionItemsScreen route
+
+**Technical Decisions:**
+- Using GPT-4o-mini instead of GPT-4-turbo (supports structured outputs, faster, cheaper)
+- Structured outputs with Zod schema for reliable JSON parsing
+- Optional `context` field with default empty string (handles AI variability)
+- Fire-and-forget pattern maintained for notifications
+
+**Testing:**
+- ✅ Summarization produces accurate 3-4 bullet point summaries
+- ✅ Action item extraction identifies tasks, assignees, deadlines
+- ✅ UI components display results correctly
+- ✅ Error handling shows user-friendly messages
+- ✅ Navigation works between all screens
+- ✅ AI buttons integrate seamlessly into ChatScreen
 
 ---
 
