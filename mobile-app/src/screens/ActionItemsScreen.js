@@ -96,7 +96,7 @@ export default function ActionItemsScreen({ route, navigation }) {
         }
       />
       <TouchableOpacity style={styles.refreshButton} onPress={loadActionItems}>
-        <Text style={styles.refreshText}>🔄 Refresh</Text>
+        <Text style={styles.refreshText}>Refresh</Text>
       </TouchableOpacity>
     </View>
   );
