@@ -27,6 +27,16 @@ export async function POST(req: Request) {
     const participants = conversation.data()?.participants || [];
     const recipients = participants.filter((id: string) => id !== senderId);
 
+    // Debug logging
+    console.log('Send notification debug:', {
+      conversationId,
+      senderId,
+      participants,
+      recipients,
+      senderIdType: typeof senderId,
+      participantsTypes: participants.map((p: string) => typeof p)
+    });
+
     // Get sender's user data for display name and profile photo
     const senderDoc = await db.collection("users").doc(senderId).get();
     const senderData = senderDoc.data();
