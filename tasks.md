@@ -1957,7 +1957,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Call Notification Endpoint After Sending Messages:**
 
-- [ ] 9. In `src/utils/conversation.js`, update `sendMessage` function:
+- [x] 9. In `src/utils/conversation.js`, update `sendMessage` function:
 
   ```javascript
   import { sendPushNotification } from "./notifications";

@@ -1,5 +1,6 @@
 import {
   addDoc,
+  arrayRemove,
   collection,
   deleteDoc,
   doc,
@@ -15,6 +16,7 @@ import {
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
+import { sendPushNotification } from "./notifications";
 
 /**
  * Generate a consistent conversation ID for two users
@@ -150,6 +152,15 @@ export const sendMessage = async (
 
     // Update conversation's last message
     await updateConversationLastMessage(conversationId, text, senderId);
+
+    // Send push notification (don't await - fire and forget)
+    sendPushNotification(
+      conversationId,
+      docRef.id,
+      senderId,
+      senderUsername,
+      text
+    ).catch((err) => console.error("Push notification failed:", err));
 
     return {
       messageId: docRef.id,
