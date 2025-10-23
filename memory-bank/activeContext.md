@@ -4,7 +4,7 @@
 
 ### Project Status: **Phase 1 AI Features Complete - Ready for Advanced Features**
 
-The project has completed PRs #1-8 (core messaging), PR #10 (Push Notifications), PR #13 (Vercel Backend Setup), and PR #14 (Thread Summarization & Action Items). The application now has fully functional messaging with push notifications and AI-powered thread analysis capabilities.
+The project has completed PRs #1-9 (core messaging + group chats), PR #10 (Push Notifications), PR #13 (Vercel Backend Setup), and PR #14 (Thread Summarization & Action Items). The application now has fully functional 1-on-1 and group messaging with push notifications and AI-powered thread analysis capabilities.
 
 **Current Architecture**: React Native mobile app → Vercel serverless functions → OpenAI GPT-4o-mini + Firebase Firestore
 
@@ -18,13 +18,27 @@ The project has completed PRs #1-8 (core messaging), PR #10 (Push Notifications)
 6. ✅ **PR #6**: One-on-One Messaging & Chat Screen
 7. ✅ **PR #7**: Message Sending with Firebase-Native Optimistic Updates
 8. ✅ **PR #8**: Profile Screen & Edit Profile
-9. ✅ **PR #10**: Push Notifications Setup (Vercel serverless functions)
-10. ✅ **PR #13**: Vercel Backend Setup & Test Function
-11. ✅ **PR #14**: Thread Summarization & Action Item Extraction
+9. ✅ **PR #9**: Group Chats (Create, Edit, Manage, Delete)
+10. ✅ **PR #10**: Push Notifications Setup (Vercel serverless functions)
+11. ✅ **PR #13**: Vercel Backend Setup & Test Function
+12. ✅ **PR #14**: Thread Summarization & Action Item Extraction
 
-### Recently Completed: **PR #10 - Push Notifications & PR #14 - AI Features**
+### Recently Completed: **PR #9 - Group Chats, PR #10 - Push Notifications & PR #14 - AI Features**
+
+**PR #9 Highlights:**
+
+- ✅ CreateGroupScreen for creating new groups
+- ✅ Group selection with multiple participants
+- ✅ Group name and photo setup with Firebase Storage upload
+- ✅ GroupInfoScreen for viewing and editing group details
+- ✅ Group messaging with multiple participants
+- ✅ Group header shows participant count and group photo
+- ✅ Delete conversation functionality for 1-on-1 and groups
+- ✅ Leave group functionality
+- ✅ Group notifications properly formatted
 
 **PR #10 Highlights:**
+
 - ✅ Push notification registration on login with Expo
 - ✅ Push tokens saved to Firestore user documents
 - ✅ Vercel serverless function (`/api/send-notification`) for notification delivery
@@ -35,6 +49,7 @@ The project has completed PRs #1-8 (core messaging), PR #10 (Push Notifications)
 - ✅ Foreground and background notification support
 
 **PR #14 Highlights:**
+
 - ✅ Thread summarization endpoint using GPT-4o-mini
 - ✅ Action item extraction with structured JSON outputs (Zod schema)
 - ✅ ThreadSummaryModal component with loading states
@@ -43,32 +58,24 @@ The project has completed PRs #1-8 (core messaging), PR #10 (Push Notifications)
 - ✅ Error handling with partial data recovery
 - ✅ End-to-end testing complete
 
-**PR #9 Status**: Partially complete, will resume after more AI features or as needed
-
 ### Next Steps
 
 **Immediate Priority:**
+
 - PR #11: Read Receipts Implementation (showing when messages have been read)
 
 **AI Features Roadmap:**
+
 - PR #15: Smart Search & Priority Detection
 - PR #16: AI Agent as a Conversation (unified conversational interface)
 - PR #17: Decision Tracking & Multi-Step Agent
 - PR #18: AI Features Polish & Integration
 
-### Immediate Next Steps
+**Completed Features:**
 
-1. Complete delete conversation feature
-2. Implement group chat creation screen
-3. Update ChatScreen for group messaging
-4. **PR #10**: Push Notifications
-5. **PR #11**: Read Receipts Implementation
-6. **PR #14-18**: AI Features Implementation (5 PRs)
-   - PR #14: Thread Summarization & Action Item Extraction (in progress)
-   - PR #15: Smart Search & Priority Detection
-   - PR #16: AI Agent as a Conversation (new architectural approach)
-   - PR #17: Decision Tracking & Multi-Step Agent
-   - PR #18: AI Features Polish & Integration
+- ✅ PRs #1-9: Core messaging, profiles, presence, group chats
+- ✅ PR #10: Push notifications with Vercel backend
+- ✅ PR #13-14: AI backend setup + thread analysis features
 
 ## Recent Changes
 
@@ -89,6 +96,7 @@ iOS/Android Devices
 ```
 
 **Key Features:**
+
 - Push notification registration on app launch (after login)
 - Push tokens stored in Firestore user documents (`pushToken` field)
 - Vercel endpoint handles all notification logic server-side
@@ -100,16 +108,19 @@ iOS/Android Devices
 - Profile photo URLs included in notification data
 
 **Files Created:**
+
 - `backend/app/api/send-notification/route.ts` - Notification delivery endpoint
 - `mobile-app/src/utils/notifications.js` - Mobile notification utilities
 
 **Files Modified:**
+
 - `mobile-app/App.js` - Notification tap listener
 - `mobile-app/src/navigation/AppNavigator.js` - Navigation reference export
 - `mobile-app/src/utils/conversation.js` - Calls notification endpoint after sending
 - `mobile-app/src/screens/ChatScreen.js` - Derives otherUser from conversation when navigating from notifications
 
 **Testing:**
+
 - ✅ Notifications deliver when app is closed/backgrounded
 - ✅ Tapping notification opens correct conversation
 - ✅ Group and 1-on-1 notifications formatted correctly
@@ -135,6 +146,7 @@ OpenAI GPT-4o-mini API
 ```
 
 **Key Features:**
+
 - Thread summarization into 3-4 bullet points
 - Action item extraction with structured JSON schema (Zod)
 - Action items include: task, assignedTo, deadline, status, context
@@ -146,6 +158,7 @@ OpenAI GPT-4o-mini API
 - Optional context field (handles partial data from AI)
 
 **Files Created:**
+
 - `backend/app/api/summarize/route.ts` - Summarization endpoint
 - `backend/app/api/extract-actions/route.ts` - Action extraction endpoint
 - `mobile-app/src/services/aiService.js` - AI backend communication
@@ -153,16 +166,19 @@ OpenAI GPT-4o-mini API
 - `mobile-app/src/screens/ActionItemsScreen.js` - Action items list UI
 
 **Files Modified:**
+
 - `mobile-app/src/screens/ChatScreen.js` - Added AI buttons and summary modal
 - `mobile-app/src/navigation/AppNavigator.js` - Added ActionItemsScreen route
 
 **Technical Decisions:**
+
 - Using GPT-4o-mini instead of GPT-4-turbo (supports structured outputs, faster, cheaper)
 - Structured outputs with Zod schema for reliable JSON parsing
 - Optional `context` field with default empty string (handles AI variability)
 - Fire-and-forget pattern maintained for notifications
 
 **Testing:**
+
 - ✅ Summarization produces accurate 3-4 bullet point summaries
 - ✅ Action item extraction identifies tasks, assignees, deadlines
 - ✅ UI components display results correctly
@@ -171,31 +187,6 @@ OpenAI GPT-4o-mini API
 - ✅ AI buttons integrate seamlessly into ChatScreen
 
 ---
-
-### PR #9: Group Chats (Paused, Partially Complete)
-
-**What's being built:**
-
-- ✅ **User profile preview in ChatScreen header:**
-
-  - Circular profile photo (or placeholder with initials)
-  - Display name next to photo
-  - Online/offline status indicator (green dot when online)
-  - "Online" text appears when user is active
-  - Header is tappable (ready for future profile navigation)
-
-- 🔄 **Delete conversation feature:**
-  - Delete button in ChatScreen header (enabled when 1+ messages)
-  - Long-press menu on HomeScreen user list (for existing conversations)
-  - Confirmation modal before deletion
-  - Deletes all messages and conversation document
-  - User can message again to start new conversation
-
-**Files Modified:**
-
-- ✏️ `src/screens/ChatScreen.js` - Added profile preview header, imports for Image, TouchableOpacity, usePresenceStore
-- ✏️ `PRD.md` - Added profile preview and delete conversation features
-- ✏️ `tasks.md` - Added checkboxes to PRs 9-12, new delete conversation subtasks
 
 ### PR #8: Profile Screen & Edit Profile (Completed)
 

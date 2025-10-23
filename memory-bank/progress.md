@@ -2,17 +2,17 @@
 
 ## Current Status: **Core Features Complete - Push Notifications & AI Features Implemented**
 
-### Overall Progress: 65% Complete (11/17 PRs Done)
+### Overall Progress: 71% Complete (12/17 PRs Done)
 
 - ✅ **Planning Phase**: 100% Complete
 - ✅ **Foundation Phase**: 100% Complete (PRs #1-2)
 - ✅ **Core Features**: 100% Complete (PRs #3-8)
-- 🔄 **Advanced Features**: 50% Complete (PR #9 partial, PR #10 done, PR #11 remaining)
+- 🔄 **Advanced Features**: 67% Complete (PRs #9-10 done, PR #11 remaining)
 - ✅ **AI Features (Phase 1)**: 50% Complete (PRs #13-14 done)
 - ⏳ **AI Features (Phase 2)**: 0% Complete (PRs #15-18 remaining)
 - ⏳ **Polish & Deployment**: 0% Complete
 
-**Current Focus**: Core messaging features and AI capabilities are operational. Push notifications working with Vercel backend. Thread summarization and action item extraction fully functional. Next steps: Read receipts and advanced AI features.
+**Current Focus**: Core messaging features and AI capabilities are operational. Group chats, push notifications, and AI thread analysis all functional. Next steps: Read receipts and advanced AI features.
 
 ## What Works (Completed)
 
@@ -117,6 +117,18 @@
 - ✅ Button component enhanced with "danger" variant
 - ✅ Loading states for photo upload and save operations
 
+### PR #9: Group Chats ✅ (Complete)
+
+- ✅ CreateGroupScreen for creating new group chats
+- ✅ Group selection with multiple participants
+- ✅ Group name and photo setup
+- ✅ GroupInfoScreen for managing group settings
+- ✅ Group messaging with multiple participants
+- ✅ Group header with participant count
+- ✅ Delete conversation functionality
+- ✅ Leave group functionality
+- ✅ Edit group name and photo
+
 ### PR #13: Vercel Backend Setup & Test Function ✅ (Complete)
 
 **Architecture Addition**: Implemented separate Vercel backend for AI features
@@ -183,18 +195,34 @@
 - Graceful error handling with partial data recovery
 - Uses structured outputs (JSON schema) for reliable parsing
 
-### PR #9: Group Chats 🔄 (Paused, Partially Complete)
+### PR #9: Group Chats ✅ (Complete)
+
+**Features Implemented:**
 
 - ✅ User profile preview in ChatScreen header
   - Circular profile photo (or placeholder with initials)
   - Display name next to photo
   - Online/offline status indicator (green dot)
   - "Online" text when user is active
-  - Tappable header (ready for profile navigation)
-- ⏳ Delete conversation feature (paused)
-- ⏳ Group chat creation screen (paused)
-- ⏳ Group messaging functionality (paused)
-- ⏳ Group info screen (paused)
+  - Tappable header (navigates to GroupInfoScreen for groups)
+- ✅ Delete conversation feature
+  - Delete button in ChatScreen header
+  - Confirmation alert before deletion
+  - Deletes all messages and conversation document
+- ✅ Group chat creation screen (CreateGroupScreen)
+  - Select multiple participants from user list
+  - Set group name and optional group photo
+  - Group photo upload to Firebase Storage
+- ✅ Group messaging functionality
+  - Multiple participants in single conversation
+  - Group name and photo in ChatScreen header
+  - Participant count displayed
+  - isGroup flag differentiates from 1-on-1 chats
+- ✅ Group info screen (GroupInfoScreen)
+  - View and edit group name and photo
+  - Display all group members
+  - Leave group functionality
+  - Delete group (admin only)
 
 ## What's Left to Build
 
@@ -246,13 +274,13 @@
 
 ### Phase 5: Group Chats (Day 3-4)
 
-**Status**: Not Started
+**Status**: ✅ Complete (PR #9)
 
-- [ ] **Group Creation**: Build group creation screen
-- [ ] **Group Management**: Add/remove participants functionality
-- [ ] **Group Messaging**: Extend messaging to support groups
-- [ ] **Group Info**: Build group information and settings screen
-- [ ] **Group Notifications**: Handle group message notifications
+- ✅ **Group Creation**: Built CreateGroupScreen with participant selection
+- ✅ **Group Management**: Add/remove participants, edit group details
+- ✅ **Group Messaging**: Extended messaging to support multiple participants
+- ✅ **Group Info**: Built GroupInfoScreen for settings and management
+- ✅ **Group Notifications**: Handle group message notifications (formatted correctly)
 
 ### Phase 6: Push Notifications (Day 4-5)
 
