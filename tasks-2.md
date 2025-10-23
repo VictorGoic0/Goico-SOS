@@ -12,7 +12,7 @@ This document outlines the implementation of AI-powered features for the Remote 
 
 ---
 
-## PR #11.5: Vercel Backend Setup & Test Function
+## PR #13: Vercel Backend Setup & Test Function
 
 **Goal**: Initialize Vercel backend project and deploy a "Hello World" test function to verify deployment works
 
@@ -24,14 +24,14 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Initialize Backend Project:**
 
-- [ ] 1. Create backend directory in project root:
+- [x] 1. Create backend directory in project root:
 
   ```bash
   mkdir backend
   cd backend
   ```
 
-- [ ] 2. Initialize Next.js project for Vercel:
+- [x] 2. Initialize Next.js project for Vercel:
 
   ```bash
   npx create-next-app@latest . --typescript --app --no-tailwind --no-src-dir --import-alias "@/*"
@@ -47,19 +47,19 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Install Backend Dependencies:**
 
-- [ ] 3. Install Vercel AI SDK and OpenAI provider:
+- [x] 3. Install Vercel AI SDK and OpenAI provider:
 
   ```bash
   npm install ai @ai-sdk/openai zod
   ```
 
-- [ ] 4. Install Firebase Admin SDK (for server-side Firebase access):
+- [x] 4. Install Firebase Admin SDK (for server-side Firebase access):
 
   ```bash
   npm install firebase-admin
   ```
 
-- [ ] 5. Verify `package.json` includes:
+- [x] 5. Verify `package.json` includes:
   ```json
   {
     "dependencies": {
@@ -74,7 +74,7 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Create Environment Variables:**
 
-- [ ] 6. Create `.env.local` in backend directory:
+- [x] 6. Create `.env.local` in backend directory:
 
   ```
   # OpenAI API Key
@@ -89,12 +89,12 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
   # FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'
   ```
 
-- [ ] 7. Add `.env.local` to `.gitignore` (should be automatic with Next.js)
-- [ ] 8. Document environment variables in `backend/README.md`
+- [x] 7. Add `.env.local` to `.gitignore` (should be automatic with Next.js)
+- [x] 8. Document environment variables in `backend/README.md`
 
 **Configure Vercel Settings:**
 
-- [ ] 9. Create `backend/vercel.json`:
+- [x] 9. Create `backend/vercel.json`:
 
   ```json
   {
@@ -110,8 +110,8 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Create Firebase Admin Initialization:**
 
-- [ ] 10. File: `backend/lib/firebase-admin.ts`
-- [ ] 11. Initialize Firebase Admin SDK:
+- [x] 10. File: `backend/lib/firebase-admin.ts`
+- [x] 11. Initialize Firebase Admin SDK:
 
   ```typescript
   import admin from "firebase-admin";
@@ -130,7 +130,7 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
   export const auth = admin.auth();
   ```
 
-- [ ] 12. Add helper function to fetch messages:
+- [x] 12. Add helper function to fetch messages:
 
   ```typescript
   export async function getMessagesFromFirebase(
@@ -155,8 +155,8 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Create Test API Route:**
 
-- [ ] 13. File: `backend/app/api/test/route.ts`
-- [ ] 14. Create simple test function:
+- [x] 13. File: `backend/app/api/test/route.ts`
+- [x] 14. Create simple test function:
 
   ```typescript
   import { NextResponse } from "next/server";
@@ -181,19 +181,19 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Deploy to Vercel:**
 
-- [ ] 15. Install Vercel CLI globally:
+- [x] 15. Install Vercel CLI globally:
 
   ```bash
   npm install -g vercel
   ```
 
-- [ ] 16. Login to Vercel:
+- [x] 16. Login to Vercel:
 
   ```bash
   vercel login
   ```
 
-- [ ] 17. Deploy from backend directory:
+- [x] 17. Deploy from backend directory:
 
   ```bash
   cd backend
@@ -205,29 +205,29 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
   - Directory: ./
   - Settings: Accept defaults
 
-- [ ] 18. Add environment variables in Vercel dashboard:
+- [x] 18. Add environment variables in Vercel dashboard:
 
   - OPENAI_API_KEY
   - FIREBASE_PROJECT_ID
   - FIREBASE_CLIENT_EMAIL
   - FIREBASE_PRIVATE_KEY
 
-- [ ] 19. Deploy to production:
+- [x] 19. Deploy to production:
 
   ```bash
   vercel --prod
   ```
 
-- [ ] 20. Copy production URL (e.g., `https://your-app.vercel.app`)
+- [x] 20. Copy production URL (e.g., `https://your-app.vercel.app`)
 
 **Test Deployment:**
 
-- [ ] 21. Test GET endpoint in browser:
+- [x] 21. Test GET endpoint in browser:
 
   - Navigate to: `https://your-app.vercel.app/api/test`
   - Should see JSON response with "Hello from Vercel"
 
-- [ ] 22. Test POST endpoint with curl:
+- [x] 22. Test POST endpoint with curl:
 
   ```bash
   curl -X POST https://your-app.vercel.app/api/test \
@@ -239,13 +239,13 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Configure Mobile App:**
 
-- [ ] 23. Add backend URL to mobile app `.env`:
+- [x] 23. Add backend URL to mobile app `.env`:
 
   ```
   EXPO_PUBLIC_BACKEND_URL=https://your-app.vercel.app
   ```
 
-- [ ] 24. Create AI service file: `mobile-app/src/services/aiService.js`
+- [x] 24. Create AI service file: `mobile-app/src/services/aiService.js`
 
   ```javascript
   const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -2228,7 +2228,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **AI Features Implementation Timeline:**
 
-- **PR #11.5**: Vercel Backend Setup & Test Function (Day 0 - 2-3 hours)
+- **PR #13**: Vercel Backend Setup & Test Function (Day 0 - 2-3 hours)
 
   - Initialize Next.js project
   - Deploy test function to Vercel ✅
