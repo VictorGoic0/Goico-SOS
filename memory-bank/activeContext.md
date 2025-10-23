@@ -2,31 +2,39 @@
 
 ## Current Work Focus
 
-### Project Status: **Development Phase - Group Chats & Advanced Features (PR #9 In Progress)**
+### Project Status: **AI Features Implementation Phase - PR #11.5 In Progress (Vercel Backend Setup)**
 
-The project has completed PRs #1-8, establishing core messaging functionality, optimistic updates, and profile management. Currently implementing group chat features and conversation management. **Total project scope expanded to 17 PRs** including comprehensive AI features implementation.
+The project has completed PRs #1-8, establishing core messaging functionality, optimistic updates, and profile management. PR #9 (Group Chats) is partially complete. Now transitioning to **AI features implementation** using Vercel serverless backend architecture.
+
+**Architecture Decision**: AI features will be implemented as Vercel serverless functions (backend) called by the React Native mobile app, rather than calling OpenAI directly from the mobile app. This provides better security, rate limiting, and cost control.
 
 ### Completed PRs
 
 1. ✅ **PR #1**: React Native Setup & Environment Configuration
 2. ✅ **PR #2**: Firebase Configuration & Zustand Stores
-3. ✅ **PR #3**: Authentication (Signup & Login) - SKIPPED (not implemented yet)
-4. ✅ **PR #4**: Profile Setup & User Creation in Firestore - SKIPPED (not implemented yet)
+3. ✅ **PR #3**: Authentication (Signup & Login)
+4. ✅ **PR #4**: Profile Setup & User Creation in Firestore
 5. ✅ **PR #5**: User List & Presence Tracking
 6. ✅ **PR #6**: One-on-One Messaging & Chat Screen
 7. ✅ **PR #7**: Message Sending with Firebase-Native Optimistic Updates
 8. ✅ **PR #8**: Profile Screen & Edit Profile
 
-### Current PR: **PR #9 - Group Chats**
+### Current PR: **PR #11.5 - Vercel Backend Setup & Test Function**
 
 **Completed Subtasks:**
 
-- ✅ 1-3: User profile preview in ChatScreen header with online status indicator
+- ✅ Create backend directory in project root
 
 **In Progress:**
 
-- [ ] 4-12: Delete conversation feature (from ChatScreen and HomeScreen)
-- [ ] 13-41: Group chat creation, messaging, and management
+- [ ] Initialize Next.js project for Vercel (discussing whether Next.js is needed)
+- [ ] Install Vercel AI SDK and dependencies
+- [ ] Configure Firebase Admin SDK
+- [ ] Create test API endpoint
+- [ ] Deploy to Vercel
+- [ ] Test backend connection from mobile app
+
+**PR #9 Status**: Partially complete, will resume after AI features or as needed
 
 ### Immediate Next Steps
 
@@ -45,7 +53,45 @@ The project has completed PRs #1-8, establishing core messaging functionality, o
 
 ## Recent Changes
 
-### PR #9: Group Chats (In Progress)
+### PR #11.5: Vercel Backend Setup & Test Function (In Progress)
+
+**New Work Focus:**
+
+The project is transitioning to implement AI features using a **Vercel serverless backend architecture**. This represents a significant architectural addition:
+
+**Architecture**:
+
+```
+React Native Mobile App (Expo)
+    ↓ HTTP/HTTPS
+Vercel Serverless Functions (Next.js API Routes)
+    ↓ API calls
+OpenAI (GPT-4 Turbo + Embeddings)
+    ↓ Firebase Admin SDK
+Firebase (Firestore for messages)
+```
+
+**Why this approach:**
+
+- Security: OpenAI API key never exposed to mobile app
+- Rate Limiting: Server-side control of AI usage
+- Cost Control: Monitor and limit OpenAI usage centrally
+- Scalability: Backend scales independently
+- Flexibility: Can switch AI providers without mobile app update
+
+**Current Task**: Setting up the Vercel backend infrastructure with Next.js. Discussing whether Next.js is required for serverless-only deployment (answer: recommended but not strictly required - Vercel AI SDK works best with Next.js).
+
+**Files Being Created:**
+
+- `backend/` directory (✅ created)
+- Next.js project with TypeScript (in progress)
+- Firebase Admin SDK initialization
+- Test API endpoint
+- Vercel configuration
+
+---
+
+### PR #9: Group Chats (Paused, Partially Complete)
 
 **What's being built:**
 

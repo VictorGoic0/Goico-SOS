@@ -1,15 +1,17 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **Group Chats In Progress - PR #9**
+## Current Status: **AI Features Implementation - PR #11.5 In Progress (Vercel Backend Setup)**
 
-### Overall Progress: 47% Complete (8/17 PRs Done, PR #9 In Progress)
+### Overall Progress: 47% Complete (8/17 PRs Done, PR #11.5 In Progress)
 
 - ✅ **Planning Phase**: 100% Complete
 - ✅ **Foundation Phase**: 100% Complete (PRs #1-2)
-- ✅ **Core Features**: 100% Complete (PRs #5-8 done, PRs #3-4 skipped)
-- 🔄 **Advanced Features**: 20% Complete (PR #9 in progress, PRs #10-11 remaining)
-- ⏳ **AI Features**: 0% Complete (PRs #12-17)
+- ✅ **Core Features**: 100% Complete (PRs #3-8)
+- 🔄 **Advanced Features**: 20% Complete (PR #9 partial, PRs #10-11 remaining)
+- 🔄 **AI Features**: 5% Complete (PR #11.5 in progress, PRs #14-17 remaining)
 - ⏳ **Polish & Deployment**: 0% Complete
+
+**Current Focus**: Setting up Vercel serverless backend for AI features. This is a new architectural component that will handle all AI processing via OpenAI API, separate from the React Native mobile app.
 
 ## What Works (Completed)
 
@@ -114,7 +116,28 @@
 - ✅ Button component enhanced with "danger" variant
 - ✅ Loading states for photo upload and save operations
 
-### PR #9: Group Chats 🔄 (In Progress)
+### PR #11.5: Vercel Backend Setup & Test Function 🔄 (In Progress)
+
+**Architecture Addition**: Implementing separate Vercel backend for AI features
+
+- ✅ Created backend directory
+- ⏳ Initialize Next.js project (discussing requirements)
+- ⏳ Install Vercel AI SDK + Firebase Admin SDK
+- ⏳ Create Firebase Admin initialization
+- ⏳ Create test API endpoint
+- ⏳ Deploy to Vercel
+- ⏳ Configure mobile app to call backend
+- ⏳ Test backend connection
+
+**Why Vercel Backend:**
+
+- Security: API keys never exposed to mobile app
+- Rate limiting and cost control
+- Independent scaling
+- Caching capabilities
+- Easier AI provider switching
+
+### PR #9: Group Chats 🔄 (Paused, Partially Complete)
 
 - ✅ User profile preview in ChatScreen header
   - Circular profile photo (or placeholder with initials)
@@ -122,10 +145,10 @@
   - Online/offline status indicator (green dot)
   - "Online" text when user is active
   - Tappable header (ready for profile navigation)
-- ⏳ Delete conversation feature (next task)
-- ⏳ Group chat creation screen
-- ⏳ Group messaging functionality
-- ⏳ Group info screen
+- ⏳ Delete conversation feature (paused)
+- ⏳ Group chat creation screen (paused)
+- ⏳ Group messaging functionality (paused)
+- ⏳ Group info screen (paused)
 
 ## What's Left to Build
 
