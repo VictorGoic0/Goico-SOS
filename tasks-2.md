@@ -760,7 +760,7 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Deploy Backend Changes:**
 
-- [ ] 16. From backend directory, deploy updates:
+- [x] 16. From backend directory, deploy updates:
 
   ```bash
   cd backend
@@ -769,8 +769,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Test AI Features:**
 
-- [ ] 17. Create test conversation with 50+ messages covering various topics
-- [ ] 18. Test thread summarization:
+- [x] 17. Create test conversation with 50+ messages covering various topics
+- [x] 18. Test thread summarization:
 
   - Tap "📝 Summary" button in ChatScreen
   - Verify loading indicator appears
@@ -778,7 +778,7 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
   - Check summary captures main topics (3-4 bullet points)
   - Response time should be <3 seconds
 
-- [ ] 19. Test action item extraction:
+- [x] 19. Test action item extraction:
   - Send messages with commitments: "I'll finish the report by Friday"
   - Send assignments: "Can you review the PR, John?"
   - Tap "📋 Actions" button
@@ -802,16 +802,16 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Test Before Merge:**
 
-- [ ] 20. Backend endpoints deploy successfully
-- [ ] 21. Mobile app can call backend endpoints
-- [ ] 22. Thread summarization works with sample conversation
-- [ ] 23. Summary is concise and accurate (3-4 bullet points)
-- [ ] 24. Action item extraction identifies tasks correctly
-- [ ] 25. UI components display results properly
-- [ ] 26. Navigation between screens works
-- [ ] 27. Error handling works (test with invalid conversationId)
-- [ ] 28. Response times meet targets (<3 seconds)
-- [ ] 29. Loading states work properly
+- [x] 20. Backend endpoints deploy successfully
+- [x] 21. Mobile app can call backend endpoints
+- [x] 22. Thread summarization works with sample conversation
+- [x] 23. Summary is concise and accurate (3-4 bullet points)
+- [x] 24. Action item extraction identifies tasks correctly
+- [x] 25. UI components display results properly
+- [x] 26. Navigation between screens works
+- [x] 27. Error handling works (test with invalid conversationId)
+- [x] 28. Response times meet targets (<3 seconds)
+- [x] 29. Loading states work properly
 
 ---
 
