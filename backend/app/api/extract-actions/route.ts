@@ -64,7 +64,7 @@ ${conversationText}`;
 
     // Use generateObject for structured output
     const { object } = await generateObject({
-      model: openai('gpt-4-turbo'),
+      model: openai('gpt-4o-mini'),
       schema: ActionItemSchema,
       prompt,
     });
