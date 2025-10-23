@@ -1,8 +1,8 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **AI Features Implementation - PR #11.5 In Progress (Vercel Backend Setup)**
+## Current Status: **AI Features Implementation - PR #14 In Progress (Thread Summarization & Actions)**
 
-### Overall Progress: 47% Complete (8/17 PRs Done, PR #11.5 In Progress)
+### Overall Progress: 53% Complete (9/17 PRs Done, PR #14 In Progress)
 
 - ✅ **Planning Phase**: 100% Complete
 - ✅ **Foundation Phase**: 100% Complete (PRs #1-2)
@@ -116,26 +116,38 @@
 - ✅ Button component enhanced with "danger" variant
 - ✅ Loading states for photo upload and save operations
 
-### PR #11.5: Vercel Backend Setup & Test Function 🔄 (In Progress)
+### PR #13: Vercel Backend Setup & Test Function ✅ (Complete)
 
-**Architecture Addition**: Implementing separate Vercel backend for AI features
+**Architecture Addition**: Implemented separate Vercel backend for AI features
 
-- ✅ Created backend directory
-- ⏳ Initialize Next.js project (discussing requirements)
-- ⏳ Install Vercel AI SDK + Firebase Admin SDK
-- ⏳ Create Firebase Admin initialization
-- ⏳ Create test API endpoint
-- ⏳ Deploy to Vercel
-- ⏳ Configure mobile app to call backend
-- ⏳ Test backend connection
+- ✅ Created backend directory with Next.js project
+- ✅ Installed Vercel AI SDK + Firebase Admin SDK
+- ✅ Created Firebase Admin initialization
+- ✅ Created test API endpoint
+- ✅ Deployed to Vercel
+- ✅ Configured mobile app to call backend
+- ✅ Tested backend connection successfully
 
-**Why Vercel Backend:**
+**Architecture Benefits:**
 
 - Security: API keys never exposed to mobile app
 - Rate limiting and cost control
 - Independent scaling
 - Caching capabilities
 - Easier AI provider switching
+
+### PR #14: Thread Summarization & Action Item Extraction 🔄 (In Progress)
+
+**Current Work**: Building first AI features
+
+- ✅ Thread summarization backend endpoint created
+- ✅ Backend deployed and tested
+- ⏳ Action item extraction endpoint
+- ⏳ Mobile AI service functions
+- ⏳ UI components (ThreadSummaryModal, ActionItemsScreen)
+- ⏳ ChatScreen integration
+- ⏳ Navigation setup
+- ⏳ End-to-end testing
 
 ### PR #9: Group Chats 🔄 (Paused, Partially Complete)
 

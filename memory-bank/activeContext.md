@@ -19,20 +19,23 @@ The project has completed PRs #1-8, establishing core messaging functionality, o
 7. ✅ **PR #7**: Message Sending with Firebase-Native Optimistic Updates
 8. ✅ **PR #8**: Profile Screen & Edit Profile
 
-### Current PR: **PR #11.5 - Vercel Backend Setup & Test Function**
+### Current PR: **PR #14 - Thread Summarization & Action Item Extraction**
+
+**Background**: PR #13 (formerly #11.5) is complete. Vercel backend is deployed and functional with test endpoint validated.
 
 **Completed Subtasks:**
 
-- ✅ Create backend directory in project root
+- ✅ Backend summarization endpoint created (`backend/app/api/summarize/route.ts`)
+- ✅ Backend deployed to Vercel and tested
 
 **In Progress:**
 
-- [ ] Initialize Next.js project for Vercel (discussing whether Next.js is needed)
-- [ ] Install Vercel AI SDK and dependencies
-- [ ] Configure Firebase Admin SDK
-- [ ] Create test API endpoint
-- [ ] Deploy to Vercel
-- [ ] Test backend connection from mobile app
+- [ ] Create action item extraction backend endpoint
+- [ ] Update mobile AI service functions
+- [ ] Create UI components (ThreadSummaryModal, ActionItemsScreen)
+- [ ] Connect features to ChatScreen
+- [ ] Add navigation routes
+- [ ] Test AI features end-to-end
 
 **PR #9 Status**: Partially complete, will resume after AI features or as needed
 
