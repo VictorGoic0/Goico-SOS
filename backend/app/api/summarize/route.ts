@@ -53,7 +53,7 @@ Provide a concise summary with:
 
     // Generate summary with OpenAI
     const { text } = await generateText({
-      model: openai('gpt-4-turbo'),
+      model: openai('gpt-4o-mini'),
       prompt,
     });
 
