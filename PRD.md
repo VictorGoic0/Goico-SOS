@@ -799,7 +799,98 @@ export const extractDecisions = async (conversationId) => {
 
 ---
 
-### Advanced AI Capability: Multi-Step Agent
+### AI Agent as a Conversation (PR #16)
+
+**Purpose**: Provide a unified conversational interface for all AI features
+
+**Implementation Approach**:
+
+The AI agent appears as a **pinned conversation** at the top of HomeScreen, always visible and easily accessible. Users interact with it like any other chat:
+
+```javascript
+// Static AI Agent Profile
+export const AI_AGENT = {
+  userId: "ai-agent",
+  username: "assistant",
+  displayName: "AI Assistant",
+  photoURL: null,
+  bio: "Your AI team assistant - ask me anything about your conversations",
+  status: "Available",
+  isAI: true,
+};
+```
+
+**User Experience**:
+
+- AI agent appears at top of HomeScreen with distinct styling (blue theme)
+- Tapping opens regular ChatScreen - no separate UI needed
+- Messages stream in real-time like normal chat messages
+- Agent can access conversation context when provided
+
+**Benefits**:
+
+- Reuses existing ChatScreen UI (no new screens needed)
+- Feels natural - AI is a "team member" not a separate feature
+- Scalable - easy to add new AI capabilities
+- Familiar chat interface reduces learning curve
+
+**Backend Implementation** (PR #16):
+
+```typescript
+// backend/app/api/agent/route.ts
+export async function POST(req: Request) {
+  const { message, conversationId, context } = await req.json();
+
+  // Get conversation history for context if provided
+  let conversationHistory = "";
+  if (conversationId && context?.includeHistory) {
+    const messages = await getMessagesFromFirebase(conversationId, 20);
+    conversationHistory = messages
+      .reverse()
+      .map((m) => `${m.senderUsername}: ${m.text}`)
+      .join("\n");
+  }
+
+  const systemPrompt = `You are an AI assistant for a remote team messaging app. You help users with:
+- Summarizing conversations
+- Extracting action items and decisions
+- Finding information in their messages
+- Answering questions about their conversations
+
+${
+  conversationHistory
+    ? `Recent conversation history:\n${conversationHistory}\n`
+    : ""
+}`;
+
+  const result = await streamText({
+    model: openai("gpt-4-turbo"),
+    system: systemPrompt,
+    prompt: message,
+    maxTokens: 500,
+  });
+
+  return result.toAIStreamResponse();
+}
+```
+
+**Evolution Within PR #16**:
+
+This PR includes the full transition:
+
+1. First: Create AI agent as pinned conversation
+2. Then: Refactor existing Summary/Action Items buttons to use agent
+3. Result: All AI features use unified conversational interface
+
+Example refactor:
+
+- Old: "Summarize" button → Opens modal with summary
+- New: "Summarize" button → Opens agent chat with "Please summarize the last 50 messages in this conversation"
+- Benefit: Consistent UX, conversation history, ability to ask follow-up questions
+
+---
+
+### Advanced AI Capability: Multi-Step Agent (PR #17)
 
 **Purpose**: Execute complex workflows autonomously with multiple steps
 
@@ -915,13 +1006,14 @@ export const executeAgent = async (userQuery, conversationId, onChunk) => {
 
 **UI Flow**:
 
-1. User types command in chat or dedicated "Ask AI Agent" interface
-2. Show "Agent is thinking..." with step-by-step progress
+1. User navigates to AI Agent conversation (pinned at top of HomeScreen)
+2. User types command: "Find all action items from last week and categorize by person"
+3. Agent shows streaming response with step-by-step progress:
    - Step 1: Searching messages from last week...
    - Step 2: Extracting action items...
    - Step 3: Categorizing by person...
    - Step 4: Generating report...
-3. Display final result (formatted report)
+4. Final formatted report appears in chat as complete message
 
 **Success Criteria**:
 

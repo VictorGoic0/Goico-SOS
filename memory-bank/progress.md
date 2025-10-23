@@ -230,28 +230,34 @@
 - [ ] **Background Handling**: Handle notifications when app is closed
 - [ ] **Cross-platform**: Ensure notifications work on iOS and Android
 
-### Phase 7: AI Features Implementation (PRs #12-17)
+### Phase 7: AI Features Implementation (PRs #14-18)
 
-**Status**: Not Started
+**Status**: PR #14 In Progress
 
-- [ ] **PR #12**: AI Foundation & Basic Features Setup
-  - Thread Summarization
-  - Action Item Extraction
-- [ ] **PR #13**: Smart Search & Priority Detection
+- 🔄 **PR #14**: Thread Summarization & Action Item Extraction
+  - ✅ Backend summarization endpoint deployed
+  - ⏳ Backend action items endpoint
+  - ⏳ Mobile UI integration
+  - ⏳ ChatScreen integration
+- [ ] **PR #15**: Smart Search & Priority Detection
   - Semantic Search using OpenAI embeddings
   - Automatic Priority Detection for messages
-- [ ] **PR #14**: Decision Tracking & Multi-Step Agent
+- [ ] **PR #16**: AI Agent as a Conversation ⭐ NEW ARCHITECTURE
+  - AI agent as pinned conversation in HomeScreen
+  - Reuses existing ChatScreen for conversation UI
+  - Streaming responses in real-time
+  - Refactor Summary/Actions buttons to use agent with pre-filled prompts
+  - Complete transition to unified conversational AI interface
+- [ ] **PR #17**: Decision Tracking & Multi-Step Agent
   - Decision extraction from conversations
-  - Advanced multi-step AI agent for complex workflows
-- [ ] **PR #15**: Typing Indicators & Connection Status
-  - Real-time typing indicators
-  - Connection status indicators
-- [ ] **PR #16**: Dark Mode & Message Reactions
-  - Dark mode theme system
-  - Message reactions with emojis
-- [ ] **PR #17**: AI Features Polish & Integration
-  - Rate limiting and performance optimization
-  - Production readiness
+  - Advanced multi-step AI agent with tools
+  - Complex workflow execution (5+ steps)
+- [ ] **PR #18**: AI Features Polish & Integration
+  - Rate limiting and caching for all AI endpoints
+  - Error handling improvements and analytics
+  - Dark mode support for AI features
+  - Performance optimization
+  - Production readiness and monitoring
 
 ### Phase 8: Final Polish (Day 7)
 

@@ -46,13 +46,12 @@ The project has completed PRs #1-8, establishing core messaging functionality, o
 3. Update ChatScreen for group messaging
 4. **PR #10**: Push Notifications
 5. **PR #11**: Read Receipts Implementation
-6. **PR #12-17**: AI Features Implementation (6 PRs)
-   - PR #12: AI Foundation & Basic Features Setup
-   - PR #13: Smart Search & Priority Detection
-   - PR #14: Decision Tracking & Multi-Step Agent
-   - PR #15: Typing Indicators & Connection Status
-   - PR #16: Dark Mode & Message Reactions
-   - PR #17: AI Features Polish & Integration
+6. **PR #14-18**: AI Features Implementation (5 PRs)
+   - PR #14: Thread Summarization & Action Item Extraction (in progress)
+   - PR #15: Smart Search & Priority Detection
+   - PR #16: AI Agent as a Conversation (new architectural approach)
+   - PR #17: Decision Tracking & Multi-Step Agent
+   - PR #18: AI Features Polish & Integration
 
 ## Recent Changes
 
@@ -286,7 +285,35 @@ Firebase (Firestore for messages)
 
 ## Active Decisions and Considerations
 
-### New: Username-Gating Pattern
+### New: AI Agent as Conversation Architecture (PR #16)
+
+**Decision:** Implement the AI agent as a pinned conversation at the top of HomeScreen, rather than as separate screens/modals.
+
+**Implementation:**
+
+- AI agent appears as a static user object (not a real Firebase user)
+- Always pinned at top of HomeScreen with distinct visual styling
+- Uses existing ChatScreen UI for all interactions
+- Messages route to `/api/agent` backend endpoint instead of Firebase
+- Responses stream back in real-time like normal chat messages
+
+**Rationale:**
+
+- **Familiar UX**: Users already understand chat interface
+- **Code Reuse**: No need for separate AgentChatScreen - reuses ChatScreen
+- **Natural Integration**: AI feels like a team member, not a bolt-on feature
+- **Scalable**: Easy to add more AI capabilities through conversation
+- **Simplified Architecture**: One chat interface for everything
+
+**Evolution Path:**
+
+- PR #14: Build Summary/Action Items as separate buttons (quick wins)
+- PR #16: Create AI agent conversation AND refactor buttons to use it (complete transition)
+- Result: All AI features use unified conversational interface by end of PR #16
+
+This creates a more unified and intuitive user experience for all AI features.
+
+### Username-Gating Pattern
 
 **Decision:** Username is the single source of truth for profile completion
 
