@@ -1,4 +1,7 @@
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { onAuthStateChanged } from "firebase/auth";
 import React, { useEffect, useState } from "react";
@@ -39,6 +42,9 @@ import {
 import { getUserProfile } from "../utils/profile";
 
 const Stack = createNativeStackNavigator();
+
+// Create navigation reference for use outside of navigation context
+export const navigationRef = createNavigationContainerRef();
 
 export default function AppNavigator() {
   const currentUser = useFirebaseStore((state) => state.currentUser);
@@ -179,7 +185,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {currentUser ? (
         hasUsername ? (
           // Main Stack - User is authenticated and has completed profile

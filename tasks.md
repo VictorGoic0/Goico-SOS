@@ -2041,7 +2041,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Handle Notification Tap:**
 
-- [ ] 15. In `App.js`:
+- [x] 15. In `App.js`:
 
   - Set up notification response listener:
     ```javascript
@@ -2056,7 +2056,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
     }, []);
     ```
 
-- [ ] 16. Create navigation reference in App.js to allow navigation from listener
+- [x] 16. Create navigation reference in App.js to allow navigation from listener
 
 **Test Notifications:**
 
