@@ -24,6 +24,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8165c80c-91be-4335-8cea-17a35b612fee"
+      }
+    },
+    "owner": "victormgoico"
   }
 }
