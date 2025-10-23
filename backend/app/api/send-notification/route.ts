@@ -27,6 +27,12 @@ export async function POST(req: Request) {
     const participants = conversation.data()?.participants || [];
     const recipients = participants.filter((id: string) => id !== senderId);
 
+    // Get sender's user data for display name and profile photo
+    const senderDoc = await db.collection("users").doc(senderId).get();
+    const senderData = senderDoc.data();
+    const senderDisplayName = senderData?.displayName || senderUsername;
+    const senderImageURL = senderData?.imageURL || null;
+
     // Get push tokens for recipients
     const pushTokens: string[] = [];
     for (const recipientId of recipients) {
@@ -45,9 +51,14 @@ export async function POST(req: Request) {
     const messages = pushTokens.map((token) => ({
       to: token,
       sound: "default",
-      title: senderUsername,
+      title: senderDisplayName,
       body: messageText,
-      data: { conversationId, messageId, type: "new_message" },
+      data: { 
+        conversationId, 
+        messageId, 
+        type: "new_message",
+        senderImageURL 
+      },
     }));
 
     const response = await fetch("https://exp.host/--/api/v2/push/send", {
