@@ -34,3 +34,22 @@ const callBackend = async (endpoint, body) => {
     );
   }
 };
+
+// Thread Summarization
+export const summarizeThread = async (conversationId, messageCount = 50) => {
+  return await callBackend("summarize", {
+    conversationId,
+    messageCount,
+  });
+};
+
+// Action Item Extraction
+export const extractActionItems = async (
+  conversationId,
+  messageCount = 100
+) => {
+  return await callBackend("extract-actions", {
+    conversationId,
+    messageCount,
+  });
+};

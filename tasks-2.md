@@ -498,8 +498,8 @@ ${conversationText}`;
 
 **Update Mobile AI Service:**
 
-- [ ] 5. File: `mobile-app/src/services/aiService.js`
-- [ ] 6. Add summarization function:
+- [x] 5. File: `mobile-app/src/services/aiService.js`
+- [x] 6. Add summarization function:
 
 ```javascript
 export const summarizeThread = async (conversationId, messageCount = 50) => {
@@ -510,7 +510,7 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 };
 ```
 
-- [ ] 7. Add action item extraction function:
+- [x] 7. Add action item extraction function:
 
   ```javascript
   export const extractActionItems = async (
