@@ -286,7 +286,7 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
   };
   ```
 
-- [ ] 25. Test connection from mobile app:
+- [x] 25. Test connection from mobile app:
 
   ```javascript
   // In HomeScreen or a test screen
