@@ -1835,92 +1835,176 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - Includes error handling and logging
   - Token is automatically updated in Firestore when user logs in
 
-**Set Up Firebase Cloud Functions:**
+**Create Vercel Notification Endpoint:**
 
-- [ ] 6. Install Firebase CLI globally (if not already installed):
+- [x] 6. File: `backend/app/api/send-notification/route.ts`
 
-  ```bash
-  npm install -g firebase-tools
+- [x] 7. Create notification endpoint:
+
+  ```typescript
+  import { NextResponse } from "next/server";
+  import { getMessagesFromFirebase, db } from "@/lib/firebase-admin";
+
+  export async function POST(req: Request) {
+    try {
+      const {
+        conversationId,
+        messageId,
+        senderId,
+        senderUsername,
+        messageText,
+      } = await req.json();
+
+      // Get conversation to find recipients
+      const conversationRef = db
+        .collection("conversations")
+        .doc(conversationId);
+      const conversation = await conversationRef.get();
+
+      if (!conversation.exists) {
+        return NextResponse.json(
+          { error: "Conversation not found" },
+          { status: 404 }
+        );
+      }
+
+      const participants = conversation.data()?.participants || [];
+      const recipients = participants.filter((id: string) => id !== senderId);
+
+      // Get push tokens for recipients
+      const pushTokens: string[] = [];
+      for (const recipientId of recipients) {
+        const userDoc = await db.collection("users").doc(recipientId).get();
+        const pushToken = userDoc.data()?.pushToken;
+        if (pushToken) {
+          pushTokens.push(pushToken);
+        }
+      }
+
+      if (pushTokens.length === 0) {
+        return NextResponse.json({ message: "No recipients with push tokens" });
+      }
+
+      // Send notifications via Expo Push API
+      const messages = pushTokens.map((token) => ({
+        to: token,
+        sound: "default",
+        title: senderUsername,
+        body: messageText,
+        data: { conversationId, messageId, type: "new_message" },
+      }));
+
+      const response = await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(messages),
+      });
+
+      const result = await response.json();
+
+      return NextResponse.json({
+        success: true,
+        sentTo: pushTokens.length,
+        result,
+      });
+    } catch (error) {
+      console.error("Notification error:", error);
+      return NextResponse.json(
+        { error: "Failed to send notification" },
+        { status: 500 }
+      );
+    }
+  }
   ```
 
-- [ ] 7. Login to Firebase:
-
-  ```bash
-  firebase login
-  ```
-
-- [ ] 8. Initialize Cloud Functions in your project root:
-
-  ```bash
-  firebase init functions
-  ```
-
-- [ ] 9. Select your Firebase project
-
-- [ ] 10. Choose JavaScript (not TypeScript for simplicity)
-
-- [ ] 11. Install dependencies when prompted
-
-**Create Cloud Function for Notifications:**
-
-- [ ] 12. Open file: `functions/index.js`
-
-- [ ] 13. Import required modules:
+- [x] 8. Add notification helper to mobile app: `src/utils/notifications.js`
 
   ```javascript
-  const functions = require("firebase-functions");
-  const admin = require("firebase-admin");
-  admin.initializeApp();
+  const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+  export async function sendPushNotification(
+    conversationId,
+    messageId,
+    senderId,
+    senderUsername,
+    messageText
+  ) {
+    try {
+      const response = await fetch(`${API_URL}/api/send-notification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId,
+          messageId,
+          senderId,
+          senderUsername,
+          messageText,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to send notification:", response.status);
+      }
+    } catch (error) {
+      console.error("Notification request failed:", error);
+      // Don't throw - notifications are non-critical
+    }
+  }
   ```
 
-- [ ] 14. Create function: `sendMessageNotification`
+**Call Notification Endpoint After Sending Messages:**
 
-  - Trigger: onCreate in `/conversations/{convId}/messages/{msgId}`
-
-- [ ] 15. Inside the function:
-
-  - Get the new message data from snapshot
-  - Get conversation document to find recipients
-  - Get recipients' user documents to retrieve push tokens
-  - Filter out sender from recipients
-  - Only send notifications if recipients have push tokens
-
-- [ ] 16. Send notification via Expo push API:
+- [ ] 9. In `src/utils/conversation.js`, update `sendMessage` function:
 
   ```javascript
-  const messages = pushTokens.map((token) => ({
-    to: token,
-    sound: "default",
-    title: senderUsername,
-    body: messageText,
-    data: { conversationId, type: "new_message" },
-  }));
+  import { sendPushNotification } from "./notifications";
 
-  await fetch("https://exp.host/--/api/v2/push/send", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(messages),
-  });
+  export async function sendMessage(
+    conversationId,
+    senderId,
+    senderUsername,
+    text
+  ) {
+    // ... existing message sending code ...
+
+    const messageRef = await addDoc(/* ... */);
+
+    // Send push notification (don't await - fire and forget)
+    sendPushNotification(
+      conversationId,
+      messageRef.id,
+      senderId,
+      senderUsername,
+      text
+    ).catch((err) => console.error("Push notification failed:", err));
+
+    return messageRef;
+  }
   ```
 
-**Deploy Cloud Function:**
+**Deploy to Vercel:**
 
-- [ ] 17. Deploy to Firebase:
+- [ ] 10. Deploy updated backend:
 
   ```bash
-  firebase deploy --only functions
+  cd backend
+  vercel --prod
   ```
 
-- [ ] 18. Verify function appears in Firebase console (Functions section)
+- [ ] 11. Test endpoint manually (optional):
 
-- [ ] 19. Check function logs in Firebase console to debug if needed
+  ```bash
+  curl -X POST https://your-app.vercel.app/api/send-notification \
+    -H "Content-Type: application/json" \
+    -d '{"conversationId":"test","messageId":"test","senderId":"test","senderUsername":"Test","messageText":"Hello"}'
+  ```
 
 **Handle Notification Tap:**
 
-- [ ] 20. In `App.js`:
+- [ ] 12. In `App.js`:
 
   - Set up notification response listener:
     ```javascript
@@ -1935,21 +2019,21 @@ Since you've never used React Native, this PR focuses on getting your developmen
     }, []);
     ```
 
-- [ ] 21. Create navigation reference in App.js to allow navigation from listener
+- [ ] 13. Create navigation reference in App.js to allow navigation from listener
 
 **Test Notifications:**
 
-- [ ] 22. Close app completely on device A (not just background, fully quit)
+- [ ] 14. Close app completely on device A (not just background, fully quit)
 
-- [ ] 23. Send message from device B
+- [ ] 15. Send message from device B
 
-- [ ] 24. Verify device A receives notification on lock screen
+- [ ] 16. Verify device A receives notification on lock screen
 
-- [ ] 25. Tap notification → verify app opens to correct conversation
+- [ ] 17. Tap notification → verify app opens to correct conversation
 
 **Handle Notifications While App is Open:**
 
-- [ ] 26. In `App.js`:
+- [ ] 18. In `App.js`:
 
   - Set up foreground notification handler:
     ```javascript
@@ -1962,27 +2046,27 @@ Since you've never used React Native, this PR focuses on getting your developmen
     });
     ```
 
-- [ ] 27. Test: Send message while app is open → should show in-app notification
+- [ ] 19. Test: Send message while app is open → should show in-app notification
 
 **Handle Notification Permissions Edge Cases:**
 
-- [ ] 28. If user denies permissions:
+- [ ] 20. If user denies permissions:
 
   - Show message explaining notifications won't work
   - Provide button to open settings (optional)
 
-- [ ] 29. Save permission status to avoid repeatedly asking
+- [ ] 21. Save permission status to avoid repeatedly asking
 
 **Files Created:**
 
-- `src/utils/notifications.js`
-- `functions/index.js` (Cloud Function)
-- `functions/package.json` (auto-created by firebase init)
+- `src/utils/notifications.js` (already exists - add sendPushNotification function)
+- `backend/app/api/send-notification/route.ts` (new Vercel endpoint)
 
 **Files Modified:**
 
-- `App.js`
-- Firestore users schema (add pushToken field)
+- `App.js` (notification handlers)
+- `src/utils/conversation.js` (call notification endpoint after sending)
+- Firestore users schema (add pushToken field - already done)
 
 **Test Before Merge:**
 
@@ -1996,7 +2080,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
 - [ ] Tap notification → opens correct conversation
 - [ ] Notifications work for both 1-on-1 and group chats
 - [ ] If app is open, notification shows as in-app alert (not lock screen)
-- [ ] Cloud Function logs show successful execution (check Firebase console)
+- [ ] Check Vercel logs to verify notification endpoint is called successfully
 
 ---
 

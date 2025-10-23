@@ -86,3 +86,42 @@ export function addNotificationReceivedListener(callback) {
 export function addNotificationResponseListener(callback) {
   return Notifications.addNotificationResponseReceivedListener(callback);
 }
+
+/**
+ * Send push notification via backend Vercel endpoint
+ * @param {string} conversationId - The conversation ID
+ * @param {string} messageId - The message ID
+ * @param {string} senderId - The sender's user ID
+ * @param {string} senderUsername - The sender's username
+ * @param {string} messageText - The message text
+ */
+export async function sendPushNotification(
+  conversationId,
+  messageId,
+  senderId,
+  senderUsername,
+  messageText
+) {
+  const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+  try {
+    const response = await fetch(`${API_URL}/api/send-notification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        conversationId,
+        messageId,
+        senderId,
+        senderUsername,
+        messageText,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Failed to send notification:", response.status);
+    }
+  } catch (error) {
+    console.error("Notification request failed:", error);
+    // Don't throw - notifications are non-critical
+  }
+}
