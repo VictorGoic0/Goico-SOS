@@ -12,7 +12,7 @@ This document outlines the implementation of AI-powered features for the Remote 
 
 ---
 
-## PR #11.5: Vercel Backend Setup & Test Function
+## PR #13: Vercel Backend Setup & Test Function
 
 **Goal**: Initialize Vercel backend project and deploy a "Hello World" test function to verify deployment works
 
@@ -24,14 +24,14 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Initialize Backend Project:**
 
-- [ ] Create backend directory in project root:
+- [x] 1. Create backend directory in project root:
 
   ```bash
   mkdir backend
   cd backend
   ```
 
-- [ ] Initialize Next.js project for Vercel:
+- [x] 2. Initialize Next.js project for Vercel:
 
   ```bash
   npx create-next-app@latest . --typescript --app --no-tailwind --no-src-dir --import-alias "@/*"
@@ -47,19 +47,19 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Install Backend Dependencies:**
 
-- [ ] Install Vercel AI SDK and OpenAI provider:
+- [x] 3. Install Vercel AI SDK and OpenAI provider:
 
   ```bash
   npm install ai @ai-sdk/openai zod
   ```
 
-- [ ] Install Firebase Admin SDK (for server-side Firebase access):
+- [x] 4. Install Firebase Admin SDK (for server-side Firebase access):
 
   ```bash
   npm install firebase-admin
   ```
 
-- [ ] Verify `package.json` includes:
+- [x] 5. Verify `package.json` includes:
   ```json
   {
     "dependencies": {
@@ -74,7 +74,7 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Create Environment Variables:**
 
-- [ ] Create `.env.local` in backend directory:
+- [x] 6. Create `.env.local` in backend directory:
 
   ```
   # OpenAI API Key
@@ -89,12 +89,12 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
   # FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'
   ```
 
-- [ ] Add `.env.local` to `.gitignore` (should be automatic with Next.js)
-- [ ] Document environment variables in `backend/README.md`
+- [x] 7. Add `.env.local` to `.gitignore` (should be automatic with Next.js)
+- [x] 8. Document environment variables in `backend/README.md`
 
 **Configure Vercel Settings:**
 
-- [ ] Create `backend/vercel.json`:
+- [x] 9. Create `backend/vercel.json`:
 
   ```json
   {
@@ -110,8 +110,8 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Create Firebase Admin Initialization:**
 
-- [ ] File: `backend/lib/firebase-admin.ts`
-- [ ] Initialize Firebase Admin SDK:
+- [x] 10. File: `backend/lib/firebase-admin.ts`
+- [x] 11. Initialize Firebase Admin SDK:
 
   ```typescript
   import admin from "firebase-admin";
@@ -130,7 +130,7 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
   export const auth = admin.auth();
   ```
 
-- [ ] Add helper function to fetch messages:
+- [x] 12. Add helper function to fetch messages:
 
   ```typescript
   export async function getMessagesFromFirebase(
@@ -155,8 +155,8 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Create Test API Route:**
 
-- [ ] File: `backend/app/api/test/route.ts`
-- [ ] Create simple test function:
+- [x] 13. File: `backend/app/api/test/route.ts`
+- [x] 14. Create simple test function:
 
   ```typescript
   import { NextResponse } from "next/server";
@@ -181,19 +181,19 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Deploy to Vercel:**
 
-- [ ] Install Vercel CLI globally:
+- [x] 15. Install Vercel CLI globally:
 
   ```bash
   npm install -g vercel
   ```
 
-- [ ] Login to Vercel:
+- [x] 16. Login to Vercel:
 
   ```bash
   vercel login
   ```
 
-- [ ] Deploy from backend directory:
+- [x] 17. Deploy from backend directory:
 
   ```bash
   cd backend
@@ -205,29 +205,29 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
   - Directory: ./
   - Settings: Accept defaults
 
-- [ ] Add environment variables in Vercel dashboard:
+- [x] 18. Add environment variables in Vercel dashboard:
 
   - OPENAI_API_KEY
   - FIREBASE_PROJECT_ID
   - FIREBASE_CLIENT_EMAIL
   - FIREBASE_PRIVATE_KEY
 
-- [ ] Deploy to production:
+- [x] 19. Deploy to production:
 
   ```bash
   vercel --prod
   ```
 
-- [ ] Copy production URL (e.g., `https://your-app.vercel.app`)
+- [x] 20. Copy production URL (e.g., `https://your-app.vercel.app`)
 
 **Test Deployment:**
 
-- [ ] Test GET endpoint in browser:
+- [x] 21. Test GET endpoint in browser:
 
   - Navigate to: `https://your-app.vercel.app/api/test`
   - Should see JSON response with "Hello from Vercel"
 
-- [ ] Test POST endpoint with curl:
+- [x] 22. Test POST endpoint with curl:
 
   ```bash
   curl -X POST https://your-app.vercel.app/api/test \
@@ -239,13 +239,13 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Configure Mobile App:**
 
-- [ ] Add backend URL to mobile app `.env`:
+- [x] 23. Add backend URL to mobile app `.env`:
 
   ```
   EXPO_PUBLIC_BACKEND_URL=https://your-app.vercel.app
   ```
 
-- [ ] Create AI service file: `mobile-app/src/services/aiService.js`
+- [x] 24. Create AI service file: `mobile-app/src/services/aiService.js`
 
   ```javascript
   const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -286,7 +286,7 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
   };
   ```
 
-- [ ] Test connection from mobile app:
+- [x] 25. Test connection from mobile app:
 
   ```javascript
   // In HomeScreen or a test screen
@@ -300,8 +300,8 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Create Backend Documentation:**
 
-- [ ] File: `backend/README.md`
-- [ ] Document:
+- [ ] 26. File: `backend/README.md`
+- [ ] 27. Document:
   - Project setup instructions
   - Environment variables needed
   - Deployment process
@@ -324,12 +324,12 @@ Before building AI features, we need to ensure the Vercel backend infrastructure
 
 **Test Before Merge:**
 
-- [ ] Vercel project deploys successfully
-- [ ] Test endpoint returns JSON response
-- [ ] Environment variables accessible in backend
-- [ ] Mobile app can call backend successfully
-- [ ] Firebase Admin SDK initializes without errors
-- [ ] Backend logs show no errors in Vercel dashboard
+- [ ] 28. Vercel project deploys successfully
+- [ ] 29. Test endpoint returns JSON response
+- [ ] 30. Environment variables accessible in backend
+- [ ] 31. Mobile app can call backend successfully
+- [ ] 32. Firebase Admin SDK initializes without errors
+- [ ] 33. Backend logs show no errors in Vercel dashboard
 
 ---
 
@@ -345,8 +345,8 @@ These are the foundational AI features that provide immediate value to remote te
 
 **Create Thread Summarization Backend:**
 
-- [ ] File: `backend/app/api/summarize/route.ts`
-- [ ] Implement summarization endpoint:
+- [ ] 1. File: `backend/app/api/summarize/route.ts`
+- [ ] 2. Implement summarization endpoint:
 
   ```typescript
   import { generateText } from 'ai';
@@ -382,7 +382,7 @@ These are the foundational AI features that provide immediate value to remote te
         .map(m => `${m.senderUsername}: ${m.text}`)
         .join('\n');
 
-      const prompt = `Summarize this conversation thread in 3-4 bullet points. Focus on key topics, decisions, and action items:
+  const prompt = `Summarize this conversation thread in 3-4 bullet points. Focus on key topics, decisions, and action items:
   ```
 
 ${conversationText}
@@ -405,23 +405,23 @@ Provide a concise summary with:
         conversationId
       });
 
-  } catch (error) {
-  console.error('Summarization error:', error);
-  return NextResponse.json(
-  { error: 'Failed to generate summary' },
-  { status: 500 }
-  );
-  }
-  }
+} catch (error) {
+console.error('Summarization error:', error);
+return NextResponse.json(
+{ error: 'Failed to generate summary' },
+{ status: 500 }
+);
+}
+}
 
-  ```
+```
 
-  ```
+```
 
 **Create Action Item Extraction Backend:**
 
-- [ ] File: `backend/app/api/extract-actions/route.ts`
-- [ ] Define Zod schema and implement extraction:
+- [ ] 3. File: `backend/app/api/extract-actions/route.ts`
+- [ ] 4. Define Zod schema and implement extraction:
 
   ```typescript
   import { generateObject } from 'ai';
@@ -502,8 +502,8 @@ ${conversationText}`;
 
 **Update Mobile AI Service:**
 
-- [ ] File: `mobile-app/src/services/aiService.js`
-- [ ] Add summarization function:
+- [ ] 5. File: `mobile-app/src/services/aiService.js`
+- [ ] 6. Add summarization function:
 
 ```javascript
 export const summarizeThread = async (conversationId, messageCount = 50) => {
@@ -514,7 +514,7 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 };
 ````
 
-- [ ] Add action item extraction function:
+- [ ] 7. Add action item extraction function:
 
   ```javascript
   export const extractActionItems = async (
@@ -530,8 +530,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Create Thread Summary UI:**
 
-- [ ] File: `mobile-app/src/components/ThreadSummaryModal.js`
-- [ ] Create modal component:
+- [ ] 8. File: `mobile-app/src/components/ThreadSummaryModal.js`
+- [ ] 9. Create modal component:
 
   ```javascript
   import React from "react";
@@ -627,8 +627,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Create Action Items Screen:**
 
-- [ ] File: `mobile-app/src/screens/ActionItemsScreen.js`
-- [ ] Implement action items list view:
+- [ ] 10. File: `mobile-app/src/screens/ActionItemsScreen.js`
+- [ ] 11. Implement action items list view:
 
   ```javascript
   import React, { useState, useEffect } from "react";
@@ -706,8 +706,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Connect to ChatScreen:**
 
-- [ ] File: `mobile-app/src/screens/ChatScreen.js`
-- [ ] Add AI buttons to header:
+- [ ] 12. File: `mobile-app/src/screens/ChatScreen.js`
+- [ ] 13. Add AI buttons to header:
 
   ```javascript
   import { summarizeThread } from '../services/aiService';
@@ -751,8 +751,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Add Navigation:**
 
-- [ ] File: `mobile-app/src/navigation/AppNavigator.js`
-- [ ] Add ActionItemsScreen to stack:
+- [ ] 14. File: `mobile-app/src/navigation/AppNavigator.js`
+- [ ] 15. Add ActionItemsScreen to stack:
 
   ```javascript
   <Stack.Screen
@@ -764,7 +764,7 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Deploy Backend Changes:**
 
-- [ ] From backend directory, deploy updates:
+- [ ] 16. From backend directory, deploy updates:
 
   ```bash
   cd backend
@@ -773,8 +773,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Test AI Features:**
 
-- [ ] Create test conversation with 50+ messages covering various topics
-- [ ] Test thread summarization:
+- [ ] 17. Create test conversation with 50+ messages covering various topics
+- [ ] 18. Test thread summarization:
 
   - Tap "📝 Summary" button in ChatScreen
   - Verify loading indicator appears
@@ -782,7 +782,7 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
   - Check summary captures main topics (3-4 bullet points)
   - Response time should be <3 seconds
 
-- [ ] Test action item extraction:
+- [ ] 19. Test action item extraction:
   - Send messages with commitments: "I'll finish the report by Friday"
   - Send assignments: "Can you review the PR, John?"
   - Tap "📋 Actions" button
@@ -806,16 +806,16 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Test Before Merge:**
 
-- [ ] Backend endpoints deploy successfully
-- [ ] Mobile app can call backend endpoints
-- [ ] Thread summarization works with sample conversation
-- [ ] Summary is concise and accurate (3-4 bullet points)
-- [ ] Action item extraction identifies tasks correctly
-- [ ] UI components display results properly
-- [ ] Navigation between screens works
-- [ ] Error handling works (test with invalid conversationId)
-- [ ] Response times meet targets (<3 seconds)
-- [ ] Loading states work properly
+- [ ] 20. Backend endpoints deploy successfully
+- [ ] 21. Mobile app can call backend endpoints
+- [ ] 22. Thread summarization works with sample conversation
+- [ ] 23. Summary is concise and accurate (3-4 bullet points)
+- [ ] 24. Action item extraction identifies tasks correctly
+- [ ] 25. UI components display results properly
+- [ ] 26. Navigation between screens works
+- [ ] 27. Error handling works (test with invalid conversationId)
+- [ ] 28. Response times meet targets (<3 seconds)
+- [ ] 29. Loading states work properly
 
 ---
 
@@ -827,8 +827,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Create Semantic Search Backend:**
 
-- [ ] File: `backend/app/api/search/route.ts`
-- [ ] Implement semantic search endpoint:
+- [ ] 1. File: `backend/app/api/search/route.ts`
+- [ ] 2. Implement semantic search endpoint:
 
   ```typescript
   import { embed } from "ai";
@@ -911,8 +911,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Create Priority Detection Backend:**
 
-- [ ] File: `backend/app/api/priority/route.ts`
-- [ ] Implement priority detection:
+- [ ] 3. File: `backend/app/api/priority/route.ts`
+- [ ] 4. Implement priority detection:
 
   ```typescript
   import { generateObject } from 'ai';
@@ -971,8 +971,8 @@ Respond with:
 
 **Update Mobile AI Service:**
 
-- [ ] File: `mobile-app/src/services/aiService.js`
-- [ ] Add search and priority functions:
+- [ ] 5. File: `mobile-app/src/services/aiService.js`
+- [ ] 6. Add search and priority functions:
 
   ```javascript
   export const semanticSearch = async (
@@ -994,8 +994,8 @@ Respond with:
 
 **Update MessageBubble for Priority Display:**
 
-- [ ] File: `mobile-app/src/components/MessageBubble.js`
-- [ ] Add priority indicator:
+- [ ] 7. File: `mobile-app/src/components/MessageBubble.js`
+- [ ] 8. Add priority indicator:
 
   ```javascript
   // Add priority prop
@@ -1042,8 +1042,8 @@ Respond with:
 
 **Add Search UI to ChatScreen:**
 
-- [ ] File: `mobile-app/src/screens/ChatScreen.js`
-- [ ] Add search bar below header:
+- [ ] 9. File: `mobile-app/src/screens/ChatScreen.js`
+- [ ] 10. Add search bar below header:
 
   ```javascript
   const [searchQuery, setSearchQuery] = useState("");
@@ -1095,8 +1095,8 @@ Respond with:
 
 **Implement Auto-Priority Detection:**
 
-- [ ] File: `mobile-app/src/screens/ChatScreen.js`
-- [ ] Add priority detection for incoming messages:
+- [ ] 11. File: `mobile-app/src/screens/ChatScreen.js`
+- [ ] 12. Add priority detection for incoming messages:
 
   ```javascript
   // In message listener, after receiving new message
@@ -1129,7 +1129,7 @@ Respond with:
 
 **Deploy Backend Changes:**
 
-- [ ] Deploy to Vercel:
+- [ ] 13. Deploy to Vercel:
 
   ```bash
   cd backend
@@ -1138,8 +1138,8 @@ Respond with:
 
 **Test Semantic Search:**
 
-- [ ] Create messages with varied topics
-- [ ] Test semantic search:
+- [ ] 14. Create messages with varied topics
+- [ ] 15. Test semantic search:
   - Search for "meeting schedule" (semantic query)
   - Verify results include messages about "calendar", "availability", "time to meet"
   - Check similarity scores are accurate
@@ -1147,12 +1147,12 @@ Respond with:
 
 **Test Priority Detection:**
 
-- [ ] Send urgent message: "Production is down! Need help ASAP!"
-- [ ] Verify message flagged as high priority with red border
-- [ ] Check priority reason is accurate
-- [ ] Send normal message: "Let me know when you're free"
-- [ ] Verify marked as normal priority (no special styling)
-- [ ] Response time should be <8 seconds
+- [ ] 16. Send urgent message: "Production is down! Need help ASAP!"
+- [ ] 17. Verify message flagged as high priority with red border
+- [ ] 18. Check priority reason is accurate
+- [ ] 19. Send normal message: "Let me know when you're free"
+- [ ] 20. Verify marked as normal priority (no special styling)
+- [ ] 21. Response time should be <8 seconds
 
 **Files Created:**
 
@@ -1167,14 +1167,14 @@ Respond with:
 
 **Test Before Merge:**
 
-- [ ] Semantic search finds contextually relevant messages
-- [ ] Search results show similarity scores
-- [ ] Priority detection flags urgent messages correctly
-- [ ] High-priority messages show red border/badge
-- [ ] Auto-priority detection works on new messages
-- [ ] Search performance meets targets (<3s)
-- [ ] Priority detection performance acceptable (<8s)
-- [ ] Error handling works properly
+- [ ] 22. Semantic search finds contextually relevant messages
+- [ ] 23. Search results show similarity scores
+- [ ] 24. Priority detection flags urgent messages correctly
+- [ ] 25. High-priority messages show red border/badge
+- [ ] 26. Auto-priority detection works on new messages
+- [ ] 27. Search performance meets targets (<3s)
+- [ ] 28. Priority detection performance acceptable (<8s)
+- [ ] 29. Error handling works properly
 
 ---
 
@@ -1186,8 +1186,8 @@ Respond with:
 
 **Create Decision Tracking Backend:**
 
-- [ ] File: `backend/app/api/decisions/route.ts`
-- [ ] Implement decision extraction:
+- [ ] 1. File: `backend/app/api/decisions/route.ts`
+- [ ] 2. Implement decision extraction:
 
   ```typescript
   import { generateObject } from 'ai';
@@ -1271,8 +1271,8 @@ Return JSON array with decision, participants, timestamp, context, and confidenc
 
 **Create Multi-Step Agent Backend:**
 
-- [ ] File: `backend/lib/agent-tools.ts`
-- [ ] Create helper functions for agent tools:
+- [ ] 3. File: `backend/lib/agent-tools.ts`
+- [ ] 4. Create helper functions for agent tools:
 
 ```typescript
 import { getMessagesFromFirebase, db } from './firebase-admin';
@@ -1341,8 +1341,8 @@ export function formatReport(data: any, title: string) {
 }
 ````
 
-- [ ] File: `backend/app/api/agent/route.ts`
-- [ ] Implement multi-step agent:
+- [ ] 5. File: `backend/app/api/agent/route.ts`
+- [ ] 6. Implement multi-step agent:
 
   ```typescript
   import { streamText, tool } from 'ai';
@@ -1452,8 +1452,8 @@ Break down complex requests into steps and use available tools to complete the t
 
 **Update Mobile AI Service for Streaming:**
 
-- [ ] File: `mobile-app/src/services/aiService.js`
-- [ ] Add decision extraction function:
+- [ ] 7. File: `mobile-app/src/services/aiService.js`
+- [ ] 8. Add decision extraction function:
 
 ```javascript
 export const extractDecisions = async (conversationId, messageCount = 100) => {
@@ -1464,7 +1464,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 };
 ````
 
-- [ ] Add agent function with streaming support:
+- [ ] 9. Add agent function with streaming support:
 
   ```javascript
   export const executeAgent = async (userQuery, conversationId, onChunk) => {
@@ -1507,8 +1507,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Create Decisions Screen:**
 
-- [ ] File: `mobile-app/src/screens/DecisionsScreen.js`
-- [ ] Implement decisions timeline view:
+- [ ] 10. File: `mobile-app/src/screens/DecisionsScreen.js`
+- [ ] 11. Implement decisions timeline view:
 
   ```javascript
   import React, { useState, useEffect } from "react";
@@ -1575,8 +1575,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Create Agent Chat Screen:**
 
-- [ ] File: `mobile-app/src/screens/AgentChatScreen.js`
-- [ ] Implement agent chat interface with streaming:
+- [ ] 12. File: `mobile-app/src/screens/AgentChatScreen.js`
+- [ ] 13. Implement agent chat interface with streaming:
 
   ```javascript
   import React, { useState } from "react";
@@ -1686,8 +1686,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Update Navigation:**
 
-- [ ] File: `mobile-app/src/navigation/AppNavigator.js`
-- [ ] Add new screens:
+- [ ] 14. File: `mobile-app/src/navigation/AppNavigator.js`
+- [ ] 15. Add new screens:
 
   ```javascript
   <Stack.Screen
@@ -1704,8 +1704,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Update ChatScreen with New Buttons:**
 
-- [ ] File: `mobile-app/src/screens/ChatScreen.js`
-- [ ] Add Decisions and Agent buttons to header:
+- [ ] 16. File: `mobile-app/src/screens/ChatScreen.js`
+- [ ] 17. Add Decisions and Agent buttons to header:
 
   ```javascript
   <TouchableOpacity onPress={() => navigation.navigate('Decisions', { conversationId })}>
@@ -1718,7 +1718,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Deploy Backend:**
 
-- [ ] Deploy all changes to Vercel:
+- [ ] 18. Deploy all changes to Vercel:
 
   ```bash
   cd backend
@@ -1727,11 +1727,11 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test Decision Tracking:**
 
-- [ ] Create conversation with clear decisions:
+- [ ] 19. Create conversation with clear decisions:
   - "Let's go with option B for the architecture"
   - "We agreed to extend the deadline to Q2"
   - "Decided to use microservices approach"
-- [ ] Test extraction:
+- [ ] 20. Test extraction:
   - Tap "✓ Decisions" button
   - Verify decisions extracted correctly
   - Check participants list is accurate
@@ -1740,20 +1740,20 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test Multi-Step Agent:**
 
-- [ ] Test complex workflow:
+- [ ] 21. Test complex workflow:
 
   - Query: "Find all action items from last week, categorize by person, and create a summary report"
   - Verify streaming response updates UI
   - Check final report is well-formatted and accurate
   - Total response time should be <15 seconds
 
-- [ ] Test simpler queries:
+- [ ] 22. Test simpler queries:
 
   - "Summarize this conversation"
   - "What decisions were made?"
   - "Who has pending tasks?"
 
-- [ ] Test error handling:
+- [ ] 23. Test error handling:
   - Invalid conversation ID
   - Network errors
   - No results scenarios
@@ -1774,16 +1774,16 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test Before Merge:**
 
-- [ ] Backend endpoints deploy successfully
-- [ ] Decision tracking identifies decisions correctly
-- [ ] Decisions screen shows timeline view
-- [ ] Multi-step agent executes complex workflows
-- [ ] Agent streaming works and updates UI in real-time
-- [ ] Final reports are well-formatted
-- [ ] Error handling works for edge cases
-- [ ] Response times meet targets (<15s for agent)
-- [ ] Navigation between screens works
-- [ ] All AI features work end-to-end
+- [ ] 24. Backend endpoints deploy successfully
+- [ ] 25. Decision tracking identifies decisions correctly
+- [ ] 26. Decisions screen shows timeline view
+- [ ] 27. Multi-step agent executes complex workflows
+- [ ] 28. Agent streaming works and updates UI in real-time
+- [ ] 29. Final reports are well-formatted
+- [ ] 30. Error handling works for edge cases
+- [ ] 31. Response times meet targets (<15s for agent)
+- [ ] 32. Navigation between screens works
+- [ ] 33. All AI features work end-to-end
 
 ---
 
@@ -1795,8 +1795,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Implement Rate Limiting in Backend:**
 
-- [ ] File: `backend/lib/rate-limiter.ts`
-- [ ] Create rate limiting utility:
+- [ ] 1. File: `backend/lib/rate-limiter.ts`
+- [ ] 2. Create rate limiting utility:
 
   ```typescript
   interface RateLimitStore {
@@ -1836,7 +1836,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   }
   ```
 
-- [ ] Update all API routes to use rate limiting:
+- [ ] 3. Update all API routes to use rate limiting:
 
   ```typescript
   // In each route.ts file:
@@ -1870,8 +1870,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Implement Response Caching:**
 
-- [ ] File: `backend/lib/cache.ts`
-- [ ] Create simple in-memory cache:
+- [ ] 4. File: `backend/lib/cache.ts`
+- [ ] 5. Create simple in-memory cache:
 
   ```typescript
   interface CacheEntry {
@@ -1914,7 +1914,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   }
   ```
 
-- [ ] Update summarization endpoint with caching:
+- [ ] 6. Update summarization endpoint with caching:
 
   ```typescript
   import { getCached, setCache } from "@/lib/cache";
@@ -1944,8 +1944,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Add Error Handling Improvements:**
 
-- [ ] File: `backend/lib/error-handler.ts`
-- [ ] Create centralized error handler:
+- [ ] 7. File: `backend/lib/error-handler.ts`
+- [ ] 8. Create centralized error handler:
 
   ```typescript
   export class AIServiceError extends Error {
@@ -1987,14 +1987,14 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Add Dark Mode Support to AI Screens:**
 
-- [ ] Update all AI screens to use theme colors:
+- [ ] 9. Update all AI screens to use theme colors:
 
   - ThreadSummaryModal.js
   - ActionItemsScreen.js
   - DecisionsScreen.js
   - AgentChatScreen.js
 
-- [ ] Use theme context or tokens:
+- [ ] 10. Use theme context or tokens:
 
   ```javascript
   // In each screen:
@@ -2011,8 +2011,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Add Analytics Tracking:**
 
-- [ ] File: `backend/lib/analytics.ts`
-- [ ] Create analytics logger:
+- [ ] 11. File: `backend/lib/analytics.ts`
+- [ ] 12. Create analytics logger:
 
   ```typescript
   interface AnalyticsEvent {
@@ -2034,7 +2034,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   }
   ```
 
-- [ ] Add analytics to all endpoints:
+- [ ] 13. Add analytics to all endpoints:
 
   ```typescript
   const startTime = Date.now();
@@ -2062,8 +2062,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Improve Mobile Error Handling:**
 
-- [ ] File: `mobile-app/src/services/aiService.js`
-- [ ] Enhance error messages:
+- [ ] 14. File: `mobile-app/src/services/aiService.js`
+- [ ] 15. Enhance error messages:
 
   ```javascript
   const callBackend = async (endpoint, body) => {
@@ -2107,7 +2107,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Add Loading Skeletons:**
 
-- [ ] Create skeleton components for AI screens:
+- [ ] 16. Create skeleton components for AI screens:
 
   ```javascript
   // In each AI screen, show skeleton while loading:
@@ -2124,8 +2124,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Create Backend Health Check:**
 
-- [ ] File: `backend/app/api/health/route.ts`
-- [ ] Implement health check endpoint:
+- [ ] 17. File: `backend/app/api/health/route.ts`
+- [ ] 18. Implement health check endpoint:
 
   ```typescript
   import { NextResponse } from "next/server";
@@ -2161,8 +2161,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Update Backend README:**
 
-- [ ] File: `backend/README.md`
-- [ ] Document:
+- [ ] 19. File: `backend/README.md`
+- [ ] 20. Document:
   - All API endpoints
   - Request/response formats
   - Rate limits
@@ -2173,7 +2173,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Deploy Final Backend:**
 
-- [ ] Deploy to Vercel:
+- [ ] 21. Deploy to Vercel:
 
   ```bash
   cd backend
@@ -2182,17 +2182,17 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test All AI Features:**
 
-- [ ] Thread summarization with various conversation types
-- [ ] Action item extraction with different task formats
-- [ ] Semantic search with complex queries
-- [ ] Priority detection with various urgency levels
-- [ ] Decision tracking with different decision types
-- [ ] Multi-step agent with complex workflows
-- [ ] Rate limiting (make 20+ requests quickly)
-- [ ] Error handling (invalid inputs, network errors)
-- [ ] Caching (verify cached responses are fast)
-- [ ] Dark mode (all AI screens)
-- [ ] Performance (response times meet targets)
+- [ ] 22. Thread summarization with various conversation types
+- [ ] 23. Action item extraction with different task formats
+- [ ] 24. Semantic search with complex queries
+- [ ] 25. Priority detection with various urgency levels
+- [ ] 26. Decision tracking with different decision types
+- [ ] 27. Multi-step agent with complex workflows
+- [ ] 28. Rate limiting (make 20+ requests quickly)
+- [ ] 29. Error handling (invalid inputs, network errors)
+- [ ] 30. Caching (verify cached responses are fast)
+- [ ] 31. Dark mode (all AI screens)
+- [ ] 32. Performance (response times meet targets)
 
 **Files Created:**
 
@@ -2211,16 +2211,16 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test Before Merge:**
 
-- [ ] All AI features work in dark mode
-- [ ] Rate limiting prevents abuse (20 requests/minute)
-- [ ] Caching improves performance (cached responses <100ms)
-- [ ] Error handling is user-friendly
-- [ ] Analytics track usage correctly
-- [ ] Health check endpoint works
-- [ ] All features work offline (with cached data)
-- [ ] Performance meets targets
-- [ ] Documentation is complete and accurate
-- [ ] Backend is production-ready
+- [ ] 33. All AI features work in dark mode
+- [ ] 34. Rate limiting prevents abuse (20 requests/minute)
+- [ ] 35. Caching improves performance (cached responses <100ms)
+- [ ] 36. Error handling is user-friendly
+- [ ] 37. Analytics track usage correctly
+- [ ] 38. Health check endpoint works
+- [ ] 39. All features work offline (with cached data)
+- [ ] 40. Performance meets targets
+- [ ] 41. Documentation is complete and accurate
+- [ ] 42. Backend is production-ready
 
 ---
 
@@ -2228,7 +2228,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **AI Features Implementation Timeline:**
 
-- **PR #11.5**: Vercel Backend Setup & Test Function (Day 0 - 2-3 hours)
+- **PR #13**: Vercel Backend Setup & Test Function (Day 0 - 2-3 hours)
 
   - Initialize Next.js project
   - Deploy test function to Vercel ✅
