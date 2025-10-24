@@ -2733,29 +2733,41 @@ Typing indicators provide immediate feedback that someone is responding, improvi
 
 **Connection Status (Optional - Already Works for 1-on-1):**
 
-- [ ] 10. (Optional) Add connection status banner for offline mode:
-  - Show "Offline" banner at top when disconnected
-  - Show "Connecting..." when reconnecting
+- [x] 10. (Optional) Add connection status banner for offline mode:
+
+  - Show "Offline" banner at top when disconnected (red)
+  - Show "Connecting" when reconnecting (yellow/warning)
   - Hide when online
   - This is separate from per-user online status (which already works)
 
+  **Implementation:**
+
+  - Added `listenToConnectionStatus()` to `presence.js` that monitors Firebase `.info/connected`
+  - Updated `presenceStore.js` to track `isConnected` state
+  - Added connection listener in `AppNavigator.js`
+  - Added banner to `HomeScreen.js` that shows at top when offline/connecting
+
 **Files Created:**
 
-- `src/utils/typing.js`
-- `src/utils/connectionStatus.js`
+- `src/utils/typingIndicator.js`
 
 **Files Modified:**
 
-- `src/screens/ChatScreen.js` (add typing and connection status)
-- `src/stores/presenceStore.js` (add typing state)
+- `src/screens/ChatScreen.js` (added typing indicator)
+- `src/screens/HomeScreen.js` (added connection status banner)
+- `src/stores/presenceStore.js` (added connection status tracking)
+- `src/utils/presence.js` (added connection status listener)
+- `src/navigation/AppNavigator.js` (added connection status listener setup)
 
 **Test Before Merge:**
 
-- [ ] Typing indicators work in real-time (<100ms)
-- [ ] Auto-clear after 3 seconds of inactivity
+- [ ] Typing indicators work in real-time (instant)
+- [ ] Auto-clear after 1 second of inactivity
 - [ ] Group typing shows multiple users
-- [ ] Connection status updates accurately
-- [ ] Works offline/online transitions
+- [ ] Connection status banner shows "Offline" (red) when disconnected
+- [ ] Connection status banner shows "Connecting" (yellow) when reconnecting
+- [ ] Banner hides when online
+- [ ] Works offline/online transitions smoothly
 - [ ] No memory leaks from listeners
 
 ---

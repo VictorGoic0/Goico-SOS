@@ -109,3 +109,33 @@ export const setUserOffline = async (userId) => {
     console.error("Error setting user offline:", error);
   }
 };
+
+/**
+ * Listen to Firebase connection status
+ * Updates presenceStore with connection state
+ * @param {Function} callback - Callback with connection status
+ * @returns {Function} Unsubscribe function
+ */
+export const listenToConnectionStatus = (callback) => {
+  const connectedRef = ref(realtimeDb, ".info/connected");
+
+  const unsubscribe = onValue(
+    connectedRef,
+    (snapshot) => {
+      const isConnected = snapshot.val() === true;
+      
+      // Update the presence store
+      usePresenceStore.getState().setConnectionStatus(isConnected);
+      
+      // Call callback if provided
+      if (callback) {
+        callback(isConnected);
+      }
+    },
+    (error) => {
+      console.error("Error listening to connection status:", error);
+    }
+  );
+
+  return unsubscribe;
+};

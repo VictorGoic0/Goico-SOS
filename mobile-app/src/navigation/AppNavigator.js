@@ -36,6 +36,7 @@ import { listenToConversations } from "../utils/conversation";
 import { registerForPushNotifications } from "../utils/notifications";
 import {
   initializePresence,
+  listenToConnectionStatus,
   listenToPresence,
   updatePresence,
 } from "../utils/presence";
@@ -114,6 +115,16 @@ export default function AppNavigator() {
     }
 
     const unsubscribe = listenToPresence();
+    return unsubscribe;
+  }, [currentUser?.uid]);
+
+  // Listen to Firebase connection status
+  useEffect(() => {
+    if (!currentUser?.uid) {
+      return;
+    }
+
+    const unsubscribe = listenToConnectionStatus();
     return unsubscribe;
   }, [currentUser?.uid]);
 
