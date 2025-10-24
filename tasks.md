@@ -2214,35 +2214,59 @@ Since you've never used React Native, this PR focuses on getting your developmen
   };
   ```
 
-- [x] 2. Update `MessageBubble.js` to remove "delivered" status:
+- [x] 2. Update `MessageBubble.js` to show "Read X ago" indicator:
 
   - Remove the `isDelivered` variable that checks for "delivered" or "read"
   - Create `isRead` variable that only checks for "read"
-  - Update status display logic to 3-state system:
+  - Update status display logic:
     - "sending": Gray clock 🕐
-    - "sent": Single checkmark ✓
-    - "read": Blue double checkmark ✓✓ (in blue color)
+    - "sent": Single checkmark ✓ (stays as ✓ even after read)
+    - "read": Single checkmark ✓ + **"Read X ago"** text below timestamp
+
+  **Design Decision**: Instead of changing checkmark styles (✓ → ✓✓), show explicit "Read X ago" text below the message. This provides more information (when it was read) and is clearer for users.
 
   ```javascript
+  import { formatTimestamp } from "../utils/helpers";
+
   const isRead = message.status === "read";
   const isSending = message.status === "sending";
 
-  // In the status icon:
-  {isSent && (
-    <Text style={[styles.statusIcon, isRead && styles.readIcon]}>
-      {isSending ? "🕐" : isRead ? "✓✓" : "✓"}
-    </Text>
-  )}
+  // In the status icon (always single checkmark when sent):
+  {
+    isSent && <Text style={styles.statusIcon}>{isSending ? "🕐" : "✓"}</Text>;
+  }
 
-  // Add to styles:
-  readIcon: {
-    color: colors.primary.base, // Blue color for read receipts
+  // Below timestamp, show read indicator:
+  {
+    isSent && isRead && message.readAt && (
+      <Text style={styles.readIndicator}>
+        Read {formatTimestamp(message.readAt)}
+      </Text>
+    );
   }
   ```
 
+  **Visual Layout:**
+
+  ```
+  ┌─────────────────────────┐
+  │ Hey, how are you?       │
+  │                         │
+  │ 3:45 PM ✓               │  ← Timestamp + sent checkmark
+  └─────────────────────────┘
+              Read 2m ago      ← Read indicator (outside bubble, right-aligned, last message only)
+  ```
+
+  **Additional Implementation Details:**
+
+  - Read indicator only shows on the LAST sent message (via `isLastMessage` prop)
+  - Text is positioned outside the bubble, aligned to the right
+  - Uses `colors.text.secondary` for better contrast on white background
+  - ChatScreen passes `isLastMessage={isSent && index === conversationMessages.length - 1}`
+
 **One-Time Migration: Clean Up "delivered" Status:**
 
-- [ ] 3. Create migration utility to update all existing "delivered" messages:
+- [x] 3. Create migration utility to update all existing "delivered" messages:
 
   - File: `src/utils/migrateMessageStatus.js`
   - Query all messages in Firestore with status "delivered"
@@ -2297,7 +2321,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   };
   ```
 
-- [ ] 4. Run migration and verify:
+- [x] 4. Run migration and verify:
   - Add temporary button in HomeScreen to run `migrateDeliveredToSent()`
   - Run migration once
   - Verify in Firebase console that no messages have "delivered" status

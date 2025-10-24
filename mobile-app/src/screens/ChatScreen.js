@@ -502,13 +502,21 @@ export default function ChatScreen({ route, navigation }) {
         ref={flatListRef}
         data={conversationMessages}
         keyExtractor={(item) => item.messageId}
-        renderItem={({ item }) => (
-          <MessageBubble
-            message={item}
-            isSent={item.senderId === currentUser.uid}
-            isGroup={isGroup}
-          />
-        )}
+        renderItem={({ item, index }) => {
+          // Check if this is the last message sent by current user
+          const isSent = item.senderId === currentUser.uid;
+          const isLastMessage =
+            isSent && index === conversationMessages.length - 1;
+
+          return (
+            <MessageBubble
+              message={item}
+              isSent={isSent}
+              isGroup={isGroup}
+              isLastMessage={isLastMessage}
+            />
+          );
+        }}
         contentContainerStyle={styles.messagesList}
         onContentSizeChange={() =>
           flatListRef.current?.scrollToEnd({ animated: true })

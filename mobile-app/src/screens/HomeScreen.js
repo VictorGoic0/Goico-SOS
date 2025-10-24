@@ -18,7 +18,6 @@ import { colors, spacing, typography } from "../styles/tokens";
 import { signOutUser } from "../utils/auth";
 import { deleteConversation, getConversationId } from "../utils/conversation";
 import { formatTimestamp, getAvatarColor, getInitials } from "../utils/helpers";
-import { testBackend } from "../services/aiService";
 
 export default function HomeScreen({ navigation }) {
   const currentUser = useFirebaseStore((state) => state.currentUser);
@@ -95,13 +94,6 @@ export default function HomeScreen({ navigation }) {
     // Cleanup listener on unmount
     return () => unsubscribe();
   }, [setUsers]);
-
-  // Test backend connection
-  useEffect(() => {
-    testBackend()
-      .then((data) => console.log("Backend connected:", data))
-      .catch((err) => console.error("Backend failed:", err));
-  }, []);
 
   const handleRefresh = () => {
     setIsRefreshing(true);

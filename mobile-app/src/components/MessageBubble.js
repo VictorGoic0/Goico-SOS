@@ -4,6 +4,7 @@ import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import {
   formatMessageTime,
+  formatTimestamp,
   getAvatarColor,
   getInitials,
 } from "../utils/helpers";
@@ -14,12 +15,14 @@ import {
  * @param {boolean} isSent - Whether message was sent by current user
  * @param {boolean} isGroup - Whether this is a group conversation
  * @param {boolean} showTimestamp - Whether to show timestamp
+ * @param {boolean} isLastMessage - Whether this is the last message (for read indicator)
  */
 export default function MessageBubble({
   message,
   isSent,
   isGroup = false,
   showTimestamp = true,
+  isLastMessage = false,
 }) {
   // Get sender info from usersMap (for group chats)
   const usersMap = useFirebaseStore((state) => state.usersMap);
@@ -98,13 +101,18 @@ export default function MessageBubble({
               </Text>
 
               {isSent && (
-                <Text style={[styles.statusIcon, isRead && styles.readIcon]}>
-                  {isSending ? "🕐" : isRead ? "✓✓" : "✓"}
-                </Text>
+                <Text style={styles.statusIcon}>{isSending ? "🕐" : "✓"}</Text>
               )}
             </View>
           )}
         </View>
+
+        {/* Show "Read X ago" indicator outside bubble for last sent message that has been read */}
+        {isSent && isRead && message.readAt && isLastMessage && (
+          <Text style={styles.readIndicator}>
+            Read {formatTimestamp(message.readAt)}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -198,7 +206,11 @@ const styles = StyleSheet.create({
     marginLeft: spacing[1],
     color: "rgba(255, 255, 255, 0.8)",
   },
-  readIcon: {
-    color: colors.primary.base, // Blue color for read receipts
+  readIndicator: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+    marginTop: spacing[1],
+    marginRight: 0,
+    alignSelf: "flex-end",
   },
 });

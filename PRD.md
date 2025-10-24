@@ -314,14 +314,17 @@ const markGroupMessagesAsRead = async (conversationId) => {
 
 - Sending: Single gray checkmark (⏳ or ✓ gray)
 - Sent: Single checkmark ✓
-- Read: Double checkmark in blue ✓✓ (blue)
+- Read: Single checkmark ✓ + "Read X ago" text below timestamp
 
 **Group Chat:**
 
-- Show read count: "Read by 2 of 4" or individual names on long-press
-- Blue checkmarks when all participants have read
-- Gray checkmarks when some (but not all) participants have read
-- Single checkmark when sent but nobody has read yet
+- Show read count: "Read by 2 of 4" text below timestamp
+- Show individual names on long-press (optional)
+- Single checkmark (✓) for all sent messages
+- Text indicator changes based on read status:
+  - No text: Sent but nobody has read
+  - "Read by 1 of 3": Some participants have read
+  - "Read by 3 of 3": All participants have read
 
 ---
 
@@ -1881,7 +1884,7 @@ EXPO_PUBLIC_BACKEND_URL=https://your-app.vercel.app
   - **Message status indicators** (for sent messages):
     - Sending: ⏳ or gray ✓
     - Sent: ✓
-    - Read: ✓✓ (blue)
+    - Read: ✓ + "Read 2m ago" text (below timestamp)
   - Sender name (for groups)
   - Read receipts for groups ("Read by 2 of 4")
 - Input bar (bottom):
