@@ -7,7 +7,7 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -35,6 +35,11 @@ import {
   sendMessage,
 } from "../utils/conversation";
 import { getAvatarColor, getInitials } from "../utils/helpers";
+import {
+  listenToTypingIndicator,
+  removeTypingIndicator,
+  setTypingIndicator,
+} from "../utils/typingIndicator";
 
 export default function ChatScreen({ route, navigation }) {
   const { otherUser: routeOtherUser, conversationId: routeConversationId } =
@@ -67,6 +72,10 @@ export default function ChatScreen({ route, navigation }) {
   const [showSummary, setShowSummary] = useState(false);
   const [summary, setSummary] = useState("");
   const [loadingSummary, setLoadingSummary] = useState(false);
+
+  // Typing indicators state
+  const [typingUserIds, setTypingUserIds] = useState([]);
+  const typingTimeoutRef = useRef(null);
 
   // Get messages for this conversation
   const conversationMessages = messages[conversationId] || [];
@@ -197,6 +206,51 @@ export default function ChatScreen({ route, navigation }) {
 
     markMessagesAsRead();
   }, [conversationId, messages, currentUser.uid]);
+
+  // Typing indicator: Listen to typing users
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const unsubscribe = listenToTypingIndicator(
+      conversationId,
+      currentUser.uid,
+      (userIds) => {
+        setTypingUserIds(userIds);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+      // Clean up our own typing status
+      removeTypingIndicator(conversationId, currentUser.uid);
+      isTypingRef.current = false;
+    };
+  }, [conversationId, currentUser.uid]);
+
+  // Track if user is currently marked as typing
+  const isTypingRef = useRef(false);
+
+  // Typing indicator: Handle typing (instant, no debounce)
+  const handleTypingIndicator = useCallback(() => {
+    if (!conversationId) return;
+
+    // Only set typing on first keystroke (prevents excessive writes)
+    if (!isTypingRef.current) {
+      setTypingIndicator(conversationId, currentUser.uid);
+      isTypingRef.current = true;
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Auto-clear after 1 second of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      removeTypingIndicator(conversationId, currentUser.uid);
+      isTypingRef.current = false;
+    }, 1000);
+  }, [conversationId, currentUser.uid]);
 
   // Task 30: Detect if conversation is a group
   const conversation = conversationsMap[conversationId];
@@ -401,6 +455,8 @@ export default function ChatScreen({ route, navigation }) {
   // Handle input text change
   const handleInputChange = (text) => {
     setDraft(conversationId, text);
+    // Trigger typing indicator (instant)
+    handleTypingIndicator();
   };
 
   // Handle summarize thread
@@ -534,6 +590,38 @@ export default function ChatScreen({ route, navigation }) {
           </View>
         }
       />
+
+      {/* Typing Indicator */}
+      {typingUserIds.length > 0 && (
+        <View style={styles.typingIndicator}>
+          <Text style={styles.typingText}>
+            {(() => {
+              const typingNames = typingUserIds
+                .map(
+                  (userId) =>
+                    usersMap[userId]?.displayName || usersMap[userId]?.username
+                )
+                .filter(Boolean);
+
+              if (typingNames.length === 0) return "";
+
+              if (typingNames.length === 1) {
+                return `${typingNames[0]} is typing...`;
+              }
+
+              if (typingNames.length === 2) {
+                return `${typingNames[0]} and ${typingNames[1]} are typing...`;
+              }
+
+              return `${typingNames.slice(0, 2).join(", ")} and ${
+                typingNames.length - 2
+              } ${
+                typingNames.length - 2 === 1 ? "other is" : "others are"
+              } typing...`;
+            })()}
+          </Text>
+        </View>
+      )}
 
       {/* Message Input */}
       <View style={styles.inputContainer}>
@@ -674,5 +762,15 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontSize: 22,
+  },
+  typingIndicator: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    backgroundColor: colors.background.default,
+  },
+  typingText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    fontStyle: "italic",
   },
 });

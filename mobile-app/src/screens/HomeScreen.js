@@ -14,6 +14,7 @@ import {
 import UserListItem from "../components/UserListItem";
 import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
+import usePresenceStore from "../stores/presenceStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import { signOutUser } from "../utils/auth";
 import { deleteConversation, getConversationId } from "../utils/conversation";
@@ -26,15 +27,30 @@ export default function HomeScreen({ navigation }) {
   const conversationsMap = useFirebaseStore((state) => state.conversationsMap);
   const conversations = useFirebaseStore((state) => state.conversations);
   const usersMap = useFirebaseStore((state) => state.usersMap);
+  const isConnected = usePresenceStore((state) => state.isConnected);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deletingConversationId, setDeletingConversationId] = useState(null);
+  const [wasOffline, setWasOffline] = useState(false);
 
   // Get group conversations
   const groupConversations = conversations.filter(
     (conv) => conv.isGroup === true
   );
+
+  // Track connection status for "Connecting" state
+  useEffect(() => {
+    if (!isConnected) {
+      setWasOffline(true);
+    } else if (isConnected && wasOffline) {
+      // Clear "Connecting" state after 2 seconds when reconnected
+      const timer = setTimeout(() => {
+        setWasOffline(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, wasOffline]);
 
   // Configure header with profile icon
   useLayoutEffect(() => {
@@ -367,8 +383,28 @@ export default function HomeScreen({ navigation }) {
     );
   }
 
+  // Determine connection status message
+  const connectionStatus = !isConnected
+    ? "Offline"
+    : wasOffline
+    ? "Connecting"
+    : null;
+
   return (
     <View style={styles.container}>
+      {/* Connection Status Banner */}
+      {connectionStatus && (
+        <View
+          style={[
+            styles.connectionBanner,
+            connectionStatus === "Connecting" &&
+              styles.connectionBannerConnecting,
+          ]}
+        >
+          <Text style={styles.connectionBannerText}>{connectionStatus}</Text>
+        </View>
+      )}
+
       <FlatList
         data={combinedList}
         renderItem={renderItem}
@@ -580,5 +616,20 @@ const styles = StyleSheet.create({
   },
   deletingIndicator: {
     marginLeft: spacing[2],
+  },
+  connectionBanner: {
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[4],
+    backgroundColor: colors.error.main,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  connectionBannerConnecting: {
+    backgroundColor: colors.warning.main,
+  },
+  connectionBannerText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.neutral.white,
   },
 });
