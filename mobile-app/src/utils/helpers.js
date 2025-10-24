@@ -20,7 +20,21 @@ export const formatTimestamp = (timestamp) => {
   if (!timestamp) return "";
 
   const now = Date.now();
-  const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+
+  // Handle Firestore Timestamp objects (have .seconds property)
+  let date;
+  if (timestamp instanceof Date) {
+    date = timestamp;
+  } else if (timestamp.seconds) {
+    // Firestore Timestamp
+    date = new Date(timestamp.seconds * 1000);
+  } else if (typeof timestamp === "number") {
+    // Unix timestamp in milliseconds
+    date = new Date(timestamp);
+  } else {
+    return "";
+  }
+
   const diff = now - date.getTime();
 
   const months = [

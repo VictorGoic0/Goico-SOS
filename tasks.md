@@ -2166,57 +2166,207 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 ## PR #11: Read Receipts Implementation
 
-**Goal**: Implement read receipts for both 1-on-1 and group chats to show when messages have been read
+**Goal**: Update existing message status system to use 3-state flow (sending → sent → read) and implement group chat read receipts
+
+**Note**: Basic read receipt functionality already exists! The `markMessagesAsDelivered` function in ChatScreen marks messages when viewed. We're renaming and updating it to reflect the accurate "read" status.
 
 ### Subtasks
 
-**Update Message Schema for Read Receipts:**
+**Rename and Update Existing Read Receipt Logic:**
 
-- [ ] 1. In `src/utils/conversation.js`:
+- [x] 1. In `src/screens/ChatScreen.js`:
 
-  - Add function: `markMessagesAsRead(conversationId, currentUserId)`
-  - Query messages that are not from current user and have status "sent" or "delivered"
-  - Update status to "read" using batch write
+  - Rename function: `markMessagesAsDelivered` → `markMessagesAsRead`
+  - Update the query to find messages with status "sent" (remove check for "delivered")
+  - Change `updateDoc` to set status to "read" instead of "delivered"
+  - Add `readAt: serverTimestamp()` field when marking as read
 
-- [ ] 2. For group chats, add `readBy` array field to messages:
-  - Track which users have read each message
-  - Use `arrayUnion` to add current user to readBy array
-  - Keep backward compatibility with simple status field
+  ```javascript
+  const markMessagesAsRead = async () => {
+    const conversationMessages = messages[conversationId] || [];
 
-**Implement Read Receipt Detection:**
+    // Find messages from other user that are "sent" but not "read"
+    const unreadMessages = conversationMessages.filter(
+      (msg) =>
+        msg.senderId !== currentUser.uid &&
+        msg.status === "sent" &&
+        !msg.metadata?.hasPendingWrites
+    );
 
-- [ ] 3. In `src/screens/ChatScreen.js`:
+    // Mark each as read
+    for (const msg of unreadMessages) {
+      try {
+        const messageRef = doc(
+          db,
+          "conversations",
+          conversationId,
+          "messages",
+          msg.messageId
+        );
+        await updateDoc(messageRef, {
+          status: "read",
+          readAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error("Error marking message as read:", error);
+      }
+    }
+  };
+  ```
 
-  - Add useEffect to detect when conversation is viewed
-  - Call `markMessagesAsRead` when ChatScreen mounts or becomes focused
-  - Only mark messages as read if they're from other users
+- [x] 2. Update `MessageBubble.js` to show "Read X ago" indicator:
 
-- [ ] 4. Handle app state changes:
-  - Mark messages as read when app comes to foreground
-  - Don't mark as read if user just backgrounded the app
-
-**Update Message Status Indicators:**
-
-- [ ] 5. In `src/components/MessageBubble.js`:
-  - Add "read" status indicator: Blue double checkmark ✓✓
+  - Remove the `isDelivered` variable that checks for "delivered" or "read"
+  - Create `isRead` variable that only checks for "read"
   - Update status display logic:
     - "sending": Gray clock 🕐
-    - "sent": Single checkmark ✓
-    - "delivered": Double checkmark ✓✓
-    - "read": Blue double checkmark ✓✓
+    - "sent": Single checkmark ✓ (stays as ✓ even after read)
+    - "read": Single checkmark ✓ + **"Read X ago"** text below timestamp
+
+  **Design Decision**: Instead of changing checkmark styles (✓ → ✓✓), show explicit "Read X ago" text below the message. This provides more information (when it was read) and is clearer for users.
+
+  ```javascript
+  import { formatTimestamp } from "../utils/helpers";
+
+  const isRead = message.status === "read";
+  const isSending = message.status === "sending";
+
+  // In the status icon (always single checkmark when sent):
+  {
+    isSent && <Text style={styles.statusIcon}>{isSending ? "🕐" : "✓"}</Text>;
+  }
+
+  // Below timestamp, show read indicator:
+  {
+    isSent && isRead && message.readAt && (
+      <Text style={styles.readIndicator}>
+        Read {formatTimestamp(message.readAt)}
+      </Text>
+    );
+  }
+  ```
+
+  **Visual Layout:**
+
+  ```
+  ┌─────────────────────────┐
+  │ Hey, how are you?       │
+  │                         │
+  │ 3:45 PM ✓               │  ← Timestamp + sent checkmark
+  └─────────────────────────┘
+              Read 2m ago      ← Read indicator (outside bubble, right-aligned, last message only)
+  ```
+
+  **Additional Implementation Details:**
+
+  - Read indicator only shows on the LAST sent message (via `isLastMessage` prop)
+  - Text is positioned outside the bubble, aligned to the right
+  - Uses `colors.text.secondary` for better contrast on white background
+  - ChatScreen passes `isLastMessage={isSent && index === conversationMessages.length - 1}`
+
+**One-Time Migration: Clean Up "delivered" Status:**
+
+- [x] 3. Create migration utility to update all existing "delivered" messages:
+
+  - File: `src/utils/migrateMessageStatus.js`
+  - Query all messages in Firestore with status "delivered"
+  - Update them to status "sent" (since we can't know if they were actually read)
+  - Run this once manually from a temporary screen or debug function
+  - Delete the migration utility after running
+
+  ```javascript
+  // src/utils/migrateMessageStatus.js
+  import {
+    collection,
+    query,
+    where,
+    getDocs,
+    writeBatch,
+  } from "firebase/firestore";
+  import { db } from "../config/firebase";
+
+  export const migrateDeliveredToSent = async () => {
+    console.log("Starting migration: delivered → sent");
+
+    // Get all conversations
+    const conversationsSnap = await getDocs(collection(db, "conversations"));
+
+    let totalUpdated = 0;
+
+    for (const convDoc of conversationsSnap.docs) {
+      const messagesRef = collection(
+        db,
+        "conversations",
+        convDoc.id,
+        "messages"
+      );
+      const q = query(messagesRef, where("status", "==", "delivered"));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) continue;
+
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.update(doc.ref, { status: "sent" });
+      });
+
+      await batch.commit();
+      totalUpdated += snapshot.docs.length;
+      console.log(
+        `Migrated ${snapshot.docs.length} messages in conversation ${convDoc.id}`
+      );
+    }
+
+    console.log(`Migration complete! Updated ${totalUpdated} messages.`);
+  };
+  ```
+
+- [x] 4. Run migration and verify:
+  - Add temporary button in HomeScreen to run `migrateDeliveredToSent()`
+  - Run migration once
+  - Verify in Firebase console that no messages have "delivered" status
+  - Remove the migration button and utility file
+
+**Add Group Chat Read Receipts:**
+
+- [ ] 5. For group chats, add `readBy` array field to messages:
+  - Track which users have read each message
+  - Use `arrayUnion` to add current user to readBy array
+  - Keep backward compatibility with simple status field for 1-on-1 chats
 
 **Group Chat Read Receipts:**
 
-- [ ] 6. For group messages, show read count:
+- [ ] 6. Update `markMessagesAsRead` for group chats:
+
+  - For group messages, use `arrayUnion` to add current user to `readBy` array
+  - Also update simple `status` field for backward compatibility
+  - Mark as "read" when any user reads (for status field)
+  - Track individual readers in `readBy` array
+
+  ```javascript
+  // In ChatScreen for group chats:
+  if (conversation?.isGroup) {
+    await updateDoc(messageRef, {
+      status: "read",
+      readBy: arrayUnion(currentUser.uid),
+      readAt: serverTimestamp(),
+    });
+  } else {
+    await updateDoc(messageRef, {
+      status: "read",
+      readAt: serverTimestamp(),
+    });
+  }
+  ```
+
+- [ ] 7. For group messages, show read count:
 
   - Display "Read by X of Y" below message
-  - Calculate from `readBy` array length vs total participants
+  - Calculate from `readBy` array length vs total participants (excluding sender)
   - Show individual names on long-press (optional)
-
-- [ ] 7. Update group message status logic:
-  - Mark as "delivered" when any user receives
-  - Mark as "read" when any user reads
-  - Show blue checkmarks when all participants have read
+  - Show blue checkmarks (✓✓) when all participants have read
+  - Show gray checkmarks (✓✓) when some (but not all) have read
+  - Show single checkmark (✓) when sent but nobody has read yet
 
 **Add Read Receipt UI Components:**
 
@@ -2235,24 +2385,26 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 - [ ] 10. Prevent duplicate read receipts:
 
-  - Check if user already in readBy array before adding
-  - Use Firestore transactions for atomic updates
+  - Firestore's `arrayUnion()` automatically prevents duplicates
+  - No additional checks needed
+  - Test to verify duplicate protection works correctly
 
 - [ ] 11. Handle offline scenarios:
 
-  - Queue read receipt updates when offline
-  - Sync when connection restored
+  - Firebase automatically queues read receipt updates when offline
+  - Test to verify sync works correctly when connection is restored
+  - No additional code needed (Firebase handles this natively)
 
 - [ ] 12. Handle user leaving/joining groups:
   - Update read count calculations
   - Remove user from readBy arrays when they leave
 
-**Update Firebase Store:**
+**Update Firebase Store (Optional):**
 
-- [ ] 13. In `src/stores/firebaseStore.js`:
-  - Add function: `updateMessageReadStatus(conversationId, messageId, readBy)`
-  - Update message in store when read status changes
-  - Handle both simple status and readBy array updates
+- [ ] 13. In `src/stores/firebaseStore.js` (only if needed):
+  - May need to add helper function: `updateMessageReadStatus(conversationId, messageId, readBy)`
+  - Current implementation already handles updates via onSnapshot listeners
+  - Only add this if you need programmatic updates outside of ChatScreen
 
 **Add Read Receipt Settings:**
 
@@ -2266,16 +2418,34 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - Only send read receipts if user has enabled them
   - Still show received read receipts regardless of setting
 
-**Performance Optimization:**
+**Performance Optimization (Nice-to-Have):**
 
 - [ ] 16. Batch read receipt updates:
 
-  - Update multiple messages in single batch write
-  - Reduce Firestore write operations
+  - Current implementation updates messages one by one in a loop
+  - Consider using Firestore `writeBatch()` to update multiple messages atomically
+  - This reduces write operations and improves performance
+  - Example:
 
-- [ ] 17. Debounce read receipt updates:
-  - Don't update on every scroll
-  - Update when user stops scrolling for 2+ seconds
+  ```javascript
+  const batch = writeBatch(db);
+  unreadMessages.forEach((msg) => {
+    const messageRef = doc(
+      db,
+      "conversations",
+      conversationId,
+      "messages",
+      msg.messageId
+    );
+    batch.update(messageRef, { status: "read", readAt: serverTimestamp() });
+  });
+  await batch.commit();
+  ```
+
+- [ ] 17. Debounce read receipt updates (Optional):
+  - Current implementation marks as read immediately on ChatScreen mount
+  - If performance is an issue, consider debouncing
+  - But immediate marking is generally better UX
 
 **Test Read Receipts:**
 
@@ -2298,22 +2468,23 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Files Created:**
 
-- `src/components/ReadReceiptIndicator.js`
+- `src/utils/migrateMessageStatus.js` (temporary - delete after migration)
+- `src/components/ReadReceiptIndicator.js` (for group chat read counts)
 
 **Files Modified:**
 
-- `src/utils/conversation.js` (add markMessagesAsRead function)
-- `src/screens/ChatScreen.js` (add read receipt detection)
-- `src/components/MessageBubble.js` (add read receipt display)
-- `src/stores/firebaseStore.js` (add read receipt updates)
-- `src/screens/ProfileScreen.js` (add read receipt settings)
+- `src/screens/ChatScreen.js` (rename markMessagesAsDelivered → markMessagesAsRead, update to use "read" status)
+- `src/components/MessageBubble.js` (update to 3-state system, add blue color for read status)
+- `src/stores/firebaseStore.js` (add read receipt updates if needed)
+- `src/screens/ProfileScreen.js` (add read receipt settings - optional)
 
 **Test Before Merge:**
 
-- [ ] 1-on-1 messages show blue checkmarks when read
+- [ ] Migration complete: No messages with "delivered" status remain in Firebase
+- [ ] 1-on-1 messages show correct status flow: 🕐 sending → ✓ sent → ✓✓ read (blue)
 - [ ] Group messages show "Read by X of Y" correctly
+- [ ] Read receipts update when ChatScreen is opened
 - [ ] Read receipts work when app comes to foreground
-- [ ] Read receipts respect user privacy settings
 - [ ] Offline read receipts sync when reconnected
 - [ ] No duplicate read receipts sent
 - [ ] Performance is smooth with many messages

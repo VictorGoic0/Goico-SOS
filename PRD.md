@@ -219,12 +219,15 @@ export async function POST(req: Request) {
 
 ### Status Flow
 
-Messages have **4 status states**:
+Messages have **3 status states**:
 
-1. **"sending"**: Message in LOCAL store, being written to Firestore
-2. **"sent"**: Successfully written to Firestore (✓)
-3. **"delivered"**: Recipient's app has received it via onSnapshot (✓✓)
-4. **"read"**: Recipient opened conversation and viewed message (✓✓ in blue)
+1. **"sending"**: Message has pending writes (local, not yet confirmed by Firebase server)
+2. **"sent"**: Successfully written to Firestore and confirmed by server (✓)
+3. **"read"**: Recipient opened the ChatScreen and viewed the message (✓✓ blue)
+
+**Why Not "Delivered"?**
+
+Firebase Firestore doesn't expose when a specific user's device has synced/received a document update. The `onSnapshot` listeners fire in the background even when the app is closed, and messages sync to the device's local cache automatically. There's no reliable way to detect true "delivered to device" status without implementing socket infrastructure like WhatsApp. Therefore, we use a simpler and more honest 3-state system: sending → sent → read.
 
 ### Implementation
 
@@ -233,10 +236,13 @@ Messages have **4 status states**:
 ```javascript
 // Message schema remains simple
 {
-  status: "sending" | "sent" | "delivered" | "read";
+  status: "sending" | "sent" | "read";
 }
 
-// Mark as read when conversation is opened
+// Detect "sending" vs "sent" using Firebase metadata
+const messageStatus = message.hasPendingWrites ? "sending" : "sent";
+
+// Mark as read when conversation is opened (ChatScreen mount)
 const markMessagesAsRead = async (conversationId) => {
   const messagesRef = collection(
     db,
@@ -248,14 +254,14 @@ const markMessagesAsRead = async (conversationId) => {
   const q = query(
     messagesRef,
     where("senderId", "!=", currentUserId),
-    where("status", "in", ["sent", "delivered"])
+    where("status", "==", "sent") // Only mark "sent" messages as read
   );
 
   const snapshot = await getDocs(q);
   const batch = writeBatch(db);
 
   snapshot.docs.forEach((doc) => {
-    batch.update(doc.ref, { status: "read" });
+    batch.update(doc.ref, { status: "read", readAt: serverTimestamp() });
   });
 
   await batch.commit();
@@ -269,20 +275,9 @@ For group chats, we need to track which users have read each message:
 ```javascript
 // Updated message schema for groups
 {
-  status: "sent" | "delivered" | "read", // Still keep for backwards compatibility
-  deliveredTo: [userId1, userId2], // Array of users who received
-  readBy: [userId1], // Array of users who read
+  status: "sending" | "sent" | "read", // Overall status
+  readBy: [userId1, userId2], // Array of users who have read
 }
-
-// Mark as delivered when user receives (onSnapshot fires)
-const markMessageDelivered = async (conversationId, messageId) => {
-  const messageRef = doc(db, "conversations", conversationId, "messages", messageId);
-
-  await updateDoc(messageRef, {
-    deliveredTo: arrayUnion(currentUserId),
-    status: "delivered" // Update status once ANY user receives
-  });
-};
 
 // Mark as read when user views conversation
 const markGroupMessagesAsRead = async (conversationId) => {
@@ -319,14 +314,17 @@ const markGroupMessagesAsRead = async (conversationId) => {
 
 - Sending: Single gray checkmark (⏳ or ✓ gray)
 - Sent: Single checkmark ✓
-- Delivered: Double checkmark ✓✓
-- Read: Double checkmark in blue ✓✓ (blue)
+- Read: Single checkmark ✓ + "Read X ago" text below timestamp
 
 **Group Chat:**
 
-- Show read count: "Read by 2 of 4" or individual names on long-press
-- Blue checkmarks when all participants have read
-- Gray checkmarks when partially read/delivered
+- Show read count: "Read by 2 of 4" text below timestamp
+- Show individual names on long-press (optional)
+- Single checkmark (✓) for all sent messages
+- Text indicator changes based on read status:
+  - No text: Sent but nobody has read
+  - "Read by 1 of 3": Some participants have read
+  - "Read by 3 of 3": All participants have read
 
 ---
 
@@ -1105,7 +1103,7 @@ export const executeAgent = async (userQuery, conversationId, onChunk) => {
 - View message history
 - Messages sync instantly across devices
 - Timestamps for each message
-- **Message status tracking**: sending → sent → delivered → read
+- **Message status tracking**: sending → sent → read
 
 ✅ **Offline Support**
 
@@ -1129,7 +1127,7 @@ export const executeAgent = async (userQuery, conversationId, onChunk) => {
 
 - Two users can sign up and chat in real-time
 - Messages appear instantly (<200ms)
-- Message status shows correctly (sending/sent/delivered/read)
+- Message status shows correctly (sending → sent → read)
 - Offline messages send successfully when reconnected
 - User presence updates accurately
 - Profile photos upload and display correctly
@@ -1370,18 +1368,22 @@ Based on proven CollabCanvas pattern:
 ```
 USER SENDS MESSAGE
     ↓
-1. LOCAL STORE (optimistic, status: "sending")
+1. WRITE TO FIRESTORE (initial status: "sent", but hasPendingWrites: true)
     ↓
-2. WRITE TO FIRESTORE (status: "sent")
+2. SENDER'S onSnapshot FIRES (hasPendingWrites: true → display as "sending")
     ↓
-3. REMOVE FROM LOCAL STORE
+3. FIREBASE CONFIRMS WRITE (hasPendingWrites: false → display as "sent")
     ↓
-4. FIREBASE STORE UPDATES (onSnapshot, status: "sent")
+4. RECIPIENT'S onSnapshot FIRES (they now have the message)
     ↓
-5. RECIPIENT RECEIVES (status: "delivered")
+5. RECIPIENT OPENS ChatScreen (markMessagesAsRead runs)
     ↓
-6. RECIPIENT READS (status: "read")
+6. STATUS UPDATED TO "read" (readAt timestamp set)
+    ↓
+7. SENDER SEES "read" STATUS (✓✓ blue)
 ```
+
+**Note**: We removed the separate LOCAL store for pending messages. Firebase's `hasPendingWrites` metadata provides the same optimistic update capability natively.
 
 **Component renders:**
 
@@ -1477,12 +1479,12 @@ const allMessages = [
   - senderUsername: string (for display, denormalized)
   - text: string (message content)
   - timestamp: timestamp (Firestore server timestamp)
-  - status: string ("sending" | "sent" | "delivered" | "read")
+  - status: string ("sending" | "sent" | "read")
+  - readAt: timestamp | null (when message was marked as read)
   - imageURL: string | null (for image messages - bonus feature)
 
   // NEW: Group chat read receipts
-  - deliveredTo: array<string> | null (for groups only)
-  - readBy: array<string> | null (for groups only)
+  - readBy: array<string> | null (for groups only - array of user IDs who have read)
 
   // NEW: Priority detection
   - priority: "high" | "normal" | "low" | null
@@ -1495,10 +1497,11 @@ const allMessages = [
 
 **Message Status Flow:**
 
-1. **"sending"**: Optimistic local state (in LOCAL store, not written to Firestore yet)
-2. **"sent"**: Successfully written to Firestore
-3. **"delivered"**: Recipient's app has received it (onSnapshot fired on their device)
-4. **"read"**: Recipient opened conversation and viewed message
+1. **"sending"**: Message has `hasPendingWrites: true` (local write not yet confirmed by Firebase server)
+2. **"sent"**: Message has `hasPendingWrites: false` (successfully written to Firestore and confirmed)
+3. **"read"**: Recipient opened ChatScreen and viewed message (status field updated to "read", readAt timestamp set)
+
+**Note**: We don't track "delivered" because Firebase Firestore doesn't expose when a specific device has synced a document. The 3-state system (sending → sent → read) is simpler, more honest, and matches what we can reliably detect.
 
 **Indexes Needed:**
 
@@ -1665,7 +1668,7 @@ EXPO_PUBLIC_BACKEND_URL=https://your-app.vercel.app
 
 - I can tap any user to start a conversation
 - I can send messages that appear instantly with "sending" status
-- I see message status change to "sent" then "delivered" then "read"
+- I see message status change to "sent" then "read" (when recipient views it)
 - I can see message timestamps
 - I can view my conversation history
 - I can see when the other person is online or their last seen time
@@ -1682,7 +1685,7 @@ EXPO_PUBLIC_BACKEND_URL=https://your-app.vercel.app
 - I can write messages while offline
 - My messages show "sending" status and queue locally
 - When I reconnect, all queued messages send automatically
-- Message status updates to "sent" and "delivered"
+- Message status updates to "sent" (and eventually "read" when recipient views)
 - I can view previously loaded conversations offline
 - I see a clear "Offline" indicator
 
@@ -1756,30 +1759,30 @@ EXPO_PUBLIC_BACKEND_URL=https://your-app.vercel.app
 1. User types message in input field
 2. User starts typing → typing indicator sent to Realtime Database
 3. Taps send button
-4. **App adds to LOCAL store** (status: "sending", optimistic update)
-5. **UI shows message immediately** with "sending" indicator
-6. **App writes to Firestore** (status: "sent")
-7. **Once Firestore confirms**, remove from LOCAL store
-8. **onSnapshot updates FIREBASE store** (status: "sent")
-9. **Recipient's onSnapshot fires** → add to their FIREBASE store
-10. **Recipient's app writes back** (status: "delivered")
-11. **Sender sees status update** to "delivered"
-12. When recipient views conversation, mark as "read"
-13. **Sender sees blue checkmarks** (read status)
+4. **App writes to Firestore** (with status: "sent")
+5. **Sender's onSnapshot fires immediately** with `hasPendingWrites: true`
+6. **UI shows message immediately** with "sending" indicator (⏳ or gray ✓)
+7. **Firebase confirms write** → `hasPendingWrites: false`
+8. **UI updates to "sent"** indicator (single ✓)
+9. **Recipient's onSnapshot fires** → they receive the message
+10. **Recipient opens ChatScreen** → markMessagesAsRead() runs
+11. **Status updated to "read"** in Firestore (with readAt timestamp)
+12. **Sender's onSnapshot fires** with updated status
+13. **Sender sees blue checkmarks** (✓✓ blue)
 
 ### Offline Message Flow
 
 1. User loses internet connection
 2. Connection status indicator shows "Offline"
 3. User types and sends message
-4. App adds to LOCAL store (status: "sending")
-5. Firestore write queued locally (automatic)
-6. UI shows "sending..." indicator
+4. **App writes to Firestore** (write queued locally by Firebase)
+5. **onSnapshot fires with `hasPendingWrites: true`**
+6. UI shows "sending..." indicator (⏳ or gray ✓)
 7. User reconnects
 8. Connection status shows "Connecting..." then "Online"
-9. Firestore syncs queued writes automatically (status: "sent")
-10. LOCAL store clears, FIREBASE store updates
-11. Messages appear with correct timestamps
+9. **Firebase syncs queued writes automatically**
+10. **`hasPendingWrites` changes to `false`** → UI updates to "sent" (✓)
+11. Messages appear with correct server timestamps
 
 ### AI Agent Workflow (via Vercel Backend)
 
@@ -1881,8 +1884,7 @@ EXPO_PUBLIC_BACKEND_URL=https://your-app.vercel.app
   - **Message status indicators** (for sent messages):
     - Sending: ⏳ or gray ✓
     - Sent: ✓
-    - Delivered: ✓✓
-    - Read: ✓✓ (blue)
+    - Read: ✓ + "Read 2m ago" text (below timestamp)
   - Sender name (for groups)
   - Read receipts for groups ("Read by 2 of 4")
 - Input bar (bottom):
