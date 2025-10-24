@@ -1,5 +1,12 @@
-import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import {
@@ -16,6 +23,7 @@ import {
  * @param {boolean} isGroup - Whether this is a group conversation
  * @param {boolean} showTimestamp - Whether to show timestamp
  * @param {boolean} isLastMessage - Whether this is the last message (for read indicator)
+ * @param {Array} readBy - Array of user IDs who have read the message (for group chats, excluding sender)
  */
 export default function MessageBubble({
   message,
@@ -23,6 +31,7 @@ export default function MessageBubble({
   isGroup = false,
   showTimestamp = true,
   isLastMessage = false,
+  readBy = [],
 }) {
   // Get sender info from usersMap (for group chats)
   const usersMap = useFirebaseStore((state) => state.usersMap);
@@ -108,10 +117,77 @@ export default function MessageBubble({
         </View>
 
         {/* Show "Read X ago" indicator outside bubble for last sent message that has been read */}
-        {isSent && isRead && message.readAt && isLastMessage && (
+        {isSent && isRead && message.readAt && isLastMessage && !isGroup && (
           <Text style={styles.readIndicator}>
             Read {formatTimestamp(message.readAt)}
           </Text>
+        )}
+
+        {/* Show group chat read receipts with mini avatars */}
+        {isSent && isGroup && readBy.length > 0 && isLastMessage && (
+          <TouchableOpacity
+            style={styles.groupReadIndicator}
+            onLongPress={() => {
+              // Show full names on long press (filter out any users no longer in system)
+              const readerNames = readBy
+                .map((userId) => {
+                  const user = usersMap[userId];
+                  return user?.displayName || user?.username;
+                })
+                .filter(Boolean) // Remove undefined users
+                .join(", ");
+
+              if (readerNames) {
+                Alert.alert("Read by", readerNames);
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.groupReadText}>
+              Read {message.readAt && formatTimestamp(message.readAt)}
+            </Text>
+            <View style={styles.miniAvatarsContainer}>
+              {readBy.slice(0, 3).map((userId, index) => {
+                const user = usersMap[userId];
+                return user?.imageURL ? (
+                  <Image
+                    key={userId}
+                    source={{ uri: user.imageURL }}
+                    style={[
+                      styles.miniAvatar,
+                      index > 0 && styles.miniAvatarOverlap,
+                    ]}
+                  />
+                ) : (
+                  <View
+                    key={userId}
+                    style={[
+                      styles.miniAvatarPlaceholder,
+                      { backgroundColor: getAvatarColor(userId) },
+                      index > 0 && styles.miniAvatarOverlap,
+                    ]}
+                  >
+                    <Text style={styles.miniAvatarText}>
+                      {getInitials(user?.displayName || user?.username || "?")}
+                    </Text>
+                  </View>
+                );
+              })}
+              {readBy.length > 3 && (
+                <View
+                  style={[
+                    styles.miniAvatarPlaceholder,
+                    styles.miniAvatarOverlap,
+                    { backgroundColor: colors.neutral.dark },
+                  ]}
+                >
+                  <Text style={styles.miniAvatarText}>
+                    +{readBy.length - 3}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -212,5 +288,44 @@ const styles = StyleSheet.create({
     marginTop: spacing[1],
     marginRight: 0,
     alignSelf: "flex-end",
+  },
+  groupReadIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: spacing[1],
+    alignSelf: "flex-end",
+  },
+  groupReadText: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+    marginRight: spacing[2],
+  },
+  miniAvatarsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  miniAvatar: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.background.default,
+  },
+  miniAvatarPlaceholder: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.background.default,
+  },
+  miniAvatarText: {
+    fontSize: 8,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.neutral.white,
+  },
+  miniAvatarOverlap: {
+    marginLeft: -6, // Overlap avatars slightly
   },
 });

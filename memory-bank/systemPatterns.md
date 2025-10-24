@@ -124,7 +124,7 @@ USER SENDS MESSAGE
     ↓
 3. onSnapshot FIRES (hasPendingWrites: true)
     ↓
-4. UI SHOWS MESSAGE (status: "sending")
+4. UI SHOWS MESSAGE (status: "sending" - 🕐)
     ↓
 5. SERVER CONFIRMS WRITE
     ↓
@@ -136,12 +136,17 @@ USER SENDS MESSAGE
     ↓
 9. RECIPIENT OPENS ChatScreen (markMessagesAsRead runs)
     ↓
-10. STATUS UPDATED TO "read" (with readAt timestamp)
+10. 1-ON-1: STATUS UPDATED TO "read" + readAt timestamp
+    GROUP: readBy ARRAY UPDATED with arrayUnion(currentUser.uid)
     ↓
-11. SENDER'S onSnapshot FIRES (status: "read" - ✓✓ blue)
+11. SENDER'S onSnapshot FIRES
+    ↓
+12. UI SHOWS READ RECEIPT:
+    - 1-on-1: "Read X ago" text below last message
+    - Group: "Read X ago" + mini avatars of readers (up to 3, then "+N")
 ```
 
-**Note**: We use a 3-state system (sending → sent → read) because Firebase doesn't expose when a message is delivered to a specific device. The onSnapshot listener fires in the background even when the app is closed.
+**Note**: We use a 3-state system (sending → sent → read) with explicit "Read X ago" indicators for clarity. Group chats track individual readers in a `readBy` array, displaying mini profile avatars with long-press to see full list.
 
 **Component renders:**
 
@@ -251,10 +256,17 @@ USER LOGIN
   text: string,           // message content
   timestamp: timestamp,   // Firestore server timestamp
   status: string,         // "sending" | "sent" | "read"
-  readAt: timestamp | null, // When message was marked as read
+  readAt: timestamp | null, // When message was marked as read (first read time)
+  readBy: array<string> | null, // For groups: array of user IDs who read (uses arrayUnion)
   imageURL: string | null // for image messages - bonus feature
 }
 ```
+
+**Read Receipt Fields:**
+
+- `status`: Simple status for 1-on-1 chats and backward compatibility
+- `readAt`: Timestamp when first marked as read
+- `readBy`: Array of user IDs who have read (groups only, uses `arrayUnion` to prevent duplicates)
 
 ### Realtime Database Schema
 

@@ -1,4 +1,5 @@
 import {
+  arrayUnion,
   collection,
   doc,
   onSnapshot,
@@ -176,36 +177,70 @@ export default function ChatScreen({ route, navigation }) {
     const markMessagesAsRead = async () => {
       const conversationMessages = messages[conversationId] || [];
 
-      // Find messages from other user that are "sent" but not "read"
-      const unreadMessages = conversationMessages.filter(
-        (msg) =>
-          msg.senderId !== currentUser.uid &&
-          msg.status === "sent" &&
-          !msg.metadata?.hasPendingWrites // Don't update pending writes
-      );
+      // Get conversation to check if it's a group
+      const conversation = conversationsMap[conversationId];
+      const isGroup = conversation?.isGroup || false;
 
-      // Mark each as read
-      for (const msg of unreadMessages) {
-        try {
-          const messageRef = doc(
-            db,
-            "conversations",
-            conversationId,
-            "messages",
-            msg.messageId
-          );
-          await updateDoc(messageRef, {
-            status: "read",
-            readAt: serverTimestamp(),
-          });
-        } catch (error) {
-          console.error("Error marking message as read:", error);
+      if (isGroup) {
+        // GROUP CHAT FLOW: Message is unread if current user is NOT in readBy array
+        const unreadMessages = conversationMessages.filter(
+          (msg) =>
+            msg.senderId !== currentUser.uid &&
+            !msg.metadata?.hasPendingWrites &&
+            (!msg.readBy || !msg.readBy.includes(currentUser.uid)) // Not in readBy array
+        );
+
+        // Mark each as read by adding current user to readBy array
+        for (const msg of unreadMessages) {
+          try {
+            const messageRef = doc(
+              db,
+              "conversations",
+              conversationId,
+              "messages",
+              msg.messageId
+            );
+            await updateDoc(messageRef, {
+              status: "read",
+              readBy: arrayUnion(currentUser.uid),
+              readAt: serverTimestamp(),
+            });
+          } catch (error) {
+            console.error("Error marking group message as read:", error);
+          }
+        }
+      } else {
+        // 1-ON-1 CHAT FLOW: Message is unread if status is "sent"
+        const unreadMessages = conversationMessages.filter(
+          (msg) =>
+            msg.senderId !== currentUser.uid &&
+            msg.status === "sent" &&
+            !msg.metadata?.hasPendingWrites
+        );
+
+        // Mark each as read with simple status update
+        for (const msg of unreadMessages) {
+          try {
+            const messageRef = doc(
+              db,
+              "conversations",
+              conversationId,
+              "messages",
+              msg.messageId
+            );
+            await updateDoc(messageRef, {
+              status: "read",
+              readAt: serverTimestamp(),
+            });
+          } catch (error) {
+            console.error("Error marking 1-on-1 message as read:", error);
+          }
         }
       }
     };
 
     markMessagesAsRead();
-  }, [conversationId, messages, currentUser.uid]);
+  }, [conversationId, messages, currentUser.uid, conversationsMap]);
 
   // Typing indicator: Listen to typing users
   useEffect(() => {
@@ -564,12 +599,23 @@ export default function ChatScreen({ route, navigation }) {
           const isLastMessage =
             isSent && index === conversationMessages.length - 1;
 
+          // For group chats, filter readBy array to exclude sender and only include current participants
+          const readBy =
+            isGroup && item.readBy
+              ? item.readBy.filter(
+                  (userId) =>
+                    userId !== item.senderId &&
+                    conversation?.participants?.includes(userId) // Only current participants
+                )
+              : [];
+
           return (
             <MessageBubble
               message={item}
               isSent={isSent}
               isGroup={isGroup}
               isLastMessage={isLastMessage}
+              readBy={readBy}
             />
           );
         }}

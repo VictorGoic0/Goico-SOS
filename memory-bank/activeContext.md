@@ -2,9 +2,9 @@
 
 ## Current Work Focus
 
-### Project Status: **Phase 1 AI Features Complete - Ready for Advanced Features**
+### Project Status: **Core Messaging Complete - Ready for Advanced AI Features**
 
-The project has completed PRs #1-9 (core messaging + group chats), PR #10 (Push Notifications), PR #13 (Vercel Backend Setup), and PR #14 (Thread Summarization & Action Items). The application now has fully functional 1-on-1 and group messaging with push notifications and AI-powered thread analysis capabilities.
+The project has completed PRs #1-11 (all core messaging features including read receipts), PR #13 (Vercel Backend Setup), and PR #14 (Thread Summarization & Action Items). The application now has fully functional 1-on-1 and group messaging with push notifications, read receipts, and AI-powered thread analysis capabilities.
 
 **Current Architecture**: React Native mobile app → Vercel serverless functions → OpenAI GPT-4o-mini + Firebase Firestore
 
@@ -20,10 +20,24 @@ The project has completed PRs #1-9 (core messaging + group chats), PR #10 (Push 
 8. ✅ **PR #8**: Profile Screen & Edit Profile
 9. ✅ **PR #9**: Group Chats (Create, Edit, Manage, Delete)
 10. ✅ **PR #10**: Push Notifications Setup (Vercel serverless functions)
-11. ✅ **PR #13**: Vercel Backend Setup & Test Function
-12. ✅ **PR #14**: Thread Summarization & Action Item Extraction
+11. ✅ **PR #11**: Read Receipts Implementation
+12. ✅ **PR #13**: Vercel Backend Setup & Test Function
+13. ✅ **PR #14**: Thread Summarization & Action Item Extraction
 
-### Recently Completed: **PR #9 - Group Chats, PR #10 - Push Notifications & PR #14 - AI Features**
+### Recently Completed: **PR #11 - Read Receipts**
+
+**PR #11 Highlights:**
+
+- ✅ Updated message status system to 3-state flow (sending → sent → read)
+- ✅ Renamed `markMessagesAsDelivered` to `markMessagesAsRead`
+- ✅ Messages marked as "read" when recipient opens ChatScreen
+- ✅ "Read X ago" text indicator for 1-on-1 chats (below last message)
+- ✅ Group chat read receipts with `readBy` array tracking
+- ✅ Mini profile avatars (16x16px) for group read receipts
+- ✅ Long-press on group read receipt shows full reader list
+- ✅ Up to 3 avatars displayed with "+N" overflow indicator
+- ✅ Migration complete: All "delivered" status messages converted to "sent"
+- ✅ Updated `formatTimestamp` to handle Firestore Timestamp objects
 
 **PR #9 Highlights:**
 
@@ -60,12 +74,6 @@ The project has completed PRs #1-9 (core messaging + group chats), PR #10 (Push 
 
 ### Next Steps
 
-**Immediate Priority:**
-
-- PR #11: Read Receipts Implementation
-  - **NOTE**: Basic read receipts are already implemented! Messages are marked as "read" when the recipient opens the ChatScreen.
-  - PR #11 will focus on UI polish and group chat read receipts ("Read by 2 of 4")
-
 **AI Features Roadmap:**
 
 - PR #15: Smart Search & Priority Detection
@@ -75,11 +83,48 @@ The project has completed PRs #1-9 (core messaging + group chats), PR #10 (Push 
 
 **Completed Features:**
 
-- ✅ PRs #1-9: Core messaging, profiles, presence, group chats
-- ✅ PR #10: Push notifications with Vercel backend
+- ✅ PRs #1-11: Core messaging, profiles, presence, group chats, push notifications, read receipts
 - ✅ PR #13-14: AI backend setup + thread analysis features
 
 ## Recent Changes
+
+### PR #11: Read Receipts Implementation (Completed)
+
+**3-State Message Status System:**
+
+The app now implements a cleaner 3-state message status system:
+
+- **sending** 🕐 - Message is being sent (hasPendingWrites: true)
+- **sent** ✓ - Message confirmed by server
+- **read** ✓ + "Read X ago" - Recipient has opened the conversation
+
+**Key Features Implemented:**
+
+- Updated `markMessagesAsRead` function (renamed from `markMessagesAsDelivered`)
+- Messages marked as "read" when recipient opens ChatScreen
+- 1-on-1 read receipts: "Read X ago" text below last message (right-aligned, outside bubble)
+- Group chat read receipts with `readBy` array tracking individual readers
+- Mini profile avatars (16x16px) for group read receipts with overlapping layout
+- Long-press on group read receipt displays full list of reader names in alert
+- Up to 3 avatars shown, "+N" indicator for overflow
+- Migration complete: All "delivered" status messages converted to "sent"
+- Updated `formatTimestamp` helper to handle Firestore Timestamp objects
+
+**Files Modified:**
+
+- `src/screens/ChatScreen.js` - Updated read receipt logic with group chat support
+- `src/components/MessageBubble.js` - Added read receipt UI for 1-on-1 and groups
+- `src/utils/helpers.js` - Updated timestamp formatting for Firestore Timestamps
+
+**Design Decisions:**
+
+- Show explicit "Read X ago" text instead of double checkmarks for clarity
+- Read indicator only shows on last sent message to reduce clutter
+- Group read receipts show who has read with visual avatars
+- Sender excluded from `readBy` array in UI display
+- Uses `arrayUnion` to prevent duplicate read entries
+
+---
 
 ### PR #10: Push Notifications Setup (Completed)
 
