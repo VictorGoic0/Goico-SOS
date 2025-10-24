@@ -21,10 +21,30 @@ export async function registerForPushNotifications() {
   let token = null;
 
   try {
-    // Check if running on a physical device (push notifications don't work on simulator/emulator)
-    if (!Device.isDevice) {
-      console.log("Must use physical device for Push Notifications");
+    // Push notifications are only supported on iOS and Android
+    // Web push requires VAPID keys and different setup
+    if (Platform.OS === "web") {
+      console.log(
+        "Push notifications are not supported on web. Real-time updates still work via Firebase listeners."
+      );
       return null;
+    }
+
+    // iOS simulators cannot receive push notifications (no APNs support)
+    // Android emulators CAN receive push notifications (with custom dev build)
+    if (!Device.isDevice && Platform.OS === "ios") {
+      console.log(
+        "Push notifications require a physical iOS device (simulators don't support APNs)"
+      );
+      return null;
+    }
+
+    // Android emulator with custom dev build will work
+    if (!Device.isDevice && Platform.OS === "android") {
+      console.log(
+        "Running on Android emulator - push notifications will work with custom dev build"
+      );
+      // Continue with registration
     }
 
     // Request notification permissions
