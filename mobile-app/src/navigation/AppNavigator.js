@@ -175,7 +175,6 @@ export default function AppNavigator() {
           await updateDoc(userRef, {
             pushToken: token,
           });
-          console.log("Push token saved to Firestore:", token);
         }
       } catch (error) {
         console.error("Error registering for push notifications:", error);

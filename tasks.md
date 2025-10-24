@@ -2329,14 +2329,14 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Add Group Chat Read Receipts:**
 
-- [ ] 5. For group chats, add `readBy` array field to messages:
+- [x] 5. For group chats, add `readBy` array field to messages:
   - Track which users have read each message
   - Use `arrayUnion` to add current user to readBy array
   - Keep backward compatibility with simple status field for 1-on-1 chats
 
 **Group Chat Read Receipts:**
 
-- [ ] 6. Update `markMessagesAsRead` for group chats:
+- [x] 6. Update `markMessagesAsRead` for group chats:
 
   - For group messages, use `arrayUnion` to add current user to `readBy` array
   - Also update simple `status` field for backward compatibility
@@ -2359,45 +2359,145 @@ Since you've never used React Native, this PR focuses on getting your developmen
   }
   ```
 
-- [ ] 7. For group messages, show read count:
+- [x] 7. For group messages, show read receipts with mini avatars:
 
-  - Display "Read by X of Y" below message
-  - Calculate from `readBy` array length vs total participants (excluding sender)
-  - Show individual names on long-press (optional)
-  - Show blue checkmarks (✓✓) when all participants have read
-  - Show gray checkmarks (✓✓) when some (but not all) have read
-  - Show single checkmark (✓) when sent but nobody has read yet
+  - Display "Read X ago" text below last message (if anyone has read it)
+  - Show mini profile pictures (16x16) of users who read it, overlapping slightly
+  - Only show up to 3 avatars, with "+N" indicator if more
+  - Long-press to show full list of names in an alert
+  - Filter `readBy` array to exclude sender before passing to MessageBubble
+  - Uses same timestamp format as 1-on-1 read receipts
 
 **Add Read Receipt UI Components:**
 
-- [ ] 8. Create `ReadReceiptIndicator` component:
+- [x] 8. Create `ReadReceiptIndicator` component:
 
-  - Shows read count for group messages
-  - Handles long-press to show individual readers
-  - Different styling for 1-on-1 vs group chats
+  - ~~Shows read count for group messages~~ (implemented directly in MessageBubble)
+  - Handles long-press to show individual readers ✓
+  - Different styling for 1-on-1 vs group chats ✓
 
-- [ ] 9. Update MessageBubble to include read receipt indicator:
-  - Position below timestamp
-  - Only show for sent messages (not received)
-  - Different layout for group vs 1-on-1
+- [x] 9. Update MessageBubble to include read receipt indicator:
+
+  - Position below timestamp ✓
+  - Only show for sent messages (not received) ✓
+  - Different layout for group vs 1-on-1 ✓
+
+  **Implementation Details:**
+
+  **MessageBubble.js:**
+
+  - Added `readBy` prop (array of user IDs who have read the message, excluding sender)
+  - Added `useState` import for managing long-press state
+  - Added `Alert` and `TouchableOpacity` imports for interaction
+  - Conditional rendering based on `isGroup` flag:
+    - 1-on-1: Shows simple "Read X ago" text (no avatars)
+    - Group: Shows "Read X ago" + mini profile avatars + long-press functionality
+
+  **Group Read Receipt UI:**
+
+  ```javascript
+  {isSent && isGroup && readBy.length > 0 && isLastMessage && (
+    <TouchableOpacity
+      style={styles.groupReadIndicator}
+      onLongPress={() => {
+        // Show full names on long press
+        const readerNames = readBy.map((userId) => {
+          const user = usersMap[userId];
+          return user?.displayName || user?.username || "Unknown";
+        }).join(", ");
+        Alert.alert("Read by", readerNames);
+      }}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.groupReadText}>
+        Read {message.readAt && formatTimestamp(message.readAt)}
+      </Text>
+      <View style={styles.miniAvatarsContainer}>
+        {readBy.slice(0, 3).map((userId, index) => (
+          // Render mini avatar (image or initials) with overlap
+        ))}
+        {readBy.length > 3 && (
+          // Show "+N" indicator for overflow
+        )}
+      </View>
+    </TouchableOpacity>
+  )}
+  ```
+
+  **Styling:**
+
+  - `groupReadIndicator`: Flex row, aligned to the right, below message bubble
+  - `groupReadText`: Small text, secondary color, margin-right for spacing
+  - `miniAvatar`: 16x16 circular images with 1px white border
+  - `miniAvatarPlaceholder`: 16x16 colored circles with initials (8px font, bold)
+  - `miniAvatarOverlap`: -6px left margin for stacked effect
+  - "+N" badge: Dark gray background with white text
+
+  **ChatScreen.js:**
+
+  - Filters `readBy` array to exclude sender before passing to MessageBubble:
+
+  ```javascript
+  const readBy =
+    isGroup && item.readBy
+      ? item.readBy.filter((userId) => userId !== item.senderId)
+      : [];
+  ```
+
+  - Passes `readBy` prop to MessageBubble component
+  - Only shows for `isLastMessage` (last sent message in conversation)
+
+  **Visual Result:**
+
+  ```
+  [Message Bubble]
+  Read 5m ago [👤][👤][👤] (+2)
+  ```
 
 **Handle Edge Cases:**
 
-- [ ] 10. Prevent duplicate read receipts:
+- [x] 10. Prevent duplicate read receipts:
 
-  - Firestore's `arrayUnion()` automatically prevents duplicates
-  - No additional checks needed
+  - Firestore's `arrayUnion()` automatically prevents duplicates ✓
+  - No additional checks needed ✓
   - Test to verify duplicate protection works correctly
 
-- [ ] 11. Handle offline scenarios:
+- [x] 11. Handle offline scenarios:
 
-  - Firebase automatically queues read receipt updates when offline
+  - Firebase automatically queues read receipt updates when offline ✓
   - Test to verify sync works correctly when connection is restored
-  - No additional code needed (Firebase handles this natively)
+  - No additional code needed (Firebase handles this natively) ✓
 
-- [ ] 12. Handle user leaving/joining groups:
-  - Update read count calculations
-  - Remove user from readBy arrays when they leave
+- [x] 12. Handle user leaving/joining groups:
+
+  - ~~Remove user from readBy arrays when they leave~~ (Not implemented - would be too expensive)
+  - **Better approach**: Filter readBy in UI layer to only show current participants
+
+  **Implementation:**
+
+  - **ChatScreen.js**: Filters `readBy` to only include users in `conversation.participants`
+  - **MessageBubble.js**: Filters out undefined users (no longer in system) when displaying names
+  - **Benefits**: Zero database writes, instant, free, scalable, preserves historical data
+
+  ```javascript
+  // ChatScreen.js - Filter to current participants only
+  const readBy =
+    isGroup && item.readBy
+      ? item.readBy.filter(
+          (userId) =>
+            userId !== item.senderId &&
+            conversation?.participants?.includes(userId)
+        )
+      : [];
+
+  // MessageBubble.js - Filter out undefined users
+  const readerNames = readBy
+    .map(
+      (userId) => usersMap[userId]?.displayName || usersMap[userId]?.username
+    )
+    .filter(Boolean) // Remove undefined
+    .join(", ");
+  ```
 
 **Update Firebase Store (Optional):**
 
@@ -2453,42 +2553,72 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
   - Send message from Device A
   - Open conversation on Device B
-  - Verify Device A shows blue checkmarks
+  - Verify Device A shows "Read X ago" text below last message (instead of blue checkmarks)
+  - Text should be right-aligned, outside the bubble
 
 - [ ] 19. Test group read receipts:
 
   - Send message in group chat
   - Have different users read the message
-  - Verify read count updates correctly
+  - Verify "Read X ago" text appears with mini profile avatars
+  - Long-press to see full list of reader names in alert
+  - Verify up to 3 avatars show, with "+N" for overflow
 
 - [ ] 20. Test edge cases:
   - User leaves group while message unread
   - Multiple users read simultaneously
   - Offline/online transitions
+  - Sender is excluded from `readBy` array display
 
 **Files Created:**
 
-- `src/utils/migrateMessageStatus.js` (temporary - delete after migration)
-- `src/components/ReadReceiptIndicator.js` (for group chat read counts)
+- ~~`src/utils/migrateMessageStatus.js`~~ (temporary - created and deleted after migration ✓)
+- ~~`src/components/ReadReceiptIndicator.js`~~ (not needed - implemented directly in MessageBubble ✓)
 
 **Files Modified:**
 
-- `src/screens/ChatScreen.js` (rename markMessagesAsDelivered → markMessagesAsRead, update to use "read" status)
-- `src/components/MessageBubble.js` (update to 3-state system, add blue color for read status)
-- `src/stores/firebaseStore.js` (add read receipt updates if needed)
-- `src/screens/ProfileScreen.js` (add read receipt settings - optional)
+- `src/screens/ChatScreen.js` ✓
+
+  - Renamed `markMessagesAsDelivered` → `markMessagesAsRead`
+  - Updated to mark messages as "read" with `readAt` timestamp
+  - Added `arrayUnion` import for group chat read receipts
+  - Added group chat logic: uses `arrayUnion` to add user to `readBy` array
+  - Filters `readBy` array to exclude sender before passing to MessageBubble
+  - Passes `readBy` prop to MessageBubble component
+
+- `src/components/MessageBubble.js` ✓
+
+  - Updated to 3-state system (sending → sent → read)
+  - Removed `isDelivered` variable, added `isRead` variable
+  - Changed status icon to always show single checkmark (✓) for sent messages
+  - Added "Read X ago" text indicator for 1-on-1 chats (outside bubble, right-aligned)
+  - Added `readBy` prop for group chat read receipts
+  - Implemented group read receipt UI with mini avatars (16x16px)
+  - Added TouchableOpacity with long-press to show full list of readers
+  - Shows up to 3 avatars with "+N" indicator for overflow
+  - Added styles: `groupReadIndicator`, `groupReadText`, `miniAvatar`, `miniAvatarPlaceholder`, `miniAvatarText`, `miniAvatarOverlap`
+
+- `src/utils/helpers.js` ✓
+
+  - Updated `formatTimestamp` to handle Firestore Timestamp objects (`.seconds` property)
+
+- ~~`src/stores/firebaseStore.js`~~ (no changes needed - onSnapshot listeners handle updates automatically)
+- ~~`src/screens/ProfileScreen.js`~~ (read receipt settings not implemented - optional feature)
 
 **Test Before Merge:**
 
-- [ ] Migration complete: No messages with "delivered" status remain in Firebase
-- [ ] 1-on-1 messages show correct status flow: 🕐 sending → ✓ sent → ✓✓ read (blue)
-- [ ] Group messages show "Read by X of Y" correctly
+- [x] Migration complete: No messages with "delivered" status remain in Firebase ✓
+- [ ] 1-on-1 messages show correct status flow: 🕐 sending → ✓ sent → "Read X ago" text below last message
+- [ ] Group messages show "Read X ago" with mini avatars correctly
+- [ ] Long-press on group read receipt shows full list of reader names
 - [ ] Read receipts update when ChatScreen is opened
 - [ ] Read receipts work when app comes to foreground
 - [ ] Offline read receipts sync when reconnected
-- [ ] No duplicate read receipts sent
+- [ ] No duplicate read receipts sent (arrayUnion prevents duplicates)
 - [ ] Performance is smooth with many messages
 - [ ] Works correctly in groups with users joining/leaving
+- [ ] Mini avatars display correctly (images and initials)
+- [ ] "+N" overflow indicator shows when more than 3 users have read
 
 ---
 
