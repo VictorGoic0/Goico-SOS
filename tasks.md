@@ -2761,14 +2761,14 @@ Typing indicators provide immediate feedback that someone is responding, improvi
 
 **Test Before Merge:**
 
-- [ ] Typing indicators work in real-time (instant)
-- [ ] Auto-clear after 1 second of inactivity
-- [ ] Group typing shows multiple users
-- [ ] Connection status banner shows "Offline" (red) when disconnected
-- [ ] Connection status banner shows "Connecting" (yellow) when reconnecting
-- [ ] Banner hides when online
-- [ ] Works offline/online transitions smoothly
-- [ ] No memory leaks from listeners
+- [x] Typing indicators work in real-time (instant)
+- [x] Auto-clear after 1 second of inactivity
+- [x] Group typing shows multiple users
+- [x] Connection status banner shows "Offline" (red) when disconnected
+- [x] Connection status banner shows "Connecting" (yellow) when reconnecting
+- [x] Banner hides when online
+- [x] Works offline/online transitions smoothly
+- [x] No memory leaks from listeners
 
 ---
 
