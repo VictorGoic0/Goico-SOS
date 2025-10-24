@@ -2753,11 +2753,132 @@ Break down complex requests into steps and use available tools to complete the t
   - Only send read receipts if user has enabled them
   - Still show received read receipts regardless of setting
 
+**Implement FastImage for Production-Quality Image Caching:**
+
+- [ ] 24. Install react-native-fast-image:
+
+  ```bash
+  cd mobile-app
+  npx expo install react-native-fast-image
+  ```
+
+- [ ] 25. Update `MessageBubble.js` to use FastImage:
+
+  ```javascript
+  import FastImage from 'react-native-fast-image';
+
+  // Replace sender avatar Image with FastImage (lines 55-59)
+  {sender?.imageURL ? (
+    <FastImage
+      source={{
+        uri: sender.imageURL,
+        priority: FastImage.priority.normal,
+      }}
+      style={styles.senderAvatar}
+      resizeMode={FastImage.resizeMode.cover}
+    />
+  ) : (
+    // ... existing placeholder code
+  )}
+
+  // Replace mini avatars Image with FastImage (lines 152-160)
+  <FastImage
+    key={userId}
+    source={{
+      uri: user.imageURL,
+      priority: FastImage.priority.normal,
+    }}
+    style={[
+      styles.miniAvatar,
+      index > 0 && styles.miniAvatarOverlap,
+    ]}
+    resizeMode={FastImage.resizeMode.cover}
+  />
+  ```
+
+- [ ] 26. Update `UserListItem.js` to use FastImage:
+
+  ```javascript
+  import FastImage from 'react-native-fast-image';
+
+  // Replace user avatar Image with FastImage
+  {user.imageURL ? (
+    <FastImage
+      source={{
+        uri: user.imageURL,
+        priority: FastImage.priority.high, // High priority for user list
+      }}
+      style={styles.avatar}
+      resizeMode={FastImage.resizeMode.cover}
+    />
+  ) : (
+    // ... existing placeholder code
+  )}
+  ```
+
+- [ ] 27. Update `ChatScreen.js` header to use FastImage:
+
+  ```javascript
+  import FastImage from 'react-native-fast-image';
+
+  // Replace header avatar Image with FastImage
+  {otherUser?.imageURL ? (
+    <FastImage
+      source={{
+        uri: otherUser.imageURL,
+        priority: FastImage.priority.high,
+      }}
+      style={styles.headerAvatar}
+      resizeMode={FastImage.resizeMode.cover}
+    />
+  ) : (
+    // ... existing placeholder code
+  )}
+  ```
+
+- [ ] 28. Add image pre-loading in ChatScreen for group conversations:
+
+  ```javascript
+  // In ChatScreen.js, add useEffect for pre-loading participant images
+  useEffect(() => {
+    if (conversation?.participants) {
+      // Pre-load all participant profile images
+      const imagesToPreload = conversation.participants
+        .map((userId) => usersMap[userId]?.imageURL)
+        .filter(Boolean)
+        .map((imageURL) => ({
+          uri: imageURL,
+          priority: FastImage.priority.normal,
+        }));
+
+      if (imagesToPreload.length > 0) {
+        FastImage.preload(imagesToPreload);
+      }
+    }
+  }, [conversation, usersMap]);
+  ```
+
+- [ ] 29. Update any other Image components for profile pictures:
+  - Check `GroupInfoScreen.js` for group photo display
+  - Check `ProfileScreen.js` for profile photo display
+  - Check `CreateGroupScreen.js` for participant selection
+  - Replace all profile image `Image` components with `FastImage`
+
+**Why This Matters for Production:**
+
+- **Persistent Disk Caching**: Images cached between app sessions (not just in memory)
+- **60fps Scrolling**: Background decoding keeps UI smooth
+- **Memory Efficient**: Auto-downsampling to display size (200x less RAM usage)
+- **Request Deduplication**: Same image URL = single network request
+- **Instant Loading**: Cached images appear in <50ms vs 500-2000ms
+- **Reduced Data Usage**: Critical for users on limited data plans
+- **Industry Standard**: Battle-tested by Instagram, Pinterest, Google Photos
+
 **Push Notification Profile Photos (Nice-to-Have):**
 
 Note: Currently, profile photos are included in notification data but don't display in the notification banner. These are optional enhancements to show profile photos in notifications:
 
-- [ ] 24. **Option 1: iOS Notification Service Extension**
+- [ ] 30. **Option 1: iOS Notification Service Extension**
 
   - Requires native Swift/Objective-C code
   - Intercepts notification before display
@@ -2765,14 +2886,14 @@ Note: Currently, profile photos are included in notification data but don't disp
   - Requires EAS Build or ejecting from Expo
   - Most control, but highest complexity
 
-- [ ] 25. **Option 2: Android Native Configuration**
+- [ ] 31. **Option 2: Android Native Configuration**
 
   - Configure large icon support via Expo config plugins
   - Easier than iOS implementation
   - Still requires EAS Build (not Expo Go)
   - Better Android notification appearance
 
-- [ ] 26. **Option 3: EAS Build + Config Plugin (Recommended)**
+- [ ] 32. **Option 3: EAS Build + Config Plugin (Recommended)**
 
   - Use Expo's build service instead of Expo Go
   - Add notification config plugin to `app.json`
@@ -2795,7 +2916,7 @@ Note: Currently, profile photos are included in notification data but don't disp
     }
     ```
 
-- [ ] 27. **Option 4: Eject to Bare React Native**
+- [ ] 33. **Option 4: Eject to Bare React Native**
   - Full native control over notifications
   - Implement custom notification service extensions
   - Lose Expo's managed workflow benefits
@@ -2803,17 +2924,18 @@ Note: Currently, profile photos are included in notification data but don't disp
 
 **Test All AI Features:**
 
-- [ ] 28. Thread summarization with various conversation types
-- [ ] 29. Action item extraction with different task formats
-- [ ] 30. Semantic search with complex queries
-- [ ] 31. Priority detection with various urgency levels
-- [ ] 32. Decision tracking with different decision types
-- [ ] 33. Multi-step agent with complex workflows
-- [ ] 34. Rate limiting (make 20+ requests quickly)
-- [ ] 35. Error handling (invalid inputs, network errors)
-- [ ] 36. Caching (verify cached responses are fast)
-- [ ] 37. Dark mode (all AI screens)
-- [ ] 38. Performance (response times meet targets)
+- [ ] 34. Thread summarization with various conversation types
+- [ ] 35. Action item extraction with different task formats
+- [ ] 36. Semantic search with complex queries
+- [ ] 37. Priority detection with various urgency levels
+- [ ] 38. Decision tracking with different decision types
+- [ ] 39. Multi-step agent with complex workflows
+- [ ] 40. Rate limiting (make 20+ requests quickly)
+- [ ] 41. Error handling (invalid inputs, network errors)
+- [ ] 42. Caching (verify cached responses are fast)
+- [ ] 43. Dark mode (all AI screens)
+- [ ] 44. Performance (response times meet targets)
+- [ ] 45. Image loading performance with FastImage (smooth scrolling, instant cached images)
 
 **Files Created:**
 
@@ -2829,21 +2951,33 @@ Note: Currently, profile photos are included in notification data but don't disp
 - All mobile AI screens (dark mode support)
 - `mobile-app/src/services/aiService.js` (improved error handling)
 - `backend/README.md` (complete documentation)
+- `mobile-app/src/components/MessageBubble.js` (FastImage for avatars)
+- `mobile-app/src/components/UserListItem.js` (FastImage for user list)
+- `mobile-app/src/screens/ChatScreen.js` (FastImage + pre-loading)
+- `mobile-app/src/screens/GroupInfoScreen.js` (FastImage for group photos)
+- `mobile-app/src/screens/ProfileScreen.js` (FastImage + read receipt settings)
+- `mobile-app/src/screens/CreateGroupScreen.js` (FastImage for participant selection)
 
 **Test Before Merge:**
 
-- [ ] 39. All AI features work in dark mode
-- [ ] 40. Rate limiting prevents abuse (20 requests/minute)
-- [ ] 41. Caching improves performance (cached responses <100ms)
-- [ ] 42. Error handling is user-friendly
-- [ ] 43. Analytics track usage correctly
-- [ ] 44. Health check endpoint works
-- [ ] 45. All features work offline (with cached data)
-- [ ] 46. Performance meets targets
-- [ ] 47. Documentation is complete and accurate
-- [ ] 48. Backend is production-ready
-- [ ] 49. Read receipt settings toggle works in ProfileScreen
-- [ ] 50. Read receipts respect user privacy settings
+- [ ] 46. All AI features work in dark mode
+- [ ] 47. Rate limiting prevents abuse (20 requests/minute)
+- [ ] 48. Caching improves performance (cached responses <100ms)
+- [ ] 49. Error handling is user-friendly
+- [ ] 50. Analytics track usage correctly
+- [ ] 51. Health check endpoint works
+- [ ] 52. All features work offline (with cached data)
+- [ ] 53. Performance meets targets
+- [ ] 54. Documentation is complete and accurate
+- [ ] 55. Backend is production-ready
+- [ ] 56. Read receipt settings toggle works in ProfileScreen
+- [ ] 57. Read receipts respect user privacy settings
+- [ ] 58. FastImage installed and working across all profile images
+- [ ] 59. Message bubbles load profile pictures instantly on repeated views
+- [ ] 60. Group chat avatars load smoothly without staggered appearance
+- [ ] 61. Scrolling remains smooth (60fps) while images load
+- [ ] 62. Images persist in cache after app restart
+- [ ] 63. Memory usage improved (check via profiler if needed)
 
 ---
 
