@@ -2499,64 +2499,16 @@ Since you've never used React Native, this PR focuses on getting your developmen
     .join(", ");
   ```
 
-**Update Firebase Store (Optional):**
-
-- [ ] 13. In `src/stores/firebaseStore.js` (only if needed):
-  - May need to add helper function: `updateMessageReadStatus(conversationId, messageId, readBy)`
-  - Current implementation already handles updates via onSnapshot listeners
-  - Only add this if you need programmatic updates outside of ChatScreen
-
-**Add Read Receipt Settings:**
-
-- [ ] 14. In `src/screens/ProfileScreen.js`:
-
-  - Add toggle: "Send Read Receipts" (default: enabled)
-  - Save preference to Firestore user document
-  - Respect user's privacy choice
-
-- [ ] 15. Update read receipt logic:
-  - Only send read receipts if user has enabled them
-  - Still show received read receipts regardless of setting
-
-**Performance Optimization (Nice-to-Have):**
-
-- [ ] 16. Batch read receipt updates:
-
-  - Current implementation updates messages one by one in a loop
-  - Consider using Firestore `writeBatch()` to update multiple messages atomically
-  - This reduces write operations and improves performance
-  - Example:
-
-  ```javascript
-  const batch = writeBatch(db);
-  unreadMessages.forEach((msg) => {
-    const messageRef = doc(
-      db,
-      "conversations",
-      conversationId,
-      "messages",
-      msg.messageId
-    );
-    batch.update(messageRef, { status: "read", readAt: serverTimestamp() });
-  });
-  await batch.commit();
-  ```
-
-- [ ] 17. Debounce read receipt updates (Optional):
-  - Current implementation marks as read immediately on ChatScreen mount
-  - If performance is an issue, consider debouncing
-  - But immediate marking is generally better UX
-
 **Test Read Receipts:**
 
-- [ ] 18. Test 1-on-1 read receipts:
+- [x] 18. Test 1-on-1 read receipts:
 
   - Send message from Device A
   - Open conversation on Device B
   - Verify Device A shows "Read X ago" text below last message (instead of blue checkmarks)
   - Text should be right-aligned, outside the bubble
 
-- [ ] 19. Test group read receipts:
+- [x] 19. Test group read receipts:
 
   - Send message in group chat
   - Have different users read the message
@@ -2564,7 +2516,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - Long-press to see full list of reader names in alert
   - Verify up to 3 avatars show, with "+N" for overflow
 
-- [ ] 20. Test edge cases:
+- [x] 20. Test edge cases:
   - User leaves group while message unread
   - Multiple users read simultaneously
   - Offline/online transitions
@@ -2608,17 +2560,17 @@ Since you've never used React Native, this PR focuses on getting your developmen
 **Test Before Merge:**
 
 - [x] Migration complete: No messages with "delivered" status remain in Firebase ✓
-- [ ] 1-on-1 messages show correct status flow: 🕐 sending → ✓ sent → "Read X ago" text below last message
-- [ ] Group messages show "Read X ago" with mini avatars correctly
-- [ ] Long-press on group read receipt shows full list of reader names
-- [ ] Read receipts update when ChatScreen is opened
-- [ ] Read receipts work when app comes to foreground
-- [ ] Offline read receipts sync when reconnected
-- [ ] No duplicate read receipts sent (arrayUnion prevents duplicates)
-- [ ] Performance is smooth with many messages
-- [ ] Works correctly in groups with users joining/leaving
-- [ ] Mini avatars display correctly (images and initials)
-- [ ] "+N" overflow indicator shows when more than 3 users have read
+- [x] 1-on-1 messages show correct status flow: 🕐 sending → ✓ sent → "Read X ago" text below last message
+- [x] Group messages show "Read X ago" with mini avatars correctly
+- [x] Long-press on group read receipt shows full list of reader names
+- [x] Read receipts update when ChatScreen is opened
+- [x] Read receipts work when app comes to foreground
+- [x] Offline read receipts sync when reconnected
+- [x] No duplicate read receipts sent (arrayUnion prevents duplicates)
+- [x] Performance is smooth with many messages
+- [x] Works correctly in groups with users joining/leaving
+- [x] Mini avatars display correctly (images and initials)
+- [x] "+N" overflow indicator shows when more than 3 users have read
 
 ---
 

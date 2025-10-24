@@ -2741,11 +2741,23 @@ Break down complex requests into steps and use available tools to complete the t
   vercel --prod
   ```
 
+**Add Read Receipt Settings:**
+
+- [ ] 22. In `src/screens/ProfileScreen.js`:
+
+  - Add toggle: "Send Read Receipts" (default: enabled)
+  - Save preference to Firestore user document
+  - Respect user's privacy choice
+
+- [ ] 23. Update read receipt logic:
+  - Only send read receipts if user has enabled them
+  - Still show received read receipts regardless of setting
+
 **Push Notification Profile Photos (Nice-to-Have):**
 
 Note: Currently, profile photos are included in notification data but don't display in the notification banner. These are optional enhancements to show profile photos in notifications:
 
-- [ ] 22. **Option 1: iOS Notification Service Extension**
+- [ ] 24. **Option 1: iOS Notification Service Extension**
 
   - Requires native Swift/Objective-C code
   - Intercepts notification before display
@@ -2753,14 +2765,14 @@ Note: Currently, profile photos are included in notification data but don't disp
   - Requires EAS Build or ejecting from Expo
   - Most control, but highest complexity
 
-- [ ] 23. **Option 2: Android Native Configuration**
+- [ ] 25. **Option 2: Android Native Configuration**
 
   - Configure large icon support via Expo config plugins
   - Easier than iOS implementation
   - Still requires EAS Build (not Expo Go)
   - Better Android notification appearance
 
-- [ ] 24. **Option 3: EAS Build + Config Plugin (Recommended)**
+- [ ] 26. **Option 3: EAS Build + Config Plugin (Recommended)**
 
   - Use Expo's build service instead of Expo Go
   - Add notification config plugin to `app.json`
@@ -2783,7 +2795,7 @@ Note: Currently, profile photos are included in notification data but don't disp
     }
     ```
 
-- [ ] 25. **Option 4: Eject to Bare React Native**
+- [ ] 27. **Option 4: Eject to Bare React Native**
   - Full native control over notifications
   - Implement custom notification service extensions
   - Lose Expo's managed workflow benefits
@@ -2791,17 +2803,17 @@ Note: Currently, profile photos are included in notification data but don't disp
 
 **Test All AI Features:**
 
-- [ ] 26. Thread summarization with various conversation types
-- [ ] 27. Action item extraction with different task formats
-- [ ] 28. Semantic search with complex queries
-- [ ] 29. Priority detection with various urgency levels
-- [ ] 30. Decision tracking with different decision types
-- [ ] 31. Multi-step agent with complex workflows
-- [ ] 32. Rate limiting (make 20+ requests quickly)
-- [ ] 33. Error handling (invalid inputs, network errors)
-- [ ] 34. Caching (verify cached responses are fast)
-- [ ] 35. Dark mode (all AI screens)
-- [ ] 36. Performance (response times meet targets)
+- [ ] 28. Thread summarization with various conversation types
+- [ ] 29. Action item extraction with different task formats
+- [ ] 30. Semantic search with complex queries
+- [ ] 31. Priority detection with various urgency levels
+- [ ] 32. Decision tracking with different decision types
+- [ ] 33. Multi-step agent with complex workflows
+- [ ] 34. Rate limiting (make 20+ requests quickly)
+- [ ] 35. Error handling (invalid inputs, network errors)
+- [ ] 36. Caching (verify cached responses are fast)
+- [ ] 37. Dark mode (all AI screens)
+- [ ] 38. Performance (response times meet targets)
 
 **Files Created:**
 
@@ -2820,16 +2832,18 @@ Note: Currently, profile photos are included in notification data but don't disp
 
 **Test Before Merge:**
 
-- [ ] 37. All AI features work in dark mode
-- [ ] 38. Rate limiting prevents abuse (20 requests/minute)
-- [ ] 39. Caching improves performance (cached responses <100ms)
-- [ ] 40. Error handling is user-friendly
-- [ ] 41. Analytics track usage correctly
-- [ ] 42. Health check endpoint works
-- [ ] 43. All features work offline (with cached data)
-- [ ] 44. Performance meets targets
-- [ ] 45. Documentation is complete and accurate
-- [ ] 46. Backend is production-ready
+- [ ] 39. All AI features work in dark mode
+- [ ] 40. Rate limiting prevents abuse (20 requests/minute)
+- [ ] 41. Caching improves performance (cached responses <100ms)
+- [ ] 42. Error handling is user-friendly
+- [ ] 43. Analytics track usage correctly
+- [ ] 44. Health check endpoint works
+- [ ] 45. All features work offline (with cached data)
+- [ ] 46. Performance meets targets
+- [ ] 47. Documentation is complete and accurate
+- [ ] 48. Backend is production-ready
+- [ ] 49. Read receipt settings toggle works in ProfileScreen
+- [ ] 50. Read receipts respect user privacy settings
 
 ---
 
