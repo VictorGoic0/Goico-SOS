@@ -62,7 +62,9 @@ The project has completed PRs #1-9 (core messaging + group chats), PR #10 (Push 
 
 **Immediate Priority:**
 
-- PR #11: Read Receipts Implementation (showing when messages have been read)
+- PR #11: Read Receipts Implementation
+  - **NOTE**: Basic read receipts are already implemented! Messages are marked as "read" when the recipient opens the ChatScreen.
+  - PR #11 will focus on UI polish and group chat read receipts ("Read by 2 of 4")
 
 **AI Features Roadmap:**
 
@@ -220,8 +222,10 @@ OpenAI GPT-4o-mini API
 - ✅ **Updated onSnapshot listener** - Added `includeMetadataChanges: true` to track local writes
 - ✅ **Message status based on hasPendingWrites** - "sending" when pending, "sent" when confirmed
 - ✅ **Single source of truth** - All messages come from firebaseStore
-- ✅ **Delivered status tracking** - Messages marked as delivered when recipient views them
+- ✅ **Read receipt tracking** - Messages marked as "read" when recipient opens ChatScreen
 - ✅ **CompactInput component** - Reusable chat input with send button
+
+**Message Status Flow**: sending (hasPendingWrites: true) → sent (hasPendingWrites: false) → read (recipient opens ChatScreen)
 
 **Key Architectural Change:**
 
@@ -233,7 +237,7 @@ OpenAI GPT-4o-mini API
 
 - ✏️ `src/stores/localStore.js` - Removed pendingMessages, kept drafts and UI state
 - ✏️ `src/screens/ChatScreen.js` - Simplified handleSend, updated listener with metadata tracking
-- ✏️ `src/components/MessageBubble.js` - Status indicators (🕐 sending, ✓ sent, ✓✓ delivered)
+- ✏️ `src/components/MessageBubble.js` - Status indicators (🕐 sending, ✓ sent, ✓✓ read)
 - ✏️ `src/utils/conversation.js` - Simplified sendMessage function
 - ✏️ `memory-bank/systemPatterns.md` - Updated 3-store architecture documentation
 
@@ -251,7 +255,7 @@ OpenAI GPT-4o-mini API
 - ✅ Conversation utilities (getOrCreateConversation, sendMessage)
 - ✅ Optimistic updates with localStore (messages show instantly)
 - ✅ Real-time message listener (Firestore onSnapshot)
-- ✅ Message timestamps and status indicators (✓ = sent, ✓✓ = delivered, 🕐 = sending)
+- ✅ Message timestamps and status indicators (✓ = sent, ✓✓ = read, 🕐 = sending)
 - ✅ Navigation from UserListItem to ChatScreen
 - ✅ Automatic conversation creation on first message
 - ✅ Consistent conversation IDs (same ID regardless of user order)

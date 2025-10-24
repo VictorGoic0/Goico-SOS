@@ -16,9 +16,9 @@ The app follows a **3-store Zustand architecture** pattern proven in CollabCanva
 │ - isSending     │    │   data          │    │ - conversations │
 │ - isLoading     │    │ - isOnline      │    │ - messages      │
 │                 │    │ - lastSeen      │    │ Status: sent/   │
-└─────────────────┘    └─────────────────┘    │   delivered/    │
-         │                       │             │   read         │
-         └───────────────────────┼─────────────┘                │
+└─────────────────┘    └─────────────────┘    │   read          │
+         │                       │             └─────────────────┘
+         └───────────────────────┼─────────────┘
                                  │                              │
                     ┌────────────┴────────────┐                │
                     │    React Components     │                │
@@ -130,12 +130,18 @@ USER SENDS MESSAGE
     ↓
 6. onSnapshot FIRES (hasPendingWrites: false)
     ↓
-7. UI UPDATES MESSAGE (status: "sent")
+7. UI UPDATES MESSAGE (status: "sent" - single ✓)
     ↓
-8. RECIPIENT RECEIVES (status: "delivered")
+8. RECIPIENT'S onSnapshot FIRES (they receive the message)
     ↓
-9. RECIPIENT READS (status: "read") [BONUS]
+9. RECIPIENT OPENS ChatScreen (markMessagesAsRead runs)
+    ↓
+10. STATUS UPDATED TO "read" (with readAt timestamp)
+    ↓
+11. SENDER'S onSnapshot FIRES (status: "read" - ✓✓ blue)
 ```
+
+**Note**: We use a 3-state system (sending → sent → read) because Firebase doesn't expose when a message is delivered to a specific device. The onSnapshot listener fires in the background even when the app is closed.
 
 **Component renders:**
 
@@ -244,7 +250,8 @@ USER LOGIN
   senderUsername: string,  // for display, denormalized
   text: string,           // message content
   timestamp: timestamp,   // Firestore server timestamp
-  status: string,         // "sending" | "sent" | "delivered" | "read"
+  status: string,         // "sending" | "sent" | "read"
+  readAt: timestamp | null, // When message was marked as read
   imageURL: string | null // for image messages - bonus feature
 }
 ```
@@ -511,7 +518,7 @@ service cloud.firestore {
 - **Physical devices**: Test on real iOS and Android devices
 - **Offline scenarios**: Use airplane mode to test message queuing
 - **Presence testing**: Open/close app on multiple devices
-- **Status flow testing**: Verify sending → sent → delivered progression
+- **Status flow testing**: Verify sending → sent → read progression
 - **Cross-platform testing**: Ensure consistent experience
 
 ### Key Test Scenarios
