@@ -27,8 +27,7 @@ export default function MessageBubble({
 
   // Show sender info only for group chats AND received messages (not sent by current user)
   const showSenderInfo = isGroup && !isSent;
-  const isDelivered =
-    message.status === "delivered" || message.status === "read";
+  const isRead = message.status === "read";
   const isSending = message.status === "sending";
 
   return (
@@ -99,8 +98,8 @@ export default function MessageBubble({
               </Text>
 
               {isSent && (
-                <Text style={styles.statusIcon}>
-                  {isSending ? "🕐" : isDelivered ? "✓✓" : "✓"}
+                <Text style={[styles.statusIcon, isRead && styles.readIcon]}>
+                  {isSending ? "🕐" : isRead ? "✓✓" : "✓"}
                 </Text>
               )}
             </View>
@@ -198,5 +197,8 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
     marginLeft: spacing[1],
     color: "rgba(255, 255, 255, 0.8)",
+  },
+  readIcon: {
+    color: colors.primary.base, // Blue color for read receipts
   },
 });

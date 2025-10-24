@@ -4,6 +4,7 @@ import {
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
@@ -159,23 +160,23 @@ export default function ChatScreen({ route, navigation }) {
     return unsubscribe;
   }, [conversationId, setMessages]);
 
-  // Mark messages as delivered when user views them
+  // Mark messages as read when user views them
   useEffect(() => {
     if (!conversationId || !messages[conversationId]) return;
 
-    const markMessagesAsDelivered = async () => {
+    const markMessagesAsRead = async () => {
       const conversationMessages = messages[conversationId] || [];
 
-      // Find messages from other user that are "sent" but not "delivered"
-      const undeliveredMessages = conversationMessages.filter(
+      // Find messages from other user that are "sent" but not "read"
+      const unreadMessages = conversationMessages.filter(
         (msg) =>
           msg.senderId !== currentUser.uid &&
           msg.status === "sent" &&
           !msg.metadata?.hasPendingWrites // Don't update pending writes
       );
 
-      // Mark each as delivered
-      for (const msg of undeliveredMessages) {
+      // Mark each as read
+      for (const msg of unreadMessages) {
         try {
           const messageRef = doc(
             db,
@@ -184,14 +185,17 @@ export default function ChatScreen({ route, navigation }) {
             "messages",
             msg.messageId
           );
-          await updateDoc(messageRef, { status: "delivered" });
+          await updateDoc(messageRef, {
+            status: "read",
+            readAt: serverTimestamp(),
+          });
         } catch (error) {
-          console.error("Error marking message as delivered:", error);
+          console.error("Error marking message as read:", error);
         }
       }
     };
 
-    markMessagesAsDelivered();
+    markMessagesAsRead();
   }, [conversationId, messages, currentUser.uid]);
 
   // Task 30: Detect if conversation is a group

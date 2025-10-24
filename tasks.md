@@ -2174,7 +2174,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Rename and Update Existing Read Receipt Logic:**
 
-- [ ] 1. In `src/screens/ChatScreen.js`:
+- [x] 1. In `src/screens/ChatScreen.js`:
 
   - Rename function: `markMessagesAsDelivered` → `markMessagesAsRead`
   - Update the query to find messages with status "sent" (remove check for "delivered")
@@ -2214,7 +2214,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   };
   ```
 
-- [ ] 2. Update `MessageBubble.js` to remove "delivered" status:
+- [x] 2. Update `MessageBubble.js` to remove "delivered" status:
 
   - Remove the `isDelivered` variable that checks for "delivered" or "read"
   - Create `isRead` variable that only checks for "read"
