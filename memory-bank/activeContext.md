@@ -93,6 +93,7 @@ The project has completed PRs #1-11 (all core messaging features including read 
 **3-State Message Status System:**
 
 The app now implements a cleaner 3-state message status system:
+
 - **sending** 🕐 - Message is being sent (hasPendingWrites: true)
 - **sent** ✓ - Message confirmed by server
 - **read** ✓ + "Read X ago" - Recipient has opened the conversation
