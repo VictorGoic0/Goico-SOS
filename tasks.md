@@ -2564,7 +2564,11 @@ Typing indicators provide immediate feedback that someone is responding, improvi
   };
 
   // Listen to typing users in a conversation
-  export const listenToTypingIndicator = (conversationId, currentUserId, callback) => {
+  export const listenToTypingIndicator = (
+    conversationId,
+    currentUserId,
+    callback
+  ) => {
     const typingRef = ref(realtimeDb, `typing/${conversationId}`);
     const typingUsers = new Set();
 
@@ -2593,7 +2597,11 @@ Typing indicators provide immediate feedback that someone is responding, improvi
 - [x] 2. Add typing handler to `src/screens/ChatScreen.js`:
 
   ```javascript
-  import { setTyping, removeTyping, listenToTyping } from "../utils/typing";
+  import {
+    setTypingIndicator,
+    removeTypingIndicator,
+    listenToTypingIndicator,
+  } from "../utils/typingIndicator";
 
   // State for typing users
   const [typingUserIds, setTypingUserIds] = useState([]);
@@ -2601,27 +2609,30 @@ Typing indicators provide immediate feedback that someone is responding, improvi
   // Auto-clear timeout ref
   const typingTimeoutRef = useRef(null);
 
-  // Debounced typing handler (1 second debounce)
-  const handleTyping = useCallback(() => {
-    // Set typing immediately
-    setTyping(conversationId, currentUser.uid);
+  // Track if user is currently marked as typing
+  const isTypingRef = useRef(false);
+
+  // Typing handler (instant, no debounce)
+  const handleTypingIndicator = useCallback(() => {
+    if (!conversationId) return;
+
+    // Only set typing on first keystroke (prevents excessive writes)
+    if (!isTypingRef.current) {
+      setTypingIndicator(conversationId, currentUser.uid);
+      isTypingRef.current = true;
+    }
 
     // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Auto-clear after 3 seconds
+    // Auto-clear after 1 second of inactivity
     typingTimeoutRef.current = setTimeout(() => {
-      removeTyping(conversationId, currentUser.uid);
-    }, 3000);
+      removeTypingIndicator(conversationId, currentUser.uid);
+      isTypingRef.current = false;
+    }, 1000);
   }, [conversationId, currentUser.uid]);
-
-  // Debounce the handler
-  const debouncedHandleTyping = useMemo(
-    () => debounce(handleTyping, 1000),
-    [handleTyping]
-  );
   ```
 
 - [x] 3. Set up typing listener in `ChatScreen.js`:
@@ -2631,7 +2642,7 @@ Typing indicators provide immediate feedback that someone is responding, improvi
   useEffect(() => {
     if (!conversationId) return;
 
-    const unsubscribe = listenToTyping(
+    const unsubscribe = listenToTypingIndicator(
       conversationId,
       currentUser.uid,
       (userIds) => {
@@ -2642,7 +2653,8 @@ Typing indicators provide immediate feedback that someone is responding, improvi
     return () => {
       unsubscribe();
       // Clean up our own typing status
-      removeTyping(conversationId, currentUser.uid);
+      removeTypingIndicator(conversationId, currentUser.uid);
+      isTypingRef.current = false;
     };
   }, [conversationId, currentUser.uid]);
   ```
@@ -2678,13 +2690,12 @@ Typing indicators provide immediate feedback that someone is responding, improvi
 - [x] 5. Connect typing handler to input:
 
   ```javascript
-  // In CompactInput or wherever text input is
-  <TextInput
-    onChangeText={(text) => {
-      // ... existing logic ...
-      debouncedHandleTyping();
-    }}
-  />
+  // In handleInputChange function in ChatScreen.js
+  const handleInputChange = (text) => {
+    setDraft(conversationId, text);
+    // Trigger typing indicator (instant)
+    handleTypingIndicator();
+  };
   ```
 
 - [x] 6. Add styles for typing indicator:
@@ -2693,9 +2704,7 @@ Typing indicators provide immediate feedback that someone is responding, improvi
   typingIndicator: {
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
-    backgroundColor: colors.background.paper,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.default,
+    backgroundColor: colors.background.default,
   },
   typingText: {
     fontSize: typography.fontSize.sm,
@@ -2706,18 +2715,18 @@ Typing indicators provide immediate feedback that someone is responding, improvi
 
 **Test Typing Indicators:**
 
-- [ ] 7. Test 1-on-1 typing:
+- [x] 7. Test 1-on-1 typing:
 
-  - User A starts typing → User B sees "User A is typing..." within 100ms
-  - User A stops typing → Indicator disappears after 3 seconds
-  - Rapid typing → Debounce prevents excessive updates
+  - User A starts typing → User B sees "User A is typing..." instantly
+  - User A stops typing → Indicator disappears after 1 second
+  - Instant triggering with 1s auto-clear
 
-- [ ] 8. Test group typing:
+- [x] 8. Test group typing:
 
   - Multiple users typing → Shows "John, Sarah are typing..."
   - More than 2 users → Shows "John, Sarah and 2 others are typing..."
 
-- [ ] 9. Test cleanup:
+- [x] 9. Test cleanup:
   - User closes app → Typing status clears
   - User navigates away → Typing status clears
   - Test with 2+ devices simultaneously

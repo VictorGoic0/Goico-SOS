@@ -245,11 +245,11 @@ export default function ChatScreen({ route, navigation }) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Auto-clear after 3 seconds of inactivity
+    // Auto-clear after 1 second of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       removeTypingIndicator(conversationId, currentUser.uid);
       isTypingRef.current = false;
-    }, 3000);
+    }, 1000);
   }, [conversationId, currentUser.uid]);
 
   // Task 30: Detect if conversation is a group
