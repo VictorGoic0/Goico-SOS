@@ -69,6 +69,42 @@ Built as a learning project to demonstrate production-grade mobile development p
    - Edit any file and save
    - Changes appear instantly on your device (hot reload)
 
+## 🤖 Running on Android Emulator
+
+### Prerequisites
+
+1. **Android Studio** installed with Android SDK
+2. **Android Emulator** set up (e.g., Pixel 5 with API 34)
+
+### Steps
+
+1. Open **Android Studio** → **Virtual Device Manager**
+2. Start your emulator (click Play ▶️ button)
+3. In terminal: `cd mobile-app && npx expo start`
+4. Press **`a`** when prompted
+5. Expo Go will auto-install and open your app
+
+### Troubleshooting
+
+**"Old code showing after changes"**
+
+Clear cache from the emulator (terminal cache clear doesn't work reliably):
+
+1. Long-press Expo Go app icon on emulator
+2. Tap "App info" → "Storage"
+3. Tap "Clear cache" and "Clear data"
+4. Press `a` in terminal to reload
+
+**Platform-Specific Features**
+
+| Feature             | Android Emulator | iOS Simulator | Web        | Physical Device |
+| ------------------- | ---------------- | ------------- | ---------- | --------------- |
+| Push Notifications  | ✅ Yes           | ❌ No         | ❌ No      | ✅ Yes          |
+| Real-time Messaging | ✅ Yes           | ✅ Yes        | ✅ Yes     | ✅ Yes          |
+| Camera              | ⚠️ Limited       | ⚠️ Limited    | ⚠️ Limited | ✅ Full         |
+
+**Note**: Push notifications work on Android emulator because the app uses platform-aware checks that allow Android but block iOS simulator and web (which require different setups).
+
 ## 📁 Project Structure
 
 ```
