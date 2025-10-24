@@ -2529,83 +2529,206 @@ Typing indicators provide immediate feedback that someone is responding, improvi
 
 ### Subtasks
 
+**Note**: Connection status for 1-on-1 chats is already implemented (shows online/offline in chat header using presence from Realtime Database). This PR focuses on typing indicators.
+
 **Implement Typing Indicators:**
 
-- [ ] File: `src/utils/typing.js`
-- [ ] Function: `updateTypingState(conversationId, userId, isTyping)`
+- [x] 1. Create `src/utils/typingIndicator.js` with typing utility functions:
 
-  - Write to Realtime Database: `/typing/{conversationId}/{userId}`
-  - Set: `{ isTyping: boolean, timestamp: serverTimestamp() }`
-  - Auto-clear after 3 seconds of no activity
+  **Simplified Database Structure**: `/typing/{conversationId}/{userId} = true`
 
-- [ ] Function: `listenToTyping(conversationId, onTypingUpdate)`
-  - Listen to `/typing/{conversationId}` in Realtime Database
-  - Filter out current user
-  - Return typing users array
-  - Return unsubscribe function
-
-**Add Typing to Chat Screen:**
-
-- [ ] File: `src/screens/ChatScreen.js`
-- [ ] Add debounced typing handler:
+  - Just track existence (no need for `isTyping` boolean or `timestamp`)
+  - If userId exists in path → user is typing
+  - If userId doesn't exist → user is not typing
 
   ```javascript
-  const handleTyping = debounce(() => {
-    updateTypingState(conversationId, currentUserId, true);
-    // Auto-clear after 3 seconds
-    setTimeout(() => {
-      updateTypingState(conversationId, currentUserId, false);
-    }, 3000);
-  }, 1000);
+  import {
+    ref,
+    set,
+    remove,
+    onChildAdded,
+    onChildRemoved,
+  } from "firebase/database";
+  import { realtimeDb } from "../config/firebase";
+
+  // Set user as typing
+  export const setTypingIndicator = (conversationId, userId) => {
+    const typingRef = ref(realtimeDb, `typing/${conversationId}/${userId}`);
+    set(typingRef, true);
+  };
+
+  // Remove user from typing
+  export const removeTypingIndicator = (conversationId, userId) => {
+    const typingRef = ref(realtimeDb, `typing/${conversationId}/${userId}`);
+    remove(typingRef);
+  };
+
+  // Listen to typing users in a conversation
+  export const listenToTypingIndicator = (conversationId, currentUserId, callback) => {
+    const typingRef = ref(realtimeDb, `typing/${conversationId}`);
+    const typingUsers = new Set();
+
+    const onAdd = onChildAdded(typingRef, (snapshot) => {
+      const userId = snapshot.key;
+      if (userId !== currentUserId) {
+        typingUsers.add(userId);
+        callback(Array.from(typingUsers));
+      }
+    });
+
+    const onRemove = onChildRemoved(typingRef, (snapshot) => {
+      const userId = snapshot.key;
+      typingUsers.delete(userId);
+      callback(Array.from(typingUsers));
+    });
+
+    // Return cleanup function
+    return () => {
+      onAdd();
+      onRemove();
+    };
+  };
   ```
 
-- [ ] Call `handleTyping` on text input change
-- [ ] Set up typing listener on mount
-- [ ] Display typing indicator below header:
-  - "User is typing..." for 1-on-1
-  - "John, Sarah are typing..." for groups
+- [x] 2. Add typing handler to `src/screens/ChatScreen.js`:
 
-**Implement Connection Status:**
-
-- [ ] File: `src/utils/connectionStatus.js`
-- [ ] Function: `setupConnectionListener(onStatusChange)`
-
-  - Listen to Firestore connection state
-  - Return "Online", "Connecting...", "Offline"
-  - Handle network state changes
-
-- [ ] Add connection status banner to ChatScreen
-- [ ] Show "Offline" when disconnected
-- [ ] Show "Connecting..." when reconnecting
-- [ ] Hide when "Online"
-
-**Update Presence Store:**
-
-- [ ] File: `src/stores/presenceStore.js`
-- [ ] Add typing state:
   ```javascript
-  typingData: {
-    conversationId: {
-      userId: boolean;
+  import { setTyping, removeTyping, listenToTyping } from "../utils/typing";
+
+  // State for typing users
+  const [typingUserIds, setTypingUserIds] = useState([]);
+
+  // Auto-clear timeout ref
+  const typingTimeoutRef = useRef(null);
+
+  // Debounced typing handler (1 second debounce)
+  const handleTyping = useCallback(() => {
+    // Set typing immediately
+    setTyping(conversationId, currentUser.uid);
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
+
+    // Auto-clear after 3 seconds
+    typingTimeoutRef.current = setTimeout(() => {
+      removeTyping(conversationId, currentUser.uid);
+    }, 3000);
+  }, [conversationId, currentUser.uid]);
+
+  // Debounce the handler
+  const debouncedHandleTyping = useMemo(
+    () => debounce(handleTyping, 1000),
+    [handleTyping]
+  );
+  ```
+
+- [x] 3. Set up typing listener in `ChatScreen.js`:
+
+  ```javascript
+  // Listen to typing users
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const unsubscribe = listenToTyping(
+      conversationId,
+      currentUser.uid,
+      (userIds) => {
+        setTypingUserIds(userIds);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+      // Clean up our own typing status
+      removeTyping(conversationId, currentUser.uid);
+    };
+  }, [conversationId, currentUser.uid]);
+  ```
+
+- [x] 4. Add typing indicator UI below chat header:
+
+  ```javascript
+  // Get display names for typing users
+  const typingNames = typingUserIds
+    .map(
+      (userId) => usersMap[userId]?.displayName || usersMap[userId]?.username
+    )
+    .filter(Boolean);
+
+  // Render typing indicator
+  {
+    typingNames.length > 0 && (
+      <View style={styles.typingIndicator}>
+        <Text style={styles.typingText}>
+          {typingNames.length === 1
+            ? `${typingNames[0]} is typing...`
+            : `${typingNames.slice(0, 2).join(", ")} ${
+                typingNames.length > 2
+                  ? `and ${typingNames.length - 2} others are`
+                  : "are"
+              } typing...`}
+        </Text>
+      </View>
+    );
   }
-  setTypingUsers(conversationId, users);
+  ```
+
+- [x] 5. Connect typing handler to input:
+
+  ```javascript
+  // In CompactInput or wherever text input is
+  <TextInput
+    onChangeText={(text) => {
+      // ... existing logic ...
+      debouncedHandleTyping();
+    }}
+  />
+  ```
+
+- [x] 6. Add styles for typing indicator:
+
+  ```javascript
+  typingIndicator: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    backgroundColor: colors.background.paper,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+  },
+  typingText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    fontStyle: "italic",
+  },
   ```
 
 **Test Typing Indicators:**
 
-- [ ] User A starts typing → User B sees "User A is typing..."
-- [ ] User A stops typing → Indicator disappears after 3 seconds
-- [ ] In group: Multiple users typing → Shows "John, Sarah are typing..."
-- [ ] Verify <100ms latency
-- [ ] Test with 2+ devices
+- [ ] 7. Test 1-on-1 typing:
 
-**Test Connection Status:**
+  - User A starts typing → User B sees "User A is typing..." within 100ms
+  - User A stops typing → Indicator disappears after 3 seconds
+  - Rapid typing → Debounce prevents excessive updates
 
-- [ ] Turn on airplane mode → Shows "Offline" banner
-- [ ] Turn off airplane mode → Shows "Connecting..." then disappears
-- [ ] Test with slow network connection
-- [ ] Verify status updates accurately
+- [ ] 8. Test group typing:
+
+  - Multiple users typing → Shows "John, Sarah are typing..."
+  - More than 2 users → Shows "John, Sarah and 2 others are typing..."
+
+- [ ] 9. Test cleanup:
+  - User closes app → Typing status clears
+  - User navigates away → Typing status clears
+  - Test with 2+ devices simultaneously
+
+**Connection Status (Optional - Already Works for 1-on-1):**
+
+- [ ] 10. (Optional) Add connection status banner for offline mode:
+  - Show "Offline" banner at top when disconnected
+  - Show "Connecting..." when reconnecting
+  - Hide when online
+  - This is separate from per-user online status (which already works)
 
 **Files Created:**
 

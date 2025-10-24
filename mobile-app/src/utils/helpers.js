@@ -223,3 +223,21 @@ export const getAvatarColor = (userId) => {
   const index = userId ? userId.charCodeAt(0) % colors.length : 0;
   return colors[index];
 };
+
+/**
+ * Debounce function - delays function execution until after wait time
+ * @param {function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {function} Debounced function
+ */
+export const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
