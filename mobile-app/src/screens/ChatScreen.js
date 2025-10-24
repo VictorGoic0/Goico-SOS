@@ -596,8 +596,16 @@ export default function ChatScreen({ route, navigation }) {
         renderItem={({ item, index }) => {
           // Check if this is the last message sent by current user
           const isSent = item.senderId === currentUser.uid;
-          const isLastMessage =
-            isSent && index === conversationMessages.length - 1;
+
+          // Find the LAST (most recent) message sent by current user
+          let lastSentMessageIndex = -1;
+          for (let i = conversationMessages.length - 1; i >= 0; i--) {
+            if (conversationMessages[i].senderId === currentUser.uid) {
+              lastSentMessageIndex = i;
+              break;
+            }
+          }
+          const isLastMessage = isSent && index === lastSentMessageIndex;
 
           // For group chats, filter readBy array to exclude sender and only include current participants
           const readBy =
