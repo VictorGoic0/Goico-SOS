@@ -2922,20 +2922,72 @@ Note: Currently, profile photos are included in notification data but don't disp
   - Lose Expo's managed workflow benefits
   - Maximum flexibility, maximum complexity
 
+**Fix Push Notifications on PC (Windows/Mac Desktop):**
+
+- [ ] 34. Investigate why push notifications don't work on PC:
+
+  - Check if Expo notifications support desktop platforms
+  - Review Expo push notification documentation for platform limitations
+  - Determine if this is expected behavior or a configuration issue
+  - Document findings and limitations
+
+- [ ] 35. If desktop push notifications are supported:
+
+  - Update notification registration logic to handle desktop platforms
+  - Test notification delivery on Windows
+  - Test notification delivery on Mac
+  - Update documentation with desktop-specific requirements
+
+- [ ] 36. If desktop push notifications are NOT supported:
+  - Document this limitation in README
+  - Consider alternative solutions (web push, desktop app notifications)
+  - Add graceful degradation for desktop users
+  - Possibly add in-app notification polling as fallback
+
+**Fix Android Deployed Build Issues:**
+
+- [ ] 37. Investigate Android deployment breaking:
+
+  - Review build logs for errors
+  - Check for native module compatibility issues
+  - Verify all dependencies support Android platform
+  - Test with `expo prebuild` to identify configuration issues
+
+- [ ] 38. Common Android build fixes to check:
+
+  - Verify `android/app/build.gradle` configuration
+  - Check if any dependencies require specific Android SDK versions
+  - Ensure all native modules are properly linked
+  - Review `app.json` for Android-specific configuration issues
+
+- [ ] 39. Test Android deployment:
+
+  - Build APK/AAB successfully
+  - Install on physical Android device
+  - Verify all features work (especially push notifications, image loading)
+  - Check for crashes or runtime errors
+  - Test on multiple Android versions if possible
+
+- [ ] 40. Document Android deployment process:
+  - Add troubleshooting section to README
+  - Document any Android-specific requirements
+  - Include steps to fix common build issues
+  - Add notes about EAS Build vs local builds
+
 **Test All AI Features:**
 
-- [ ] 34. Thread summarization with various conversation types
-- [ ] 35. Action item extraction with different task formats
-- [ ] 36. Semantic search with complex queries
-- [ ] 37. Priority detection with various urgency levels
-- [ ] 38. Decision tracking with different decision types
-- [ ] 39. Multi-step agent with complex workflows
-- [ ] 40. Rate limiting (make 20+ requests quickly)
-- [ ] 41. Error handling (invalid inputs, network errors)
-- [ ] 42. Caching (verify cached responses are fast)
-- [ ] 43. Dark mode (all AI screens)
-- [ ] 44. Performance (response times meet targets)
-- [ ] 45. Image loading performance with FastImage (smooth scrolling, instant cached images)
+- [ ] 41. Thread summarization with various conversation types
+- [ ] 42. Action item extraction with different task formats
+- [ ] 43. Semantic search with complex queries
+- [ ] 44. Priority detection with various urgency levels
+- [ ] 45. Decision tracking with different decision types
+- [ ] 46. Multi-step agent with complex workflows
+- [ ] 47. Rate limiting (make 20+ requests quickly)
+- [ ] 48. Error handling (invalid inputs, network errors)
+- [ ] 49. Caching (verify cached responses are fast)
+- [ ] 50. Dark mode (all AI screens)
+- [ ] 51. Performance (response times meet targets)
+- [ ] 52. Image loading performance with FastImage (smooth scrolling, instant cached images)
 
 **Files Created:**
 
@@ -2960,24 +3012,27 @@ Note: Currently, profile photos are included in notification data but don't disp
 
 **Test Before Merge:**
 
-- [ ] 46. All AI features work in dark mode
-- [ ] 47. Rate limiting prevents abuse (20 requests/minute)
-- [ ] 48. Caching improves performance (cached responses <100ms)
-- [ ] 49. Error handling is user-friendly
-- [ ] 50. Analytics track usage correctly
-- [ ] 51. Health check endpoint works
-- [ ] 52. All features work offline (with cached data)
-- [ ] 53. Performance meets targets
-- [ ] 54. Documentation is complete and accurate
-- [ ] 55. Backend is production-ready
-- [ ] 56. Read receipt settings toggle works in ProfileScreen
-- [ ] 57. Read receipts respect user privacy settings
-- [ ] 58. FastImage installed and working across all profile images
-- [ ] 59. Message bubbles load profile pictures instantly on repeated views
-- [ ] 60. Group chat avatars load smoothly without staggered appearance
-- [ ] 61. Scrolling remains smooth (60fps) while images load
-- [ ] 62. Images persist in cache after app restart
-- [ ] 63. Memory usage improved (check via profiler if needed)
+- [ ] 53. All AI features work in dark mode
+- [ ] 54. Rate limiting prevents abuse (20 requests/minute)
+- [ ] 55. Caching improves performance (cached responses <100ms)
+- [ ] 56. Error handling is user-friendly
+- [ ] 57. Analytics track usage correctly
+- [ ] 58. Health check endpoint works
+- [ ] 59. All features work offline (with cached data)
+- [ ] 60. Performance meets targets
+- [ ] 61. Documentation is complete and accurate
+- [ ] 62. Backend is production-ready
+- [ ] 63. Read receipt settings toggle works in ProfileScreen
+- [ ] 64. Read receipts respect user privacy settings
+- [ ] 65. FastImage installed and working across all profile images
+- [ ] 66. Message bubbles load profile pictures instantly on repeated views
+- [ ] 67. Group chat avatars load smoothly without staggered appearance
+- [ ] 68. Scrolling remains smooth (60fps) while images load
+- [ ] 69. Images persist in cache after app restart
+- [ ] 70. Memory usage improved (check via profiler if needed)
+- [ ] 71. Push notifications resolved for PC (or documented as unsupported)
+- [ ] 72. Android build successfully deploys and runs
+- [ ] 73. All features work correctly on Android device
 
 ---
 
