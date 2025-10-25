@@ -24,6 +24,7 @@ import {
  * @param {boolean} showTimestamp - Whether to show timestamp
  * @param {boolean} isLastMessage - Whether this is the last message (for read indicator)
  * @param {Array} readBy - Array of user IDs who have read the message (for group chats, excluding sender)
+ * @param {string} priority - Priority level: "high", "normal", or "low"
  */
 export default function MessageBubble({
   message,
@@ -32,6 +33,7 @@ export default function MessageBubble({
   showTimestamp = true,
   isLastMessage = false,
   readBy = [],
+  priority = "normal",
 }) {
   // Get sender info from usersMap (for group chats)
   const usersMap = useFirebaseStore((state) => state.usersMap);
@@ -88,8 +90,16 @@ export default function MessageBubble({
           style={[
             styles.bubble,
             isSent ? styles.sentBubble : styles.receivedBubble,
+            priority === "high" && styles.highPriorityBubble,
           ]}
         >
+          {/* High priority badge */}
+          {priority === "high" && (
+            <View style={styles.priorityBadge}>
+              <Text style={styles.priorityText}>🔴 High Priority</Text>
+            </View>
+          )}
+
           <Text
             style={[
               styles.messageText,
@@ -258,6 +268,23 @@ const styles = StyleSheet.create({
   receivedBubble: {
     backgroundColor: colors.neutral.lighter,
     borderBottomLeftRadius: 4,
+  },
+  highPriorityBubble: {
+    borderWidth: 2,
+    borderColor: "#FF3B30",
+  },
+  priorityBadge: {
+    backgroundColor: "#FF3B30",
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    borderRadius: 4,
+    marginBottom: spacing[2],
+    alignSelf: "flex-start",
+  },
+  priorityText: {
+    color: colors.neutral.white,
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.bold,
   },
   messageText: {
     fontSize: typography.fontSize.base,

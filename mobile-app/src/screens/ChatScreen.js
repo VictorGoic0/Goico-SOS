@@ -15,8 +15,10 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -25,7 +27,11 @@ import CompactInput from "../components/CompactInput";
 import MessageBubble from "../components/MessageBubble";
 import ThreadSummaryModal from "../components/ThreadSummaryModal";
 import { db } from "../config/firebase";
-import { summarizeThread } from "../services/aiService";
+import {
+  detectPriority,
+  semanticSearch,
+  summarizeThread,
+} from "../services/aiService";
 import useFirebaseStore from "../stores/firebaseStore";
 import useLocalStore from "../stores/localStore";
 import usePresenceStore from "../stores/presenceStore";
@@ -73,6 +79,12 @@ export default function ChatScreen({ route, navigation }) {
   const [showSummary, setShowSummary] = useState(false);
   const [summary, setSummary] = useState("");
   const [loadingSummary, setLoadingSummary] = useState(false);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
 
   // Typing indicators state
   const [typingUserIds, setTypingUserIds] = useState([]);
@@ -164,6 +176,49 @@ export default function ChatScreen({ route, navigation }) {
 
     return unsubscribe;
   }, [conversationId, setMessages]);
+
+  // Auto-priority detection for new messages from others
+  useEffect(() => {
+    if (!conversationId || !messages[conversationId]) return;
+
+    const conversationMessages = messages[conversationId] || [];
+
+    // Find new messages from others that haven't been analyzed yet
+    const newMessagesFromOthers = conversationMessages.filter(
+      (msg) =>
+        msg.senderId !== currentUser.uid && // Not sent by current user
+        !msg.metadata?.hasPendingWrites && // Server confirmed (not still sending)
+        !msg.priority && // Not already analyzed
+        msg.text // Has text to analyze
+    );
+
+    // Detect priority for each new message
+    newMessagesFromOthers.forEach(async (msg) => {
+      try {
+        const priorityData = await detectPriority(msg.text);
+
+        // Only update if high priority (to reduce writes)
+        if (priorityData.priority === "high") {
+          const messageRef = doc(
+            db,
+            "conversations",
+            conversationId,
+            "messages",
+            msg.messageId
+          );
+
+          await updateDoc(messageRef, {
+            priority: priorityData.priority,
+            priorityReason: priorityData.reason,
+            urgencyScore: priorityData.urgencyScore,
+          });
+        }
+      } catch (error) {
+        console.error("Priority detection failed for message:", error);
+        // Silently fail - priority detection is not critical
+      }
+    });
+  }, [conversationId, messages, currentUser.uid]);
 
   // Mark messages as read when user views them
   useEffect(() => {
@@ -408,6 +463,16 @@ export default function ChatScreen({ route, navigation }) {
       ),
       headerRight: () => (
         <View style={styles.headerRightContainer}>
+          {/* Search Button */}
+          <TouchableOpacity
+            style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
+            onPress={() => setShowSearchBar(!showSearchBar)}
+            disabled={!hasMessages}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.aiButtonText}>🔍</Text>
+          </TouchableOpacity>
+
           {/* AI Buttons */}
           <TouchableOpacity
             style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
@@ -512,6 +577,33 @@ export default function ChatScreen({ route, navigation }) {
     navigation.navigate("ActionItems", { conversationId });
   };
 
+  // Handle semantic search
+  const handleSearch = async () => {
+    if (!searchQuery.trim() || !conversationId) return;
+
+    setSearching(true);
+    try {
+      const result = await semanticSearch(conversationId, searchQuery);
+      setSearchResults(result.results || []);
+    } catch (error) {
+      console.error("Search failed:", error);
+      Alert.alert(
+        "Search failed",
+        "Unable to search messages. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchBar(false);
+  };
+
   // Handle delete conversation
   const handleDeleteConversation = () => {
     const conversationName = isGroup
@@ -584,6 +676,68 @@ export default function ChatScreen({ route, navigation }) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
+      {/* Search Bar */}
+      {showSearchBar && (
+        <View style={styles.searchContainer}>
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search messages..."
+            style={styles.searchInput}
+            placeholderTextColor={colors.text.tertiary}
+            returnKeyType="search"
+            onSubmitEditing={handleSearch}
+          />
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={handleSearch}
+            disabled={searching || !searchQuery.trim()}
+          >
+            {searching ? (
+              <ActivityIndicator size="small" color={colors.neutral.white} />
+            ) : (
+              <Text style={styles.searchButtonText}>🔍</Text>
+            )}
+          </TouchableOpacity>
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              style={styles.clearSearchButton}
+              onPress={clearSearch}
+            >
+              <Text style={styles.clearSearchText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* Search Results */}
+      {searchResults.length > 0 && (
+        <ScrollView style={styles.searchResults}>
+          {searchResults.map((msg, i) => (
+            <TouchableOpacity
+              key={i}
+              style={styles.searchResult}
+              onPress={() => {
+                // Clear search and scroll to message would go here
+                clearSearch();
+              }}
+            >
+              <Text style={styles.searchResultSender} numberOfLines={1}>
+                {msg.senderUsername}
+              </Text>
+              <Text style={styles.searchResultText} numberOfLines={2}>
+                {msg.text}
+              </Text>
+              <View style={styles.searchResultMeta}>
+                <Text style={styles.searchResultSimilarity}>
+                  {(msg.similarity * 100).toFixed(0)}% match
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
       {/* Messages List */}
       <FlatList
         ref={flatListRef}
@@ -623,6 +777,7 @@ export default function ChatScreen({ route, navigation }) {
               isGroup={isGroup}
               isLastMessage={isLastMessage}
               readBy={readBy}
+              priority={item.priority || "normal"}
             />
           );
         }}
@@ -823,5 +978,80 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
     fontStyle: "italic",
+  },
+  // Search styles
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    backgroundColor: colors.neutral.lighter,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: typography.fontSize.base,
+    color: colors.text.primary,
+    backgroundColor: colors.neutral.white,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  searchButton: {
+    marginLeft: spacing[2],
+    backgroundColor: colors.primary.base,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: 8,
+    minWidth: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  searchButtonText: {
+    fontSize: 18,
+  },
+  clearSearchButton: {
+    marginLeft: spacing[2],
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[2],
+  },
+  clearSearchText: {
+    fontSize: 20,
+    color: colors.text.secondary,
+  },
+  searchResults: {
+    maxHeight: 250,
+    backgroundColor: colors.background.default,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  searchResult: {
+    padding: spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+    backgroundColor: colors.neutral.white,
+  },
+  searchResultSender: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary.base,
+    marginBottom: spacing[1],
+  },
+  searchResultText: {
+    fontSize: typography.fontSize.base,
+    color: colors.text.primary,
+    marginBottom: spacing[1],
+  },
+  searchResultMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  searchResultSimilarity: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.tertiary,
+    fontWeight: typography.fontWeight.medium,
   },
 });

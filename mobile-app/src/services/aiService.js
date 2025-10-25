@@ -40,3 +40,21 @@ export const extractActionItems = async (
     messageCount,
   });
 };
+
+// Semantic Search
+export const semanticSearch = async (
+  conversationId,
+  query,
+  messageCount = 200
+) => {
+  return await callBackend("search", {
+    conversationId,
+    query,
+    messageCount,
+  });
+};
+
+// Priority Detection
+export const detectPriority = async (messageText) => {
+  return await callBackend("priority", { messageText });
+};
