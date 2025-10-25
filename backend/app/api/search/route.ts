@@ -53,28 +53,83 @@ export async function POST(req: Request) {
       )
     );
 
-    // Calculate similarity scores and filter
+    // Helper: Check if message contains query keywords (fuzzy match with word variations)
+    const containsKeyword = (messageText: string, query: string): boolean => {
+      const messageLower = messageText.toLowerCase();
+      const queryLower = query.toLowerCase();
+      
+      // Check exact phrase match
+      if (messageLower.includes(queryLower)) return true;
+      
+      // Check if query is contained in message (partial match)
+      if (queryLower.length > 4 && messageLower.includes(queryLower)) return true;
+      
+      // Check individual words (for multi-word queries)
+      const queryWords = queryLower.split(/\s+/).filter(w => w.length > 2);
+      const messageWords = messageLower.split(/\s+/);
+      
+      // Check for exact word matches
+      if (queryWords.some(qWord => messageWords.some(mWord => mWord.includes(qWord)))) {
+        return true;
+      }
+      
+      // Check for word stem matches (e.g., "availability" matches "available")
+      // Simple approach: check if first 5 characters match for words > 5 chars
+      for (const qWord of queryWords) {
+        if (qWord.length > 5) {
+          const qStem = qWord.substring(0, 5);
+          if (messageWords.some(mWord => mWord.startsWith(qStem))) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    };
+
+    // Calculate similarity scores with hybrid approach
     const scoredMessages = messages
-      .map((msg, i) => ({
-        ...msg,
-        similarity: cosineSimilarity(
+      .map((msg, i) => {
+        const semanticScore = cosineSimilarity(
           queryEmbedding,
           messageEmbeddings[i].embedding
-        ),
-      }))
+        );
+        
+        // Boost score if message contains the query keywords
+        const hasKeywordMatch = containsKeyword(msg.text, query);
+        const keywordBoost = hasKeywordMatch ? 0.25 : 0; // Add 0.25 to score
+        
+        // Cap final score at 1.0
+        const finalScore = Math.min(semanticScore + keywordBoost, 1.0);
+        
+        return {
+          ...msg,
+          similarity: finalScore,
+          semanticScore: semanticScore,
+          hasKeywordMatch: hasKeywordMatch,
+        };
+      })
       .sort((a, b) => b.similarity - a.similarity);
 
     // Log top scores for debugging
     console.log('Search query:', query);
-    console.log('Top 5 similarity scores:', scoredMessages.slice(0, 5).map(m => ({
+    console.log('Top 5 results:', scoredMessages.slice(0, 5).map(m => ({
       text: m.text.substring(0, 50),
-      similarity: m.similarity
+      semanticScore: m.semanticScore.toFixed(3),
+      hasKeyword: m.hasKeywordMatch,
+      finalScore: m.similarity.toFixed(3),
     })));
 
-    // Lower threshold to 0.5 for more lenient matching
-    // Semantic search typically works well with 0.5-0.6 threshold
+    // Hybrid search threshold explanation:
+    // - Pure semantic score typically ranges 0.3-0.9 for relevant matches
+    // - Keyword boost adds 0.25 when query terms are found in message
+    // - Threshold of 0.3 catches both semantic matches and keyword boosted results
+    // - Examples: 
+    //   * Exact phrase match: 0.8 semantic + 0.25 boost = 1.05 (capped at 1.0)
+    //   * Related words ("availability"/"available"): 0.35 + 0.25 = 0.6
+    //   * Pure semantic: needs 0.3+ to pass
     const results = scoredMessages
-      .filter((r) => r.similarity > 0.5)
+      .filter((r) => r.similarity > 0.3)
       .slice(0, 10); // Return top 10 results
 
     return NextResponse.json({
