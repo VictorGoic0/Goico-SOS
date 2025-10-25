@@ -4,13 +4,13 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import UserListItem from "../components/UserListItem";
 import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
@@ -65,6 +65,9 @@ export default function HomeScreen({ navigation }) {
             <Image
               source={{ uri: currentUser.imageURL }}
               style={styles.headerProfileImage}
+              contentFit="cover"
+              priority="high"
+              cachePolicy="memory-disk"
             />
           ) : (
             <View
@@ -305,6 +308,9 @@ export default function HomeScreen({ navigation }) {
             <Image
               source={{ uri: item.groupImageURL }}
               style={styles.groupAvatar}
+              contentFit="cover"
+              priority="high"
+              cachePolicy="memory-disk"
             />
           ) : (
             <View

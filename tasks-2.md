@@ -2858,35 +2858,15 @@ Break down complex requests into steps and use available tools to complete the t
   )}
   ```
 
-- [ ] 28. (Optional) Add image pre-loading in ChatScreen for group conversations:
+- [x] 28. Update any other Image components for profile pictures:
 
-  ```javascript
-  // Note: expo-image automatically caches and handles preloading efficiently
-  // Manual preloading is optional and only needed for advanced use cases
+  - ✅ `GroupInfoScreen.js` - Updated participant avatars and group photo (2 Image components)
+  - ✅ `ProfileScreen.js` - Updated profile photo (1 Image component)
+  - ✅ `CreateGroupScreen.js` - Updated participant avatars and group photo preview (2 Image components)
+  - ✅ `HomeScreen.js` - Updated header profile photo and group conversation avatars (2 Image components)
+  - ✅ All profile image `Image` components now use expo-image with proper caching props
 
-  // If you want explicit preloading, import and use:
-  import { Image } from "expo-image";
-
-  useEffect(() => {
-    if (conversation?.participants) {
-      // Pre-load all participant profile images
-      const imagesToPreload = conversation.participants
-        .map((userId) => usersMap[userId]?.imageURL)
-        .filter(Boolean);
-
-      if (imagesToPreload.length > 0) {
-        Image.prefetch(imagesToPreload);
-      }
-    }
-  }, [conversation, usersMap]);
-  ```
-
-- [ ] 29. Update any other Image components for profile pictures:
-  - Check `GroupInfoScreen.js` for group photo display
-  - Check `ProfileScreen.js` for profile photo display
-  - Check `CreateGroupScreen.js` for participant selection
-  - Check `HomeScreen.js` for group conversation avatars
-  - Replace all profile image `Image` components from react-native with expo-image
+  **Note**: expo-image automatically handles pre-loading efficiently. Manual Image.prefetch() is optional and not needed for this app.
 
 **Why This Matters for Production:**
 

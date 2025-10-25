@@ -144,6 +144,7 @@ This app uses a **3-store Zustand architecture** for optimal real-time performan
 
 - **Frontend**: React Native, Expo
 - **State Management**: Zustand (3-store pattern)
+- **Image Caching**: expo-image (disk + memory caching for smooth 60fps scrolling)
 - **Backend**: Firebase
   - Authentication (email/password)
   - Firestore (messages, profiles, conversations)
