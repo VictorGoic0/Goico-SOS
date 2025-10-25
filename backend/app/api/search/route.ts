@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     );
 
     // Calculate similarity scores and filter
-    const results = messages
+    const scoredMessages = messages
       .map((msg, i) => ({
         ...msg,
         similarity: cosineSimilarity(
@@ -62,14 +62,27 @@ export async function POST(req: Request) {
           messageEmbeddings[i].embedding
         ),
       }))
-      .filter((r) => r.similarity > 0.7) // Threshold for relevance
-      .sort((a, b) => b.similarity - a.similarity)
+      .sort((a, b) => b.similarity - a.similarity);
+
+    // Log top scores for debugging
+    console.log('Search query:', query);
+    console.log('Top 5 similarity scores:', scoredMessages.slice(0, 5).map(m => ({
+      text: m.text.substring(0, 50),
+      similarity: m.similarity
+    })));
+
+    // Lower threshold to 0.5 for more lenient matching
+    // Semantic search typically works well with 0.5-0.6 threshold
+    const results = scoredMessages
+      .filter((r) => r.similarity > 0.5)
       .slice(0, 10); // Return top 10 results
 
     return NextResponse.json({
       results,
       query,
       conversationId,
+      totalMessages: messages.length,
+      maxScore: scoredMessages[0]?.similarity || 0,
     });
   } catch (error) {
     console.error("Search error:", error);

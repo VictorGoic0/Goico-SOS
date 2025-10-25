@@ -197,22 +197,21 @@ export default function ChatScreen({ route, navigation }) {
       try {
         const priorityData = await detectPriority(msg.text);
 
-        // Only update if high priority (to reduce writes)
-        if (priorityData.priority === "high") {
-          const messageRef = doc(
-            db,
-            "conversations",
-            conversationId,
-            "messages",
-            msg.messageId
-          );
+        // Write priority for ALL messages (high, normal, low)
+        // This ensures each message is only analyzed once
+        const messageRef = doc(
+          db,
+          "conversations",
+          conversationId,
+          "messages",
+          msg.messageId
+        );
 
-          await updateDoc(messageRef, {
-            priority: priorityData.priority,
-            priorityReason: priorityData.reason,
-            urgencyScore: priorityData.urgencyScore,
-          });
-        }
+        await updateDoc(messageRef, {
+          priority: priorityData.priority,
+          priorityReason: priorityData.reason,
+          urgencyScore: priorityData.urgencyScore,
+        });
       } catch (error) {
         console.error("Priority detection failed for message:", error);
         // Silently fail - priority detection is not critical
@@ -584,7 +583,23 @@ export default function ChatScreen({ route, navigation }) {
     setSearching(true);
     try {
       const result = await semanticSearch(conversationId, searchQuery);
+      console.log("Search results:", {
+        query: searchQuery,
+        totalMessages: result.totalMessages,
+        maxScore: result.maxScore,
+        resultCount: result.results?.length || 0,
+      });
       setSearchResults(result.results || []);
+
+      // Show alert if no results found
+      if (!result.results || result.results.length === 0) {
+        Alert.alert(
+          "No Results",
+          `No messages found matching "${searchQuery}". Try different keywords.\n\nSearched ${
+            result.totalMessages || 0
+          } messages. Best match score: ${result.maxScore?.toFixed(3) || "N/A"}`
+        );
+      }
     } catch (error) {
       console.error("Search failed:", error);
       Alert.alert(
