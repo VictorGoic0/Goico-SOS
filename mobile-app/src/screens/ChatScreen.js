@@ -197,22 +197,21 @@ export default function ChatScreen({ route, navigation }) {
       try {
         const priorityData = await detectPriority(msg.text);
 
-        // Only update if high priority (to reduce writes)
-        if (priorityData.priority === "high") {
-          const messageRef = doc(
-            db,
-            "conversations",
-            conversationId,
-            "messages",
-            msg.messageId
-          );
+        // Write priority for ALL messages (high, normal, low)
+        // This ensures each message is only analyzed once
+        const messageRef = doc(
+          db,
+          "conversations",
+          conversationId,
+          "messages",
+          msg.messageId
+        );
 
-          await updateDoc(messageRef, {
-            priority: priorityData.priority,
-            priorityReason: priorityData.reason,
-            urgencyScore: priorityData.urgencyScore,
-          });
-        }
+        await updateDoc(messageRef, {
+          priority: priorityData.priority,
+          priorityReason: priorityData.reason,
+          urgencyScore: priorityData.urgencyScore,
+        });
       } catch (error) {
         console.error("Priority detection failed for message:", error);
         // Silently fail - priority detection is not critical
