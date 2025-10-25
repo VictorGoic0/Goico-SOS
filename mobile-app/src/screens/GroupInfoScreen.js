@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import Button from "../components/Button";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
@@ -151,7 +151,13 @@ export default function GroupInfoScreen({ route, navigation }) {
       {/* Avatar */}
       <View style={styles.avatarContainer}>
         {item.imageURL ? (
-          <Image source={{ uri: item.imageURL }} style={styles.avatar} />
+          <Image
+            source={{ uri: item.imageURL }}
+            style={styles.avatar}
+            contentFit="cover"
+            priority="normal"
+            cachePolicy="memory-disk"
+          />
         ) : (
           <View
             style={[
@@ -212,11 +218,17 @@ export default function GroupInfoScreen({ route, navigation }) {
               <Image
                 source={{ uri: groupPhoto }}
                 style={styles.groupPhotoLarge}
+                contentFit="cover"
+                priority="high"
+                cachePolicy="memory-disk"
               />
             ) : conversation.groupImageURL ? (
               <Image
                 source={{ uri: conversation.groupImageURL }}
                 style={styles.groupPhotoLarge}
+                contentFit="cover"
+                priority="high"
+                cachePolicy="memory-disk"
               />
             ) : (
               <View

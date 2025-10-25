@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import {
   Alert,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import {
@@ -56,6 +56,9 @@ export default function MessageBubble({
             <Image
               source={{ uri: sender.imageURL }}
               style={styles.senderAvatar}
+              contentFit="cover"
+              priority="normal"
+              cachePolicy="memory-disk"
             />
           ) : (
             <View
@@ -157,6 +160,9 @@ export default function MessageBubble({
                       styles.miniAvatar,
                       index > 0 && styles.miniAvatarOverlap,
                     ]}
+                    contentFit="cover"
+                    priority="normal"
+                    cachePolicy="memory-disk"
                   />
                 ) : (
                   <View

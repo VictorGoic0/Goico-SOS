@@ -13,7 +13,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -21,6 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import CompactInput from "../components/CompactInput";
 import MessageBubble from "../components/MessageBubble";
 import ThreadSummaryModal from "../components/ThreadSummaryModal";
@@ -156,11 +156,6 @@ export default function ChatScreen({ route, navigation }) {
 
         // Store messages in Firebase store
         setMessages(conversationId, messagesList);
-
-        // Auto-scroll to bottom when new messages arrive
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
       },
       (error) => {
         console.error("Error in message listener:", error);
@@ -335,6 +330,9 @@ export default function ChatScreen({ route, navigation }) {
                 <Image
                   source={{ uri: conversation.groupImageURL }}
                   style={styles.headerAvatar}
+                  contentFit="cover"
+                  priority="high"
+                  cachePolicy="memory-disk"
                 />
               ) : (
                 <View
@@ -353,6 +351,9 @@ export default function ChatScreen({ route, navigation }) {
                   <Image
                     source={{ uri: otherUser.imageURL }}
                     style={styles.headerAvatar}
+                    contentFit="cover"
+                    priority="high"
+                    cachePolicy="memory-disk"
                   />
                 ) : (
                   <View
@@ -475,11 +476,6 @@ export default function ChatScreen({ route, navigation }) {
         currentUser.username,
         textToSend
       );
-
-      // Auto-scroll to bottom after sending
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
     } catch (error) {
       console.error("Error sending message:", error);
       // Restore draft on error so user doesn't lose their message
@@ -591,16 +587,19 @@ export default function ChatScreen({ route, navigation }) {
       {/* Messages List */}
       <FlatList
         ref={flatListRef}
-        data={conversationMessages}
+        data={[...conversationMessages].reverse()}
         keyExtractor={(item) => item.messageId}
+        inverted={true}
         renderItem={({ item, index }) => {
           // Check if this is the last message sent by current user
           const isSent = item.senderId === currentUser.uid;
 
-          // Find the LAST (most recent) message sent by current user
+          // Since array is reversed, index 0 = most recent message
+          // Find the FIRST occurrence in reversed array = most recent message
+          const reversedMessages = [...conversationMessages].reverse();
           let lastSentMessageIndex = -1;
-          for (let i = conversationMessages.length - 1; i >= 0; i--) {
-            if (conversationMessages[i].senderId === currentUser.uid) {
+          for (let i = 0; i < reversedMessages.length; i++) {
+            if (reversedMessages[i].senderId === currentUser.uid) {
               lastSentMessageIndex = i;
               break;
             }
@@ -628,10 +627,6 @@ export default function ChatScreen({ route, navigation }) {
           );
         }}
         contentContainerStyle={styles.messagesList}
-        onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }
-        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
@@ -716,6 +711,8 @@ const styles = StyleSheet.create({
   },
   messagesList: {
     paddingVertical: spacing[4],
+    flexGrow: 1,
+    justifyContent: "flex-end",
   },
   emptyContainer: {
     flex: 1,

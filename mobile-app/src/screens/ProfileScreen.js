@@ -4,13 +4,13 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import { auth } from "../config/firebase";
@@ -181,7 +181,13 @@ export default function ProfileScreen({ navigation }) {
         {/* Profile Photo */}
         <View style={styles.photoSection}>
           {imageURL ? (
-            <Image source={{ uri: imageURL }} style={styles.profilePhoto} />
+            <Image
+              source={{ uri: imageURL }}
+              style={styles.profilePhoto}
+              contentFit="cover"
+              priority="high"
+              cachePolicy="memory-disk"
+            />
           ) : (
             <View
               style={[
