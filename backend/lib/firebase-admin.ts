@@ -15,6 +15,19 @@ if (!admin.apps.length) {
 export const db = admin.firestore();
 export const auth = admin.auth();
 
+// Define message interface
+export interface FirebaseMessage {
+  messageId: string;
+  senderId: string;
+  senderUsername: string;
+  text: string;
+  timestamp: admin.firestore.Timestamp;
+  status: string;
+  readAt?: admin.firestore.Timestamp | null;
+  readBy?: string[] | null;
+  imageURL?: string | null;
+}
+
 /**
  * Helper function to fetch messages from a conversation
  * @param conversationId - The ID of the conversation
@@ -24,7 +37,7 @@ export const auth = admin.auth();
 export async function getMessagesFromFirebase(
   conversationId: string,
   limit: number = 50
-) {
+): Promise<FirebaseMessage[]> {
   try {
     const messagesRef = db
       .collection("conversations")
@@ -45,7 +58,7 @@ export async function getMessagesFromFirebase(
       ...doc.data(),
     }));
 
-    return messages;
+    return messages as FirebaseMessage[];
   } catch (error) {
     console.error("Error fetching messages from Firebase:", error);
     throw new Error("Failed to fetch messages from database");
