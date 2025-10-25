@@ -13,7 +13,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -21,6 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import CompactInput from "../components/CompactInput";
 import MessageBubble from "../components/MessageBubble";
 import ThreadSummaryModal from "../components/ThreadSummaryModal";
@@ -330,6 +330,9 @@ export default function ChatScreen({ route, navigation }) {
                 <Image
                   source={{ uri: conversation.groupImageURL }}
                   style={styles.headerAvatar}
+                  contentFit="cover"
+                  priority="high"
+                  cachePolicy="memory-disk"
                 />
               ) : (
                 <View
@@ -348,6 +351,9 @@ export default function ChatScreen({ route, navigation }) {
                   <Image
                     source={{ uri: otherUser.imageURL }}
                     style={styles.headerAvatar}
+                    contentFit="cover"
+                    priority="high"
+                    cachePolicy="memory-disk"
                   />
                 ) : (
                   <View

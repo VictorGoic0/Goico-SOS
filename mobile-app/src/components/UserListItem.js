@@ -1,12 +1,12 @@
 import React from "react";
 import {
   ActivityIndicator,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import usePresenceStore from "../stores/presenceStore";
 import { colors, spacing, typography } from "../styles/tokens";
 import {
@@ -82,7 +82,13 @@ export default function UserListItem({
       {/* Avatar */}
       <View style={styles.avatarContainer}>
         {user.imageURL ? (
-          <Image source={{ uri: user.imageURL }} style={styles.avatar} />
+          <Image
+            source={{ uri: user.imageURL }}
+            style={styles.avatar}
+            contentFit="cover"
+            priority="high"
+            cachePolicy="memory-disk"
+          />
         ) : (
           <View
             style={[styles.avatarPlaceholder, { backgroundColor: avatarColor }]}

@@ -2753,106 +2753,129 @@ Break down complex requests into steps and use available tools to complete the t
   - Only send read receipts if user has enabled them
   - Still show received read receipts regardless of setting
 
-**Implement FastImage for Production-Quality Image Caching:**
+**Implement expo-image for Production-Quality Image Caching:**
 
-- [ ] 24. Install react-native-fast-image:
+**Note:** Using `expo-image` instead of `react-native-fast-image` because FastImage requires native code and doesn't work with Expo Go. expo-image provides similar benefits (disk caching, smooth scrolling, memory efficiency) while maintaining fast development workflow.
+
+- [ ] 24. Install expo-image:
 
   ```bash
   cd mobile-app
-  npx expo install react-native-fast-image
+  npx expo install expo-image
   ```
 
-- [ ] 25. Update `MessageBubble.js` to use FastImage:
+- [x] 25. Update `MessageBubble.js` to use expo-image:
 
   ```javascript
-  import FastImage from 'react-native-fast-image';
+  // Change import from:
+  import { Image } from "react-native";
+  // To:
+  import { Image } from "expo-image";
 
-  // Replace sender avatar Image with FastImage (lines 55-59)
+  // Replace sender avatar Image (around line 56)
   {sender?.imageURL ? (
-    <FastImage
-      source={{
-        uri: sender.imageURL,
-        priority: FastImage.priority.normal,
-      }}
+    <Image
+      source={{ uri: sender.imageURL }}
       style={styles.senderAvatar}
-      resizeMode={FastImage.resizeMode.cover}
+      contentFit="cover"
+      priority="normal"
+      cachePolicy="memory-disk"
     />
   ) : (
     // ... existing placeholder code
   )}
 
-  // Replace mini avatars Image with FastImage (lines 152-160)
-  <FastImage
+  // Replace mini avatars Image (around line 156)
+  <Image
     key={userId}
-    source={{
-      uri: user.imageURL,
-      priority: FastImage.priority.normal,
-    }}
+    source={{ uri: user.imageURL }}
     style={[
       styles.miniAvatar,
       index > 0 && styles.miniAvatarOverlap,
     ]}
-    resizeMode={FastImage.resizeMode.cover}
+    contentFit="cover"
+    priority="normal"
+    cachePolicy="memory-disk"
   />
   ```
 
-- [ ] 26. Update `UserListItem.js` to use FastImage:
+- [x] 26. Update `UserListItem.js` to use expo-image:
 
   ```javascript
-  import FastImage from 'react-native-fast-image';
+  // Change import from:
+  import { Image } from "react-native";
+  // To:
+  import { Image } from "expo-image";
 
-  // Replace user avatar Image with FastImage
+  // Replace user avatar Image (around line 85)
   {user.imageURL ? (
-    <FastImage
-      source={{
-        uri: user.imageURL,
-        priority: FastImage.priority.high, // High priority for user list
-      }}
+    <Image
+      source={{ uri: user.imageURL }}
       style={styles.avatar}
-      resizeMode={FastImage.resizeMode.cover}
+      contentFit="cover"
+      priority="high"  // High priority for user list
+      cachePolicy="memory-disk"
     />
   ) : (
     // ... existing placeholder code
   )}
   ```
 
-- [ ] 27. Update `ChatScreen.js` header to use FastImage:
+- [x] 27. Update `ChatScreen.js` header to use expo-image:
 
   ```javascript
-  import FastImage from 'react-native-fast-image';
+  // Change import from:
+  import { Image } from "react-native";
+  // To:
+  import { Image } from "expo-image";
 
-  // Replace header avatar Image with FastImage
-  {otherUser?.imageURL ? (
-    <FastImage
-      source={{
-        uri: otherUser.imageURL,
-        priority: FastImage.priority.high,
-      }}
+  // Replace header avatars (around line 330 and 348)
+
+  // Group avatar:
+  {conversation?.groupImageURL ? (
+    <Image
+      source={{ uri: conversation.groupImageURL }}
       style={styles.headerAvatar}
-      resizeMode={FastImage.resizeMode.cover}
+      contentFit="cover"
+      priority="high"
+      cachePolicy="memory-disk"
+    />
+  ) : (
+    // ... existing placeholder code
+  )}
+
+  // 1-on-1 avatar:
+  {otherUser?.imageURL ? (
+    <Image
+      source={{ uri: otherUser.imageURL }}
+      style={styles.headerAvatar}
+      contentFit="cover"
+      priority="high"
+      cachePolicy="memory-disk"
     />
   ) : (
     // ... existing placeholder code
   )}
   ```
 
-- [ ] 28. Add image pre-loading in ChatScreen for group conversations:
+- [ ] 28. (Optional) Add image pre-loading in ChatScreen for group conversations:
 
   ```javascript
-  // In ChatScreen.js, add useEffect for pre-loading participant images
+  // Note: expo-image automatically caches and handles preloading efficiently
+  // Manual preloading is optional and only needed for advanced use cases
+
+  // If you want explicit preloading, import and use:
+  import { Image } from "expo-image";
+
   useEffect(() => {
     if (conversation?.participants) {
       // Pre-load all participant profile images
       const imagesToPreload = conversation.participants
         .map((userId) => usersMap[userId]?.imageURL)
-        .filter(Boolean)
-        .map((imageURL) => ({
-          uri: imageURL,
-          priority: FastImage.priority.normal,
-        }));
+        .filter(Boolean);
 
       if (imagesToPreload.length > 0) {
-        FastImage.preload(imagesToPreload);
+        Image.prefetch(imagesToPreload);
       }
     }
   }, [conversation, usersMap]);
@@ -2862,17 +2885,19 @@ Break down complex requests into steps and use available tools to complete the t
   - Check `GroupInfoScreen.js` for group photo display
   - Check `ProfileScreen.js` for profile photo display
   - Check `CreateGroupScreen.js` for participant selection
-  - Replace all profile image `Image` components with `FastImage`
+  - Check `HomeScreen.js` for group conversation avatars
+  - Replace all profile image `Image` components from react-native with expo-image
 
 **Why This Matters for Production:**
 
 - **Persistent Disk Caching**: Images cached between app sessions (not just in memory)
 - **60fps Scrolling**: Background decoding keeps UI smooth
-- **Memory Efficient**: Auto-downsampling to display size (200x less RAM usage)
+- **Memory Efficient**: Auto-downsampling to display size (reduces RAM usage significantly)
 - **Request Deduplication**: Same image URL = single network request
-- **Instant Loading**: Cached images appear in <50ms vs 500-2000ms
+- **Instant Loading**: Cached images appear in <100ms vs 500-2000ms
 - **Reduced Data Usage**: Critical for users on limited data plans
-- **Industry Standard**: Battle-tested by Instagram, Pinterest, Google Photos
+- **Expo-managed**: Works with Expo Go, no native build required
+- **Modern API**: Clean interface with contentFit, priority, cachePolicy props
 
 **Push Notification Profile Photos (Nice-to-Have):**
 
