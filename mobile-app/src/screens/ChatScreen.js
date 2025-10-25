@@ -583,7 +583,23 @@ export default function ChatScreen({ route, navigation }) {
     setSearching(true);
     try {
       const result = await semanticSearch(conversationId, searchQuery);
+      console.log("Search results:", {
+        query: searchQuery,
+        totalMessages: result.totalMessages,
+        maxScore: result.maxScore,
+        resultCount: result.results?.length || 0,
+      });
       setSearchResults(result.results || []);
+
+      // Show alert if no results found
+      if (!result.results || result.results.length === 0) {
+        Alert.alert(
+          "No Results",
+          `No messages found matching "${searchQuery}". Try different keywords.\n\nSearched ${
+            result.totalMessages || 0
+          } messages. Best match score: ${result.maxScore?.toFixed(3) || "N/A"}`
+        );
+      }
     } catch (error) {
       console.error("Search failed:", error);
       Alert.alert(
