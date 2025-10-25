@@ -81,13 +81,21 @@ export async function POST(req: Request) {
         if (hasMatch) return true;
       }
       
-      // Check for word stem matches (e.g., "availability" matches "available")
-      // Simple approach: check if first 5 characters match for words > 5 chars
+      // Check for word stem matches (bidirectional)
+      // Examples: "availability" matches "available", "meeting" matches "meet"
       for (const queryWord of queryWords) {
-        if (queryWord.length > 5) {
-          const wordStem = queryWord.substring(0, 5);
-          const hasStemMatch = messageWords.some(messageWord => messageWord.startsWith(wordStem));
-          if (hasStemMatch) return true;
+        for (const messageWord of messageWords) {
+          // Skip very short words
+          if (queryWord.length < 4 || messageWord.length < 4) continue;
+          
+          // Bidirectional stem matching using first 4 characters
+          const queryStem = queryWord.substring(0, 4);
+          const messageStem = messageWord.substring(0, 4);
+          
+          // Check if either word starts with the other's stem
+          if (queryWord.startsWith(messageStem) || messageWord.startsWith(queryStem)) {
+            return true;
+          }
         }
       }
       
