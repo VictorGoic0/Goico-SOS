@@ -4,11 +4,20 @@ import { NextResponse } from "next/server";
 import { getMessagesFromFirebase, FirebaseMessage } from "@/lib/firebase-admin";
 
 // Helper: Calculate cosine similarity between two vectors
-function cosineSimilarity(vecA: number[], vecB: number[]): number {
-  const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
-  const magnitudeA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
-  const magnitudeB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
-  return dotProduct / (magnitudeA * magnitudeB);
+function cosineSimilarity(vectorA: number[], vectorB: number[]): number {
+  const dotProduct = vectorA.reduce((sum, valueA, i) => sum + valueA * vectorB[i], 0);
+  const magnitudeA = Math.sqrt(vectorA.reduce((sum, valueA) => sum + valueA * valueA, 0));
+  const magnitudeB = Math.sqrt(vectorB.reduce((sum, valueB) => sum + valueB * valueB, 0));
+  
+  const similarity = dotProduct / (magnitudeA * magnitudeB);
+  
+  // Cosine similarity should be between -1 and 1, but for text embeddings it's typically 0-1
+  if (similarity < -1 || similarity > 1 || isNaN(similarity)) {
+    console.error('Invalid cosine similarity:', similarity);
+    return 0;
+  }
+  
+  return similarity;
 }
 
 export async function POST(req: Request) {
@@ -45,42 +54,40 @@ export async function POST(req: Request) {
 
     // Compute embeddings for all messages
     const messageEmbeddings = await Promise.all(
-      messages.map((msg: FirebaseMessage) =>
+      messages.map((message: FirebaseMessage) =>
         embed({
           model: openai.embedding("text-embedding-3-small"),
-          value: msg.text,
+          value: message.text,
         })
       )
     );
 
     // Helper: Check if message contains query keywords (fuzzy match with word variations)
-    const containsKeyword = (messageText: string, query: string): boolean => {
+    const containsKeyword = (messageText: string, searchQuery: string): boolean => {
       const messageLower = messageText.toLowerCase();
-      const queryLower = query.toLowerCase();
+      const queryLower = searchQuery.toLowerCase();
       
       // Check exact phrase match
       if (messageLower.includes(queryLower)) return true;
       
-      // Check if query is contained in message (partial match)
-      if (queryLower.length > 4 && messageLower.includes(queryLower)) return true;
-      
       // Check individual words (for multi-word queries)
-      const queryWords = queryLower.split(/\s+/).filter(w => w.length > 2);
+      // Filter out very short words (< 3 chars) as they're often stop words
+      const queryWords = queryLower.split(/\s+/).filter(word => word.length > 2);
       const messageWords = messageLower.split(/\s+/);
       
       // Check for exact word matches
-      if (queryWords.some(qWord => messageWords.some(mWord => mWord.includes(qWord)))) {
-        return true;
+      for (const queryWord of queryWords) {
+        const hasMatch = messageWords.some(messageWord => messageWord.includes(queryWord));
+        if (hasMatch) return true;
       }
       
       // Check for word stem matches (e.g., "availability" matches "available")
       // Simple approach: check if first 5 characters match for words > 5 chars
-      for (const qWord of queryWords) {
-        if (qWord.length > 5) {
-          const qStem = qWord.substring(0, 5);
-          if (messageWords.some(mWord => mWord.startsWith(qStem))) {
-            return true;
-          }
+      for (const queryWord of queryWords) {
+        if (queryWord.length > 5) {
+          const wordStem = queryWord.substring(0, 5);
+          const hasStemMatch = messageWords.some(messageWord => messageWord.startsWith(wordStem));
+          if (hasStemMatch) return true;
         }
       }
       
@@ -89,36 +96,38 @@ export async function POST(req: Request) {
 
     // Calculate similarity scores with hybrid approach
     const scoredMessages = messages
-      .map((msg, i) => {
-        const semanticScore = cosineSimilarity(
-          queryEmbedding,
-          messageEmbeddings[i].embedding
-        );
+      .map((message, index) => {
+        const messageEmbedding = messageEmbeddings[index].embedding;
+        const semanticScore = cosineSimilarity(queryEmbedding, messageEmbedding);
         
         // Boost score if message contains the query keywords
-        const hasKeywordMatch = containsKeyword(msg.text, query);
+        const hasKeywordMatch = containsKeyword(message.text, query);
         const keywordBoost = hasKeywordMatch ? 0.25 : 0; // Add 0.25 to score
         
         // Cap final score at 1.0
         const finalScore = Math.min(semanticScore + keywordBoost, 1.0);
         
         return {
-          ...msg,
+          ...message,
           similarity: finalScore,
           semanticScore: semanticScore,
           hasKeywordMatch: hasKeywordMatch,
         };
       })
-      .sort((a, b) => b.similarity - a.similarity);
+      .sort((resultA, resultB) => resultB.similarity - resultA.similarity);
 
-    // Log top scores for debugging
-    console.log('Search query:', query);
-    console.log('Top 5 results:', scoredMessages.slice(0, 5).map(m => ({
-      text: m.text.substring(0, 50),
-      semanticScore: m.semanticScore.toFixed(3),
-      hasKeyword: m.hasKeywordMatch,
-      finalScore: m.similarity.toFixed(3),
-    })));
+    // Log top scores for debugging with full message text
+    console.log('=== SEARCH DEBUG ===');
+    console.log('Query:', query);
+    console.log('Total messages searched:', messages.length);
+    console.log('\nTop 5 scored messages:');
+    scoredMessages.slice(0, 5).forEach((result, index) => {
+      console.log(`\n${index + 1}. "${result.text}"`);
+      console.log(`   Semantic: ${result.semanticScore.toFixed(4)}`);
+      console.log(`   Keyword: ${result.hasKeywordMatch ? '+0.25' : '+0.00'}`);
+      console.log(`   Final: ${result.similarity.toFixed(4)}`);
+    });
+    console.log('===================\n');
 
     // Hybrid search threshold explanation:
     // - Pure semantic score typically ranges 0.3-0.9 for relevant matches
@@ -129,8 +138,8 @@ export async function POST(req: Request) {
     //   * Related words ("availability"/"available"): 0.35 + 0.25 = 0.6
     //   * Pure semantic: needs 0.3+ to pass
     const results = scoredMessages
-      .filter((r) => r.similarity > 0.3)
-      .slice(0, 10); // Return top 10 results
+      .filter((result) => result.similarity > 0.3)
+      .slice(0, 5); // Return top 5 results
 
     return NextResponse.json({
       results,
