@@ -690,10 +690,14 @@ export default function ChatScreen({ route, navigation }) {
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search messages..."
-            style={styles.searchInput}
+            style={[
+              styles.searchInput,
+              searching && styles.searchInputDisabled,
+            ]}
             placeholderTextColor={colors.text.tertiary}
             returnKeyType="search"
             onSubmitEditing={handleSearch}
+            editable={!searching}
           />
           <TouchableOpacity
             style={styles.searchButton}
@@ -719,30 +723,32 @@ export default function ChatScreen({ route, navigation }) {
 
       {/* Search Results */}
       {searchResults.length > 0 && (
-        <ScrollView style={styles.searchResults}>
-          {searchResults.map((msg, i) => (
-            <TouchableOpacity
-              key={i}
-              style={styles.searchResult}
-              onPress={() => {
-                // Clear search and scroll to message would go here
-                clearSearch();
-              }}
-            >
-              <Text style={styles.searchResultSender} numberOfLines={1}>
-                {msg.senderUsername}
-              </Text>
-              <Text style={styles.searchResultText} numberOfLines={2}>
-                {msg.text}
-              </Text>
-              <View style={styles.searchResultMeta}>
-                <Text style={styles.searchResultSimilarity}>
-                  {(msg.similarity * 100).toFixed(0)}% match
+        <View style={styles.searchResultsContainer}>
+          <ScrollView style={styles.searchResults} nestedScrollEnabled={true}>
+            {searchResults.map((msg, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.searchResult}
+                onPress={() => {
+                  // Clear search and scroll to message would go here
+                  clearSearch();
+                }}
+              >
+                <Text style={styles.searchResultSender} numberOfLines={1}>
+                  {msg.senderUsername}
                 </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <Text style={styles.searchResultText} numberOfLines={2}>
+                  {msg.text}
+                </Text>
+                <View style={styles.searchResultMeta}>
+                  <Text style={styles.searchResultSimilarity}>
+                    {(msg.similarity * 100).toFixed(0)}% match
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       )}
 
       {/* Messages List */}
@@ -1007,6 +1013,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.light,
   },
+  searchInputDisabled: {
+    backgroundColor: colors.neutral.light,
+    opacity: 0.6,
+    color: colors.text.secondary,
+  },
   searchButton: {
     marginLeft: spacing[2],
     backgroundColor: colors.primary.base,
@@ -1029,11 +1040,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: colors.text.secondary,
   },
-  searchResults: {
-    maxHeight: 250,
+  searchResultsContainer: {
+    maxHeight: "60%", // Limit to 60% of screen height
     backgroundColor: colors.background.default,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
+  },
+  searchResults: {
+    flexGrow: 0, // Don't grow beyond content
+    flexShrink: 1, // Allow shrinking if needed
   },
   searchResult: {
     padding: spacing[3],
