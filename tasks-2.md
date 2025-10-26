@@ -1198,8 +1198,8 @@ Respond with:
 
 **Create Decision Tracking Backend:**
 
-- [ ] 1. File: `backend/app/api/decisions/route.ts`
-- [ ] 2. Implement decision extraction:
+- [x] 1. File: `backend/app/api/decisions/route.ts`
+- [x] 2. Implement decision extraction:
 
   ```typescript
   import { generateObject } from 'ai';
@@ -1244,14 +1244,9 @@ Respond with:
 
       const prompt = `Identify all decisions made in this conversation.
   A decision is a conclusion reached by the group, not just a suggestion.
-  ```
-
-Look for phrases like: "let's do...", "we agreed...", "decided to...", "going with..."
-
-Conversation:
-${conversationText}
-
-Return JSON array with decision, participants, timestamp, context, and confidence level.`;
+  Look for phrases like: "let's do...", "we agreed...", "decided to...", "going with..."
+  Conversation:
+  ${conversationText} Return JSON array with decision, participants, timestamp, context, and confidence level.`;
 
       const { object } = await generateObject({
         model: openai('gpt-4-turbo'),
@@ -1279,7 +1274,7 @@ Return JSON array with decision, participants, timestamp, context, and confidenc
 
 }
 
-````
+```
 
 **Create Multi-Step Agent Backend:**
 
@@ -1468,13 +1463,13 @@ Break down complex requests into steps and use available tools to complete the t
 - [ ] 8. Add decision extraction function:
 
 ```javascript
-  export const extractDecisions = async (conversationId, messageCount = 100) => {
+export const extractDecisions = async (conversationId, messageCount = 100) => {
   return await callBackend('decisions', {
-  conversationId,
-  messageCount
+    conversationId,
+    messageCount
   });
-  };
-````
+};
+  ```
 
 - [ ] 9. Add agent function with streaming support:
 
@@ -2208,7 +2203,7 @@ Break down complex requests into steps and use available tools to complete the t
 
 **Note:** Using `expo-image` instead of `react-native-fast-image` because FastImage requires native code and doesn't work with Expo Go. expo-image provides similar benefits (disk caching, smooth scrolling, memory efficiency) while maintaining fast development workflow.
 
-- [ ] 24. Install expo-image:
+- [x] 24. Install expo-image:
 
   ```bash
   cd mobile-app
@@ -2565,3 +2560,4 @@ Firebase (Firestore for messages)
 - **Document all API endpoints** in backend README
 
 Good luck implementing the AI features! 🤖✨
+````
