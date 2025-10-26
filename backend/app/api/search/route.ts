@@ -3,6 +3,15 @@ import { openai } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
 import { getMessagesFromFirebase, FirebaseMessage } from "@/lib/firebase-admin";
 
+// Search configuration
+const SIMILARITY_THRESHOLD = 0.4; // Adjust this to tune search precision vs recall
+// Higher values (0.5-0.7): More precise, fewer results
+// Lower values (0.3-0.4): More recall, may include loosely related results
+// Note: Keyword boost adds +0.25, so messages with matching keywords typically score 0.5+
+
+const KEYWORD_BOOST_AMOUNT = 0.25; // Bonus score when query terms found in message
+const MAX_SEARCH_RESULTS = 5; // Number of top results to return
+
 // Helper: Calculate cosine similarity between two vectors
 function cosineSimilarity(vectorA: number[], vectorB: number[]): number {
   const dotProduct = vectorA.reduce((sum, valueA, i) => sum + valueA * vectorB[i], 0);
@@ -110,7 +119,7 @@ export async function POST(req: Request) {
         
         // Boost score if message contains the query keywords
         const hasKeywordMatch = containsKeyword(message.text, query);
-        const keywordBoost = hasKeywordMatch ? 0.25 : 0; // Add 0.25 to score
+        const keywordBoost = hasKeywordMatch ? KEYWORD_BOOST_AMOUNT : 0;
         
         // Cap final score at 1.0
         const finalScore = Math.min(semanticScore + keywordBoost, 1.0);
@@ -124,29 +133,12 @@ export async function POST(req: Request) {
       })
       .sort((resultA, resultB) => resultB.similarity - resultA.similarity);
 
-    // Log top scores for debugging with full message text
-    console.log('=== SEARCH DEBUG ===');
-    console.log('Query:', query);
-    console.log('Total messages searched:', messages.length);
-    console.log('\nTop 5 scored messages:');
-    scoredMessages.slice(0, 5).forEach((result, index) => {
-      console.log(`\n${index + 1}. "${result.text}"`);
-      console.log(`   Semantic: ${result.semanticScore.toFixed(4)}`);
-      console.log(`   Keyword: ${result.hasKeywordMatch ? '+0.25' : '+0.00'}`);
-      console.log(`   Final: ${result.similarity.toFixed(4)}`);
-    });
-    console.log('===================\n');
-
-    // Hybrid search threshold explanation:
-    // - Pure semantic score typically ranges 0.3-0.9 for relevant matches
-    // - Keyword boost adds 0.25 when query terms are found in message
-    // - Threshold of 0.3 catches both semantic matches and keyword boosted results
-    // - Examples: 
-    //   * Exact phrase match: 0.8 semantic + 0.25 boost = 1.05 (capped at 1.0)
-    //   * Related words ("availability"/"available"): 0.35 + 0.25 = 0.6
-    //   * Pure semantic: needs 0.3+ to pass
+    // Hybrid search threshold of 0.4:
+    // - Keyword-matched messages typically score 0.5-1.0 (semantic + 0.25 boost)
+    // - Pure semantic matches need 0.4+ similarity to be relevant
+    // - Balances precision (avoiding irrelevant results) with recall (finding related messages)
     const results = scoredMessages
-      .filter((result) => result.similarity > 0.3)
+      .filter((result) => result.similarity > 0.4)
       .slice(0, 5); // Return top 5 results
 
     return NextResponse.json({

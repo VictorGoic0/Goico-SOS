@@ -819,12 +819,27 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Goal**: Implement semantic search using OpenAI embeddings and automatic priority detection for messages
 
+**Implementation Notes**:
+
+- **Hybrid Search Algorithm**: Combines semantic embeddings with keyword matching for optimal results
+  - Pure semantic search (cosine similarity) captures contextual meaning
+  - Keyword matching with bidirectional stem matching (4-char stems) catches word variations
+  - Examples: "meeting" matches "meet", "availability" matches "available"
+  - Keyword boost of +0.25 applied when query terms found in message text
+- **Threshold Tuning**: Set to 0.4 after testing (balances precision vs recall)
+  - Keyword-matched messages typically score 0.5-1.0 (semantic + boost)
+  - Pure semantic matches need 0.4+ to be relevant
+  - Filters out irrelevant results like "hello" while catching related content
+- **Results Limit**: Returns top 5 results (not 10) for cleaner UX
+- **Variable Naming Standards**: Enforced via `.cursor/rules/variable-naming.mdc`
+  - No single-letter variables except `i` for index and `(a, b)` in sorts
+
 ### Subtasks
 
 **Create Semantic Search Backend:**
 
-- [ ] 1. File: `backend/app/api/search/route.ts`
-- [ ] 2. Implement semantic search endpoint:
+- [x] 1. File: `backend/app/api/search/route.ts`
+- [x] 2. Implement semantic search endpoint:
 
   ```typescript
   import { embed } from "ai";
@@ -907,8 +922,8 @@ export const summarizeThread = async (conversationId, messageCount = 50) => {
 
 **Create Priority Detection Backend:**
 
-- [ ] 3. File: `backend/app/api/priority/route.ts`
-- [ ] 4. Implement priority detection:
+- [x] 3. File: `backend/app/api/priority/route.ts`
+- [x] 4. Implement priority detection:
 
   ```typescript
   import { generateObject } from 'ai';
@@ -968,8 +983,8 @@ Respond with:
 
 **Update Mobile AI Service:**
 
-- [ ] 5. File: `mobile-app/src/services/aiService.js`
-- [ ] 6. Add search and priority functions:
+- [x] 5. File: `mobile-app/src/services/aiService.js`
+- [x] 6. Add search and priority functions:
 
   ```javascript
   export const semanticSearch = async (
@@ -991,8 +1006,8 @@ Respond with:
 
 **Update MessageBubble for Priority Display:**
 
-- [ ] 7. File: `mobile-app/src/components/MessageBubble.js`
-- [ ] 8. Add priority indicator:
+- [x] 7. File: `mobile-app/src/components/MessageBubble.js`
+- [x] 8. Add priority indicator:
 
   ```javascript
   // Add priority prop
@@ -1039,8 +1054,8 @@ Respond with:
 
 **Add Search UI to ChatScreen:**
 
-- [ ] 9. File: `mobile-app/src/screens/ChatScreen.js`
-- [ ] 10. Add search bar below header:
+- [x] 9. File: `mobile-app/src/screens/ChatScreen.js`
+- [x] 10. Add search bar below header:
 
   ```javascript
   const [searchQuery, setSearchQuery] = useState("");
@@ -1092,8 +1107,8 @@ Respond with:
 
 **Implement Auto-Priority Detection:**
 
-- [ ] 11. File: `mobile-app/src/screens/ChatScreen.js`
-- [ ] 12. Add priority detection for incoming messages:
+- [x] 11. File: `mobile-app/src/screens/ChatScreen.js`
+- [x] 12. Add priority detection for incoming messages:
 
   ```javascript
   // In message listener, after receiving new message
@@ -1126,7 +1141,7 @@ Respond with:
 
 **Deploy Backend Changes:**
 
-- [ ] 13. Deploy to Vercel:
+- [x] 13. Deploy to Vercel:
 
   ```bash
   cd backend
@@ -1135,8 +1150,8 @@ Respond with:
 
 **Test Semantic Search:**
 
-- [ ] 14. Create messages with varied topics
-- [ ] 15. Test semantic search:
+- [x] 14. Create messages with varied topics
+- [x] 15. Test semantic search:
   - Search for "meeting schedule" (semantic query)
   - Verify results include messages about "calendar", "availability", "time to meet"
   - Check similarity scores are accurate
@@ -1144,12 +1159,12 @@ Respond with:
 
 **Test Priority Detection:**
 
-- [ ] 16. Send urgent message: "Production is down! Need help ASAP!"
-- [ ] 17. Verify message flagged as high priority with red border
-- [ ] 18. Check priority reason is accurate
-- [ ] 19. Send normal message: "Let me know when you're free"
-- [ ] 20. Verify marked as normal priority (no special styling)
-- [ ] 21. Response time should be <8 seconds
+- [x] 16. Send urgent message: "Production is down! Need help ASAP!"
+- [x] 17. Verify message flagged as high priority with red border
+- [x] 18. Check priority reason is accurate
+- [x] 19. Send normal message: "Let me know when you're free"
+- [x] 20. Verify marked as normal priority (no special styling)
+- [x] 21. Response time should be <8 seconds
 
 **Files Created:**
 
@@ -1164,14 +1179,14 @@ Respond with:
 
 **Test Before Merge:**
 
-- [ ] 22. Semantic search finds contextually relevant messages
-- [ ] 23. Search results show similarity scores
-- [ ] 24. Priority detection flags urgent messages correctly
-- [ ] 25. High-priority messages show red border/badge
-- [ ] 26. Auto-priority detection works on new messages
-- [ ] 27. Search performance meets targets (<3s)
-- [ ] 28. Priority detection performance acceptable (<8s)
-- [ ] 29. Error handling works properly
+- [x] 22. Semantic search finds contextually relevant messages
+- [x] 23. Search results show similarity scores
+- [x] 24. Priority detection flags urgent messages correctly
+- [x] 25. High-priority messages show red border/badge
+- [x] 26. Auto-priority detection works on new messages
+- [x] 27. Search performance meets targets (<3s)
+- [x] 28. Priority detection performance acceptable (<8s)
+- [x] 29. Error handling works properly
 
 ---
 
