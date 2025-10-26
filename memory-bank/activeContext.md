@@ -2,11 +2,11 @@
 
 ## Current Work Focus
 
-### Project Status: **Core Messaging Complete - Ready for Advanced AI Features**
+### Project Status: **AI Search & Priority Features Complete**
 
-The project has completed PRs #1-11 (all core messaging features including read receipts), PR #13 (Vercel Backend Setup), and PR #14 (Thread Summarization & Action Items). The application now has fully functional 1-on-1 and group messaging with push notifications, read receipts, and AI-powered thread analysis capabilities.
+The project has completed PRs #1-11 (all core messaging features including read receipts), PR #13 (Vercel Backend Setup), PR #14 (Thread Summarization & Action Items), and PR #15 (Smart Search & Priority Detection). The application now has fully functional 1-on-1 and group messaging with push notifications, read receipts, AI-powered thread analysis, semantic search, and automatic priority detection.
 
-**Current Architecture**: React Native mobile app → Vercel serverless functions → OpenAI GPT-4o-mini + Firebase Firestore
+**Current Architecture**: React Native mobile app → Vercel serverless functions → OpenAI GPT-4o-mini (text) + text-embedding-3-small (embeddings) + Firebase Firestore
 
 ### Completed PRs
 
@@ -23,21 +23,25 @@ The project has completed PRs #1-11 (all core messaging features including read 
 11. ✅ **PR #11**: Read Receipts Implementation
 12. ✅ **PR #13**: Vercel Backend Setup & Test Function
 13. ✅ **PR #14**: Thread Summarization & Action Item Extraction
+14. ✅ **PR #15**: Smart Search & Priority Detection
 
-### Recently Completed: **PR #11 - Read Receipts**
+### Recently Completed: **PR #15 - Smart Search & Priority Detection**
 
-**PR #11 Highlights:**
+**PR #15 Highlights:**
 
-- ✅ Updated message status system to 3-state flow (sending → sent → read)
-- ✅ Renamed `markMessagesAsDelivered` to `markMessagesAsRead`
-- ✅ Messages marked as "read" when recipient opens ChatScreen
-- ✅ "Read X ago" text indicator for 1-on-1 chats (below last message)
-- ✅ Group chat read receipts with `readBy` array tracking
-- ✅ Mini profile avatars (16x16px) for group read receipts
-- ✅ Long-press on group read receipt shows full reader list
-- ✅ Up to 3 avatars displayed with "+N" overflow indicator
-- ✅ Migration complete: All "delivered" status messages converted to "sent"
-- ✅ Updated `formatTimestamp` to handle Firestore Timestamp objects
+- ✅ **Hybrid Search Algorithm**: Combines semantic embeddings (cosine similarity) with keyword matching
+  - Bidirectional stem matching (4-char stems): "meeting" matches "meet", "availability" matches "available"
+  - Keyword boost of +0.25 when query terms found in message
+  - Configurable threshold (0.4) balances precision vs recall
+- ✅ **Semantic Search Backend** (`/api/search`): OpenAI text-embedding-3-small for embeddings
+- ✅ **Priority Detection Backend** (`/api/priority`): Automatic urgency analysis using GPT-4o-mini
+- ✅ **Search UI**: Toggle search bar in ChatScreen header, responsive results container
+  - Results expand to content (max 60% of screen height)
+  - Search input disabled during active search
+  - Returns top 5 results with similarity scores
+- ✅ **Priority Display**: High-priority messages show red border and 🔴 badge
+- ✅ **Auto-Priority Detection**: New messages automatically analyzed for urgency
+- ✅ **Variable Naming Standards**: Enforced via `.cursor/rules/variable-naming.mdc`
 
 **PR #9 Highlights:**
 
@@ -76,17 +80,68 @@ The project has completed PRs #1-11 (all core messaging features including read 
 
 **AI Features Roadmap:**
 
-- PR #15: Smart Search & Priority Detection
-- PR #16: AI Agent as a Conversation (unified conversational interface)
+- ✅ PR #15: Smart Search & Priority Detection (COMPLETE)
+- ⏳ PR #16: AI Agent as a Conversation (unified conversational interface) - NEXT
 - PR #17: Decision Tracking & Multi-Step Agent
 - PR #18: AI Features Polish & Integration
 
 **Completed Features:**
 
 - ✅ PRs #1-11: Core messaging, profiles, presence, group chats, push notifications, read receipts
-- ✅ PR #13-14: AI backend setup + thread analysis features
+- ✅ PRs #13-15: AI backend setup + thread analysis + semantic search + priority detection
 
 ## Recent Changes
+
+### PR #15: Smart Search & Priority Detection (Completed)
+
+**Hybrid Search Implementation:**
+
+The search feature combines semantic understanding with traditional keyword matching for optimal results:
+
+1. **Semantic Search** (OpenAI text-embedding-3-small):
+
+   - Generates embeddings for search query and all messages
+   - Calculates cosine similarity between vectors
+   - Captures contextual meaning beyond exact keywords
+
+2. **Keyword Matching** (Bidirectional Stem Matching):
+
+   - Checks for exact phrase matches
+   - 4-character stem matching (e.g., "meet" from "meeting")
+   - Works both directions: query→message AND message→query
+   - Adds +0.25 boost when keywords found
+
+3. **Configurable Parameters** (at top of `/api/search/route.ts`):
+   - `SIMILARITY_THRESHOLD = 0.4`: Balance precision vs recall
+   - `KEYWORD_BOOST_AMOUNT = 0.25`: Bonus for keyword matches
+   - `MAX_SEARCH_RESULTS = 5`: Number of results returned
+
+**Search UX:**
+
+- Toggle button (🔍) in ChatScreen header
+- Search bar appears below header when active
+- Results container expands with content (max 60% screen height)
+- Search input disabled during active search
+- Each result shows sender, message preview, similarity percentage
+
+**Priority Detection:**
+
+- Automatic analysis of incoming messages
+- High-priority messages flagged with red border + 🔴 badge
+- Factors: urgency indicators, deadlines, blockers, escalations
+- Priority stored in message document (prevents re-analysis)
+
+**Files Created:**
+
+- `backend/app/api/search/route.ts` - Hybrid search endpoint
+- `backend/app/api/priority/route.ts` - Priority detection endpoint
+- `.cursor/rules/variable-naming.mdc` - Code standards enforcement
+
+**Files Modified:**
+
+- `mobile-app/src/services/aiService.js` - Added search/priority functions
+- `mobile-app/src/screens/ChatScreen.js` - Search UI integration
+- `mobile-app/src/components/MessageBubble.js` - Priority display
 
 ### PR #11: Read Receipts Implementation (Completed)
 

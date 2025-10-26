@@ -1,18 +1,18 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **All Core Features Complete - Ready for Advanced AI**
+## Current Status: **AI Search & Priority Complete - Agent Features Next**
 
-### Overall Progress: 76% Complete (13/17 PRs Done)
+### Overall Progress: 82% Complete (14/17 PRs Done)
 
 - ✅ **Planning Phase**: 100% Complete
 - ✅ **Foundation Phase**: 100% Complete (PRs #1-2)
 - ✅ **Core Features**: 100% Complete (PRs #3-8)
 - ✅ **Advanced Features**: 100% Complete (PRs #9-11)
-- ✅ **AI Features (Phase 1)**: 50% Complete (PRs #13-14 done)
-- ⏳ **AI Features (Phase 2)**: 0% Complete (PRs #15-18 remaining)
+- ✅ **AI Features (Phase 1)**: 100% Complete (PRs #13-15 done)
+- ⏳ **AI Features (Phase 2)**: 0% Complete (PRs #16-18 remaining)
 - ⏳ **Polish & Deployment**: 0% Complete
 
-**Current Focus**: All core messaging features complete including read receipts. Focus now shifts to advanced AI features (smart search, priority detection, AI agent conversation, decision tracking, and polish).
+**Current Focus**: Semantic search and priority detection complete. Next: AI Agent as a Conversation (PR #16), then decision tracking and final polish.
 
 ## What Works (Completed)
 
@@ -218,6 +218,29 @@
 - Graceful error handling with partial data recovery
 - Uses structured outputs (JSON schema) for reliable parsing
 
+### PR #15: Smart Search & Priority Detection ✅ (Complete)
+
+**Architecture**: OpenAI text-embedding-3-small for embeddings + GPT-4o-mini for priority analysis
+
+- ✅ Hybrid search algorithm (semantic + keyword matching)
+- ✅ Bidirectional stem matching (4-char stems)
+- ✅ Configurable search parameters (threshold, boost, max results)
+- ✅ Search UI with toggle button in ChatScreen header
+- ✅ Responsive results container (expands to content, max 60% screen)
+- ✅ Search input disabled during active search
+- ✅ Automatic priority detection for incoming messages
+- ✅ High-priority message display (red border + 🔴 badge)
+- ✅ Variable naming standards enforced (`.cursor/rules/variable-naming.mdc`)
+
+**Key Implementation Details**:
+
+- Semantic search: Cosine similarity between message embeddings
+- Keyword boost: +0.25 when query terms found in message
+- Threshold: 0.4 (balances precision vs recall)
+- Top 5 results with similarity percentages
+- Priority factors: urgency indicators, deadlines, blockers, escalations
+- Priority stored in message document (prevents re-analysis)
+
 ### PR #9: Group Chats ✅ (Complete)
 
 **Features Implemented:**
@@ -309,7 +332,7 @@
 
 ### Phase 7: AI Features Implementation (PRs #13-18)
 
-**Status**: Phase 1 Complete (PRs #13-14)
+**Status**: Phase 1 Complete (PRs #13-15)
 
 - ✅ **PR #13**: Vercel Backend Setup
   - ✅ Next.js project with Vercel AI SDK
@@ -321,10 +344,13 @@
   - ✅ Mobile UI integration (ThreadSummaryModal, ActionItemsScreen)
   - ✅ ChatScreen integration with AI buttons
   - ✅ Full end-to-end testing complete
-- [ ] **PR #15**: Smart Search & Priority Detection
-  - Semantic Search using OpenAI embeddings
-  - Automatic Priority Detection for messages
-- [ ] **PR #16**: AI Agent as a Conversation ⭐ NEW ARCHITECTURE
+- ✅ **PR #15**: Smart Search & Priority Detection
+  - ✅ Hybrid semantic search (embeddings + keyword matching)
+  - ✅ Automatic priority detection for messages
+  - ✅ Search UI with responsive results container
+  - ✅ Priority display with red border and badge
+  - ✅ Configurable search parameters and threshold tuning
+- [ ] **PR #16**: AI Agent as a Conversation ⭐ NEXT
   - AI agent as pinned conversation in HomeScreen
   - Reuses existing ChatScreen for conversation UI
   - Streaming responses in real-time
