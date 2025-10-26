@@ -133,13 +133,10 @@ export async function POST(req: Request) {
       })
       .sort((resultA, resultB) => resultB.similarity - resultA.similarity);
 
-    // Hybrid search threshold of 0.4:
-    // - Keyword-matched messages typically score 0.5-1.0 (semantic + 0.25 boost)
-    // - Pure semantic matches need 0.4+ similarity to be relevant
-    // - Balances precision (avoiding irrelevant results) with recall (finding related messages)
+    // Filter results based on similarity threshold and return top N
     const results = scoredMessages
-      .filter((result) => result.similarity > 0.4)
-      .slice(0, 5); // Return top 5 results
+      .filter((result) => result.similarity > SIMILARITY_THRESHOLD)
+      .slice(0, MAX_SEARCH_RESULTS);
 
     return NextResponse.json({
       results,
