@@ -9,7 +9,7 @@ import {
   Text,
 } from "react-native";
 import { executeAgent } from "../services/aiService";
-import { colors, spacing } from "../styles/tokens";
+import { colors, spacing, typography } from "../styles/tokens";
 import MessageBubble from "../components/MessageBubble";
 import CompactInput from "../components/CompactInput";
 import useFirebaseStore from "../stores/firebaseStore";
@@ -135,9 +135,21 @@ export default function AgentChatScreen({ route }) {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>👋 Welcome to AI Agent</Text>
             <Text style={styles.emptyText}>
-              Ask the AI agent anything about this conversation! 🤖
+              I can help you analyze this conversation. Try asking:
             </Text>
+            <View style={styles.examplesContainer}>
+              <Text style={styles.examplePrompt}>
+                "Show me all action items from last week"
+              </Text>
+              <Text style={styles.examplePrompt}>
+                "What decisions were made?"
+              </Text>
+              <Text style={styles.examplePrompt}>
+                "Summarize this conversation"
+              </Text>
+            </View>
           </View>
         }
       />
@@ -179,9 +191,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: spacing[6],
   },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
+    textAlign: "center",
+  },
   emptyText: {
     fontSize: 16,
     color: colors.text.secondary,
+    textAlign: "center",
+    marginBottom: spacing[4],
+  },
+  examplesContainer: {
+    alignSelf: "stretch",
+    backgroundColor: colors.neutral.white,
+    borderRadius: 12,
+    padding: spacing[4],
+    marginTop: spacing[2],
+  },
+  examplePrompt: {
+    fontSize: 14,
+    color: colors.primary.base,
+    fontStyle: "italic",
+    marginBottom: spacing[2],
     textAlign: "center",
   },
   typingIndicator: {

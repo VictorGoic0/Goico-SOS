@@ -1752,8 +1752,11 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   - Use FlatList with same styling
   - Messages marked as "delivered" when complete
   - Typing indicator shows "AI Agent is thinking..."
-  - Removed custom welcome UI (kept simple empty state)
   - Same message timestamps logic as ChatScreen
+- [x] 41. Added example prompts in empty state (only shows when no messages)
+  - "Show me all action items from last week"
+  - "What decisions were made?"
+  - "Summarize this conversation"
 
 **Test Decision Tracking:**
 
