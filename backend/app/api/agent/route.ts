@@ -8,13 +8,13 @@ const agentTools = {
   getConversationMessages: tool({
     description: 'Fetch recent messages from a conversation. This is the PRIMARY tool for getting conversation context. Use this FIRST for summarization, decision extraction, or general analysis tasks. Returns up to 50 most recent messages in chronological order.',
     parameters: z.object({
-      conversationId: z.string(),
-      limit: z.number().optional().default(50).describe('Number of messages to fetch (max 50)'),
+      conversationId: z.string().describe('The conversation ID to fetch messages from'),
+      limit: z.number().optional().describe('Number of messages to fetch (max 50, defaults to 50 if not provided)'),
     }),
     execute: async ({ conversationId, limit }) => {
       console.log('[TOOL: getConversationMessages] Called with:', { conversationId, limit });
       const conversationIdStr: string = conversationId;
-      const limitNum: number = Math.min(limit || 50, 50);
+      const limitNum: number = Math.min(limit ?? 50, 50); // Use nullish coalescing
       const result = await getConversationMessages(conversationIdStr, limitNum);
       console.log('[TOOL: getConversationMessages] Returned', result.length, 'messages');
       return result;
@@ -24,7 +24,7 @@ const agentTools = {
   searchMessages: tool({
     description: 'Search for specific messages using date ranges or keywords. Use this when the user asks for messages from a specific time period or containing specific terms. For general conversation access, use getConversationMessages instead.',
     parameters: z.object({
-      conversationId: z.string(),
+      conversationId: z.string().describe('The conversation ID to search within'),
       startDate: z.string().optional().describe('Start date in ISO format (e.g., 2024-01-01)'),
       endDate: z.string().optional().describe('End date in ISO format (e.g., 2024-01-31)'),
       keyword: z.string().optional().describe('Keyword to search for in message text'),
