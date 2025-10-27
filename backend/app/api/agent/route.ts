@@ -112,10 +112,7 @@ export async function POST(req: Request) {
 
     console.log('[AGENT ROUTE] Starting generateText with GPT-4...');
 
-    const result = await generateText({
-      model: openai('gpt-4-turbo'),
-      tools: agentTools,
-      system: `You are an AI assistant helping remote teams analyze their conversations. You have access to tools that let you fetch messages, search, extract insights, and generate reports.
+    const systemPrompt = `You are an AI assistant helping remote teams analyze their conversations. You have access to tools that let you fetch messages, search, extract insights, and generate reports.
 
 RESPONSE FRAMEWORK:
 1. Understand the request - Identify what information the user needs
@@ -150,9 +147,17 @@ Approach:
 2. Call extractActionItems(messages)
 3. Call categorizeByPerson(actionItems)
 4. Call generateReport(categorizedData, "Action Items by Person")
-5. Return the formatted report with context`,
+5. Return the formatted report with context`;
+
+    const result = await generateText({
+      model: openai('gpt-4-turbo'),
+      tools: agentTools,
+      system: systemPrompt,
       prompt: `Conversation ID: ${conversationId}\n\nUser request: ${userQuery}`,
-    });
+      maxSteps: 3, // Try to allow multiple steps
+    } as any); // Cast to any since maxSteps might not be in types yet
+
+    console.log('[AGENT ROUTE] Generation complete after all steps');
 
     console.log('[AGENT ROUTE] Generation complete:', {
       text: result.text || '(empty)',
