@@ -476,6 +476,16 @@ export default function ChatScreen({ route, navigation }) {
             <Text style={styles.aiButtonText}>🔍</Text>
           </TouchableOpacity>
 
+          {/* AI Agent Button */}
+          <TouchableOpacity
+            style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
+            onPress={() => navigation.navigate("AgentChat", { conversationId })}
+            disabled={!hasMessages}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.aiButtonText}>🤖</Text>
+          </TouchableOpacity>
+
           {/* Overflow Menu Button */}
           <TouchableOpacity
             style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
@@ -689,14 +699,12 @@ export default function ChatScreen({ route, navigation }) {
               <Text style={styles.searchButtonText}>🔍</Text>
             )}
           </TouchableOpacity>
-          {searchQuery.length > 0 && (
-            <TouchableOpacity
-              style={styles.clearSearchButton}
-              onPress={clearSearch}
-            >
-              <Text style={styles.clearSearchText}>✕</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.clearSearchButton}
+            onPress={clearSearch}
+          >
+            <Text style={styles.clearSearchText}>✕</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -884,18 +892,6 @@ export default function ChatScreen({ route, navigation }) {
             >
               <Text style={styles.menuIcon}>✓</Text>
               <Text style={styles.menuText}>Decisions</Text>
-            </TouchableOpacity>
-
-            {/* AI Agent */}
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => {
-                setShowOverflowMenu(false);
-                navigation.navigate("AgentChat", { conversationId });
-              }}
-            >
-              <Text style={styles.menuIcon}>🤖</Text>
-              <Text style={styles.menuText}>AI Agent</Text>
             </TouchableOpacity>
 
             {/* Divider */}

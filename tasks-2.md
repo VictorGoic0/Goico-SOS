@@ -1733,11 +1733,14 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 - [x] 19. File: `mobile-app/src/screens/ChatScreen.js`
 - [x] 20. Issue: Too many buttons in header (6 total: Search, Summarize, Action Items, Decisions, Agent, Delete)
 - [x] 21. Solution: Create overflow menu with text labels
-  - Keep in header: Search (🔍), Overflow menu (⋮)
-  - Move to menu: Conversation Summary, Action Items, Decisions, AI Agent, Delete Conversation
+  - Keep in header: Search (🔍), AI Agent (🤖), Overflow menu (⋮)
+  - Move to menu: Conversation Summary, Action Items, Decisions, Delete Conversation
   - Use Modal with semi-transparent overlay
   - Add text labels with icons for clarity
   - Maintain disabled state logic for Delete option
+  - AI Agent promoted back to header as primary feature (opens new flow)
+  - Menu items now grow with content (no text cutoff)
+  - Search X button always visible for easy close
 
 **Test Decision Tracking:**
 
