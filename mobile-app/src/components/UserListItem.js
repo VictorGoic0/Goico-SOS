@@ -157,9 +157,6 @@ export default function UserListItem({
       {isDeleting && (
         <ActivityIndicator size="small" color={colors.primary.base} />
       )}
-
-      {/* Chevron - hidden for current user and when deleting */}
-      {!isCurrentUser && !isDeleting && <Text style={styles.chevron}>›</Text>}
     </TouchableOpacity>
   );
 }
@@ -260,10 +257,5 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
     color: colors.success.main,
     marginTop: spacing[1],
-  },
-  chevron: {
-    fontSize: 28,
-    color: colors.neutral.mediumLight,
-    marginLeft: spacing[2],
   },
 });

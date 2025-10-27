@@ -24,6 +24,7 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/strict-boolean-expressions": "off",
       "@typescript-eslint/prefer-nullish-coalescing": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
+      "@typescript-eslint/no-unsafe-enum-comparison": "off",
     },
   },
 ]);

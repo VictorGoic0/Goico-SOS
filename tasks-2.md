@@ -1349,8 +1349,8 @@ export function formatReport(data: any, title: string) {
 }
 ````
 
-- [ ] 5. File: `backend/app/api/agent/route.ts`
-- [ ] 6. Implement multi-step agent:
+- [x] 5. File: `backend/app/api/agent/route.ts`
+- [x] 6. Implement multi-step agent:
 
   ```typescript
   import { streamText, tool } from 'ai';
