@@ -36,13 +36,12 @@ import { db } from "../config/firebase";
 import { colors, spacing, typography } from "../styles/tokens";
 import { listenToConversations } from "../utils/conversation";
 import { registerForPushNotifications } from "../utils/notifications";
-import {
-  initializePresence,
-  listenToConnectionStatus,
-  listenToPresence,
-  updatePresence,
-} from "../utils/presence";
+import { updatePresence } from "../utils/presence";
 import { getUserProfile } from "../utils/profile";
+
+// Hooks
+import usePresence from "../hooks/usePresence";
+import usePresenceSync from "../hooks/usePresenceSync";
 
 const Stack = createNativeStackNavigator();
 
@@ -55,19 +54,20 @@ export default function AppNavigator() {
   const [isCheckingProfile, setIsCheckingProfile] = useState(true);
   const [hasUsername, setHasUsername] = useState(false);
 
+  // Initialize presence tracking (handles heartbeat, reconnect, cleanup automatically)
+  usePresence(currentUser?.uid && hasUsername);
+
+  // Sync presence data from Realtime DB to store (handles filtering by lastSeen)
+  usePresenceSync();
+
   // Update hasUsername when currentUser.username changes
-  // Also initialize presence when username is first set (profile creation)
   useEffect(() => {
     if (currentUser?.username) {
-      // Only initialize presence if we just got the username (profile was just created)
-      if (!hasUsername) {
-        initializePresence(currentUser.uid);
-      }
       setHasUsername(true);
     } else if (currentUser && !currentUser.username) {
       setHasUsername(false);
     }
-  }, [currentUser?.username, currentUser?.uid, hasUsername]);
+  }, [currentUser?.username]);
 
   // Listen to auth state changes and check for username
   useEffect(() => {
@@ -84,9 +84,6 @@ export default function AppNavigator() {
               ...userProfile,
             });
             setHasUsername(true);
-
-            // Initialize presence for this user
-            await initializePresence(user.uid);
           } else {
             // User needs to complete profile setup
             setCurrentUser(user);
@@ -109,26 +106,6 @@ export default function AppNavigator() {
 
     return unsubscribe;
   }, [setCurrentUser]);
-
-  // Listen to presence changes in Realtime Database
-  useEffect(() => {
-    if (!currentUser?.uid) {
-      return;
-    }
-
-    const unsubscribe = listenToPresence();
-    return unsubscribe;
-  }, [currentUser?.uid]);
-
-  // Listen to Firebase connection status
-  useEffect(() => {
-    if (!currentUser?.uid) {
-      return;
-    }
-
-    const unsubscribe = listenToConnectionStatus();
-    return unsubscribe;
-  }, [currentUser?.uid]);
 
   // Listen to conversations for current user
   useEffect(() => {

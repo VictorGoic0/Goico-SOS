@@ -123,10 +123,10 @@ export const listenToConnectionStatus = (callback) => {
     connectedRef,
     (snapshot) => {
       const isConnected = snapshot.val() === true;
-      
+
       // Update the presence store
       usePresenceStore.getState().setConnectionStatus(isConnected);
-      
+
       // Call callback if provided
       if (callback) {
         callback(isConnected);
