@@ -121,11 +121,19 @@ export default function UserListItem({
           )}
         </View>
 
-        {/* Show last message if conversation exists, otherwise show username/status */}
+        {/* Show last message if conversation exists, otherwise show username */}
         {hasConversation ? (
-          <Text style={styles.lastMessageText} numberOfLines={1}>
-            {messagePreview}
-          </Text>
+          <>
+            <Text style={styles.lastMessageText} numberOfLines={1}>
+              {messagePreview}
+            </Text>
+            {/* Show online status even when there's a conversation */}
+            {!isCurrentUser && isOnline && (
+              <Text style={styles.status} numberOfLines={1}>
+                {user.status || "Available"}
+              </Text>
+            )}
+          </>
         ) : (
           <>
             <Text style={styles.username} numberOfLines={1}>
@@ -136,7 +144,7 @@ export default function UserListItem({
                 {formatLastSeen(presenceData.lastSeen)}
               </Text>
             )}
-            {isOnline && (
+            {isOnline && !isCurrentUser && (
               <Text style={styles.status} numberOfLines={1}>
                 {user.status || "Available"}
               </Text>
