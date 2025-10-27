@@ -144,11 +144,11 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
     color: colors.neutral.darkest,
-    marginBottom: spacing.md,
-    lineHeight: typography.lineHeight.relaxed,
+    marginBottom: spacing.lg,
+    lineHeight: typography.lineHeight.relaxed * typography.fontSize.lg,
   },
   metaContainer: {
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   label: {
     fontSize: typography.fontSize.xs,
@@ -156,21 +156,22 @@ const styles = StyleSheet.create({
     color: colors.neutral.mediumDark,
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xs / 2,
   },
   participants: {
     fontSize: typography.fontSize.base,
     color: colors.neutral.darker,
-    lineHeight: typography.lineHeight.normal,
+    lineHeight: typography.lineHeight.normal * typography.fontSize.base,
   },
   timestamp: {
     fontSize: typography.fontSize.sm,
     color: colors.neutral.mediumDark,
+    lineHeight: typography.lineHeight.normal * typography.fontSize.sm,
   },
   context: {
     fontSize: typography.fontSize.base,
     color: colors.neutral.dark,
-    lineHeight: typography.lineHeight.relaxed,
+    lineHeight: typography.lineHeight.relaxed * typography.fontSize.base,
   },
   loading: {
     flex: 1,
