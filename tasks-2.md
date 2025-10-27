@@ -1742,6 +1742,19 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   - Menu items now grow with content (no text cutoff)
   - Search X button always visible for easy close
 
+**Bug Fix: AI Agent Screen UI:**
+
+- [x] 38. File: `mobile-app/src/screens/AgentChatScreen.js`
+- [x] 39. Issue: UI didn't match ChatScreen - input/send button styling broken, welcome text took too much space
+- [x] 40. Solution: Complete rewrite to match ChatScreen structure
+  - Use MessageBubble component (same as ChatScreen)
+  - Use CompactInput component (same as ChatScreen)
+  - Use FlatList with same styling
+  - Messages marked as "delivered" when complete
+  - Typing indicator shows "AI Agent is thinking..."
+  - Removed custom welcome UI (kept simple empty state)
+  - Same message timestamps logic as ChatScreen
+
 **Test Decision Tracking:**
 
 - [ ] 22. Create conversation with clear decisions:
