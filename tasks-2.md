@@ -1460,8 +1460,8 @@ Break down complex requests into steps and use available tools to complete the t
 
 **Update Mobile AI Service for Streaming:**
 
-- [ ] 7. File: `mobile-app/src/services/aiService.js`
-- [ ] 8. Add decision extraction function:
+- [x] 7. File: `mobile-app/src/services/aiService.js`
+- [x] 8. Add decision extraction function:
 
 ```javascript
 export const extractDecisions = async (conversationId, messageCount = 100) => {

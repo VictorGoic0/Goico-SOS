@@ -41,6 +41,14 @@ export const extractActionItems = async (
   });
 };
 
+// Decision Extraction
+export const extractDecisions = async (conversationId, messageCount = 100) => {
+  return await callBackend("decisions", {
+    conversationId,
+    messageCount,
+  });
+};
+
 // Semantic Search
 export const semanticSearch = async (
   conversationId,
