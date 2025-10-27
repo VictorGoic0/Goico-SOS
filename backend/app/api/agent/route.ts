@@ -1,5 +1,6 @@
 import { generateText, tool } from 'ai';
 import { openai } from '@ai-sdk/openai';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { searchMessages, groupBy, formatReport, getConversationMessages } from '@/lib/agent-tools';
 
@@ -154,16 +155,37 @@ Approach:
     });
 
     console.log('[AGENT ROUTE] Generation complete:', {
-      textLength: result.text.length,
-      toolCallsCount: result.toolCalls?.length || 0,
+      text: result.text || '(empty)',
+      textLength: result.text?.length || 0,
       finishReason: result.finishReason,
+      toolCallsCount: result.toolCalls?.length || 0,
+      toolResultsCount: result.toolResults?.length || 0,
+      stepsCount: (result as any).steps?.length || 0,
+      usage: result.usage,
     });
 
+    // Log tool calls and results
+    if (result.toolCalls && result.toolCalls.length > 0) {
+      console.log('[AGENT ROUTE] Tool calls made:', result.toolCalls.map(tc => tc.toolName));
+    }
+    if (result.toolResults && result.toolResults.length > 0) {
+      console.log('[AGENT ROUTE] Tool results received:', result.toolResults.length);
+    }
+    
+    // Log steps if available
+    if ((result as any).steps) {
+      console.log('[AGENT ROUTE] Steps taken:', (result as any).steps.length);
+      (result as any).steps.forEach((step: any, index: number) => {
+        console.log(`[AGENT ROUTE] Step ${index + 1}:`, {
+          toolCalls: step.toolCalls?.length || 0,
+          text: step.text?.substring(0, 50) || '(no text)',
+          finishReason: step.finishReason,
+        });
+      });
+    }
+
     // Return the complete response as JSON
-    return new Response(
-      JSON.stringify({ text: result.text }),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    return NextResponse.json({ text: result.text });
 
   } catch (error) {
     console.error('[AGENT ROUTE] Error occurred:', error);
