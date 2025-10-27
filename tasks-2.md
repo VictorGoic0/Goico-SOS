@@ -2031,29 +2031,199 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   }
   ```
 
-**Add Dark Mode Support to AI Screens:**
+**Implement Dark Mode with Device Persistence:**
 
-- [ ] 9. Update all AI screens to use theme colors:
+- [ ] 9. File: `mobile-app/src/contexts/ThemeContext.js`
+- [ ] 10. Create theme context with AsyncStorage persistence:
 
+  ```javascript
+  import React, { createContext, useState, useEffect, useContext } from "react";
+  import AsyncStorage from "@react-native-async-storage/async-storage";
+  import { useColorScheme } from "react-native";
+
+  const ThemeContext = createContext();
+
+  export function ThemeProvider({ children }) {
+    const systemColorScheme = useColorScheme();
+    const [themeMode, setThemeMode] = useState("system"); // 'light', 'dark', or 'system'
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Load theme preference from AsyncStorage on mount
+    useEffect(() => {
+      loadTheme();
+    }, []);
+
+    const loadTheme = async () => {
+      try {
+        const saved = await AsyncStorage.getItem("themeMode");
+        if (saved) {
+          setThemeMode(saved);
+        }
+      } catch (error) {
+        console.error("Failed to load theme:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const setTheme = async (mode) => {
+      try {
+        await AsyncStorage.setItem("themeMode", mode);
+        setThemeMode(mode);
+      } catch (error) {
+        console.error("Failed to save theme:", error);
+      }
+    };
+
+    // Determine actual theme to use
+    const actualTheme = themeMode === "system" ? systemColorScheme : themeMode;
+    const isDark = actualTheme === "dark";
+
+    return (
+      <ThemeContext.Provider
+        value={{
+          themeMode,
+          setTheme,
+          isDark,
+          isLoading,
+        }}
+      >
+        {children}
+      </ThemeContext.Provider>
+    );
+  }
+
+  export const useTheme = () => useContext(ThemeContext);
+  ```
+
+- [ ] 11. Update `tokens.js` with dark mode colors:
+
+  ```javascript
+  export const colors = {
+    light: {
+      background: "#FFFFFF",
+      surface: "#F5F5F5",
+      text: {
+        primary: "rgba(0, 0, 0, 0.87)",
+        secondary: "rgba(0, 0, 0, 0.60)",
+      },
+      border: "rgba(0, 0, 0, 0.12)",
+      // ... all your existing colors
+    },
+    dark: {
+      background: "#121212",
+      surface: "#1E1E1E",
+      text: {
+        primary: "rgba(255, 255, 255, 0.87)",
+        secondary: "rgba(255, 255, 255, 0.60)",
+      },
+      border: "rgba(255, 255, 255, 0.12)",
+      primary: {
+        base: "#90CAF9",
+        light: "#BBDEFB",
+        dark: "#42A5F5",
+      },
+      // ... mirror your light theme colors with dark variants
+    },
+  };
+  ```
+
+- [ ] 12. Wrap app in ThemeProvider (`App.js`):
+
+  ```javascript
+  import { ThemeProvider } from "./src/contexts/ThemeContext";
+
+  export default function App() {
+    return (
+      <ThemeProvider>
+        <AppNavigator />
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    );
+  }
+  ```
+
+- [ ] 13. Add theme toggle to `ProfileScreen.js`:
+
+  ```javascript
+  import { useTheme } from "../contexts/ThemeContext";
+
+  export default function ProfileScreen() {
+    const { themeMode, setTheme, isDark } = useTheme();
+
+    return (
+      <View>
+        {/* ... existing profile content */}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Appearance</Text>
+
+          <View style={styles.themeSelector}>
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                themeMode === "light" && styles.themeActive,
+              ]}
+              onPress={() => setTheme("light")}
+            >
+              <Text>☀️ Light</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                themeMode === "system" && styles.themeActive,
+              ]}
+              onPress={() => setTheme("system")}
+            >
+              <Text>⚙️ System</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                themeMode === "dark" && styles.themeActive,
+              ]}
+              onPress={() => setTheme("dark")}
+            >
+              <Text>🌙 Dark</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
+  ```
+
+- [ ] 14. Update all screens to use theme:
+
+  ```javascript
+  // In each screen:
+  import { useTheme } from "../contexts/ThemeContext";
+  import { colors } from "../styles/tokens";
+
+  export default function SomeScreen() {
+    const { isDark } = useTheme();
+    const theme = isDark ? colors.dark : colors.light;
+
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Text style={{ color: theme.text.primary }}>Hello</Text>
+      </View>
+    );
+  }
+  ```
+
+- [ ] 15. Apply theme to all screens:
+  - HomeScreen.js
+  - ChatScreen.js
+  - ProfileScreen.js
+  - GroupInfoScreen.js
+  - CreateGroupScreen.js
   - ThreadSummaryModal.js
   - ActionItemsScreen.js
   - DecisionsScreen.js
   - AgentChatScreen.js
-
-- [ ] 10. Use theme context or tokens:
-
-  ```javascript
-  // In each screen:
-  import { useColorScheme } from 'react-native';
-  import { tokens } from '../styles/tokens';
-
-  const colorScheme = useColorScheme();
-  const colors = colorScheme === 'dark' ? tokens.colors.dark : tokens.colors.light;
-
-  // Use colors in styles:
-  backgroundColor: colors.background,
-  color: colors.text,
-  ```
 
 **Add Analytics Tracking:**
 
