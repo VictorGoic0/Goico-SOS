@@ -114,6 +114,15 @@ export async function POST(req: Request) {
     const result = streamText({
       model: openai('gpt-4-turbo'),
       tools: agentTools,
+      onFinish: ({ text, toolCalls, toolResults, finishReason, usage }) => {
+        console.log('[AGENT ROUTE] Stream finished:', {
+          textLength: text?.length || 0,
+          toolCallsCount: toolCalls?.length || 0,
+          toolResultsCount: toolResults?.length || 0,
+          finishReason,
+          usage
+        });
+      },
       system: `You are an AI assistant helping remote teams analyze their conversations. You have access to tools that let you fetch messages, search, extract insights, and generate reports.
 
 RESPONSE FRAMEWORK:
@@ -131,6 +140,7 @@ GUIDELINES:
 - Keep responses concise and actionable
 - If the conversation has fewer than 50 messages, you'll get all of them
 - Interpret tool results in context of the user's original question
+- After calling tools, ALWAYS generate a final text response - never leave the response empty
 
 FEW-SHOT EXAMPLES:
 
