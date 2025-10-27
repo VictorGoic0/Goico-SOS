@@ -67,7 +67,7 @@ export const detectPriority = async (messageText) => {
   return await callBackend("priority", { messageText });
 };
 
-// Multi-Step Agent with Streaming
+// Multi-Step Agent
 export const executeAgent = async (userQuery, conversationId, onChunk) => {
   console.log("executeAgent called with:", { userQuery, conversationId });
 
@@ -81,27 +81,22 @@ export const executeAgent = async (userQuery, conversationId, onChunk) => {
 
     console.log("Response status:", response.status);
     console.log("Response ok:", response.ok);
-    console.log("Response headers:", response.headers);
 
     if (!response.ok) {
       throw new Error(`Agent error: ${response.status}`);
     }
 
-    console.log("Starting to read stream...");
-    console.log("response.body:", response.body);
+    const data = await response.json();
+    console.log("Got response:", data);
 
-    // Try reading the entire response as text first
-    const text = await response.text();
-    console.log("Got full text response:", text);
+    const text = data.text || "";
 
     if (text && onChunk) {
       onChunk(text, text);
     }
 
-    const fullText = text;
-
-    console.log("executeAgent complete! fullText:", fullText);
-    return fullText;
+    console.log("executeAgent complete! text length:", text.length);
+    return text;
   } catch (error) {
     console.error("Agent execution failed:", error);
     console.error("Error details:", error.message, error.stack);

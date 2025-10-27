@@ -1,4 +1,4 @@
-import { streamText, tool } from 'ai';
+import { generateText, tool } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { searchMessages, groupBy, formatReport, getConversationMessages } from '@/lib/agent-tools';
@@ -109,20 +109,11 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log('[AGENT ROUTE] Starting streamText with GPT-4...');
+    console.log('[AGENT ROUTE] Starting generateText with GPT-4...');
 
-    const result = streamText({
+    const result = await generateText({
       model: openai('gpt-4-turbo'),
       tools: agentTools,
-      onFinish: ({ text, toolCalls, toolResults, finishReason, usage }) => {
-        console.log('[AGENT ROUTE] Stream finished:', {
-          textLength: text?.length || 0,
-          toolCallsCount: toolCalls?.length || 0,
-          toolResultsCount: toolResults?.length || 0,
-          finishReason,
-          usage
-        });
-      },
       system: `You are an AI assistant helping remote teams analyze their conversations. You have access to tools that let you fetch messages, search, extract insights, and generate reports.
 
 RESPONSE FRAMEWORK:
@@ -162,9 +153,17 @@ Approach:
       prompt: `Conversation ID: ${conversationId}\n\nUser request: ${userQuery}`,
     });
 
-    // Stream the response back to the mobile app
-    console.log('[AGENT ROUTE] Returning stream response...');
-    return result.toTextStreamResponse();
+    console.log('[AGENT ROUTE] Generation complete:', {
+      textLength: result.text.length,
+      toolCallsCount: result.toolCalls?.length || 0,
+      finishReason: result.finishReason,
+    });
+
+    // Return the complete response as JSON
+    return new Response(
+      JSON.stringify({ text: result.text }),
+      { headers: { 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('[AGENT ROUTE] Error occurred:', error);
