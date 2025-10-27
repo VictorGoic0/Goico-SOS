@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       .map(m => `${m.senderUsername}: ${m.text}`)
       .join('\n');
 
-    const prompt = `Summarize this conversation thread in 3-4 bullet points. Focus on key topics, decisions, and action items:
+    const prompt = `Summarize this conversation thread in 2-3 bullet points. Focus on key topics, decisions, and action items:
 
 ${conversationText}
 

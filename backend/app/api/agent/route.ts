@@ -11,10 +11,10 @@ const agentTools = {
       conversationId: z.string().describe('The conversation ID to fetch messages from'),
       limit: z.number().optional().describe('Number of messages to fetch (max 50, defaults to 50 if not provided)'),
     }),
-    execute: async ({ conversationId, limit }) => {
+    execute: async ({ conversationId, limit }: { conversationId: string; limit?: number }) => {
       console.log('[TOOL: getConversationMessages] Called with:', { conversationId, limit });
       const conversationIdStr: string = conversationId;
-      const limitNum: number = Math.min(limit ?? 50, 50); // Use nullish coalescing
+      const limitNum: number = Math.min(limit ?? 50, 50);
       const result = await getConversationMessages(conversationIdStr, limitNum);
       console.log('[TOOL: getConversationMessages] Returned', result.length, 'messages');
       return result;
@@ -29,7 +29,7 @@ const agentTools = {
       endDate: z.string().optional().describe('End date in ISO format (e.g., 2024-01-31)'),
       keyword: z.string().optional().describe('Keyword to search for in message text'),
     }),
-    execute: async ({ conversationId, startDate, endDate, keyword }) => {
+    execute: async ({ conversationId, startDate, endDate, keyword }: { conversationId: string; startDate?: string; endDate?: string; keyword?: string }) => {
       console.log('[TOOL: searchMessages] Called with:', { conversationId, startDate, endDate, keyword });
       const conversationIdStr: string = conversationId;
       const startDateStr: string | undefined = startDate;
@@ -51,7 +51,7 @@ const agentTools = {
     parameters: z.object({
       messages: z.array(z.any()).describe('Array of message objects to analyze'),
     }),
-    execute: async ({ messages }) => {
+    execute: async ({ messages }: { messages: any[] }) => {
       console.log('[TOOL: extractActionItems] Called with', messages.length, 'messages');
       const messagesList: any[] = messages;
       // Simplified extraction logic
@@ -76,7 +76,7 @@ const agentTools = {
     parameters: z.object({
       actionItems: z.array(z.any()).describe('Array of action items to group by assignedTo field'),
     }),
-    execute: async ({ actionItems }) => {
+    execute: async ({ actionItems }: { actionItems: any[] }) => {
       console.log('[TOOL: categorizeByPerson] Called with', actionItems.length, 'items');
       const items: any[] = actionItems;
       const result = groupBy(items, 'assignedTo');
@@ -91,7 +91,7 @@ const agentTools = {
       data: z.any().describe('Data to format (typically an object with categories as keys and arrays as values)'),
       title: z.string().describe('Title for the report'),
     }),
-    execute: async ({ data, title }) => {
+    execute: async ({ data, title }: { data: any; title: string }) => {
       console.log('[TOOL: generateReport] Called with title:', title);
       const reportData: any = data;
       const reportTitle: string = title;
