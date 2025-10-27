@@ -63,3 +63,25 @@ export function formatReport(data: any, title: string) {
   return report;
 }
 
+export async function getConversationMessages(
+  conversationId: string,
+  limit: number = 50
+) {
+  const snapshot = await db
+    .collection("conversations")
+    .doc(conversationId)
+    .collection("messages")
+    .orderBy("timestamp", "desc")
+    .limit(limit)
+    .get();
+
+  const messages = snapshot.docs
+    .map((doc: any) => ({
+      messageId: doc.id,
+      ...doc.data(),
+    }))
+    .reverse(); // Reverse to get chronological order (oldest to newest)
+
+  return messages;
+}
+

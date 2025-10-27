@@ -1758,6 +1758,18 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   - "What decisions were made?"
   - "Summarize this conversation"
 
+**Bug Fix: AI Agent Streaming Not Working:**
+
+- [x] 42. File: `mobile-app/src/services/aiService.js`
+- [x] 43. Issue: Backend returns 200 but frontend shows nothing - streaming response not parsed correctly
+- [x] 44. Solution: Fixed stream parsing for Vercel AI SDK format
+  - AI SDK sends data in line-delimited format: "index:data\n"
+  - Added line buffering to handle partial chunks
+  - Parse each line and extract text content
+  - Handle JSON-escaped strings
+  - Added debug logging to track stream data
+  - Call onChunk with incremental updates
+
 **Test Decision Tracking:**
 
 - [ ] 22. Create conversation with clear decisions:

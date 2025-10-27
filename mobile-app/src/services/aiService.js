@@ -69,38 +69,42 @@ export const detectPriority = async (messageText) => {
 
 // Multi-Step Agent with Streaming
 export const executeAgent = async (userQuery, conversationId, onChunk) => {
+  console.log("executeAgent called with:", { userQuery, conversationId });
+
   try {
+    console.log("Fetching from:", `${API_URL}/api/agent`);
     const response = await fetch(`${API_URL}/api/agent`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userQuery, conversationId }),
     });
 
+    console.log("Response status:", response.status);
+    console.log("Response ok:", response.ok);
+    console.log("Response headers:", response.headers);
+
     if (!response.ok) {
       throw new Error(`Agent error: ${response.status}`);
     }
 
-    // Handle streaming response
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = "";
+    console.log("Starting to read stream...");
+    console.log("response.body:", response.body);
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    // Try reading the entire response as text first
+    const text = await response.text();
+    console.log("Got full text response:", text);
 
-      const chunk = decoder.decode(value);
-      fullText += chunk;
-
-      // Call onChunk callback for UI updates
-      if (onChunk) {
-        onChunk(chunk, fullText);
-      }
+    if (text && onChunk) {
+      onChunk(text, text);
     }
 
+    const fullText = text;
+
+    console.log("executeAgent complete! fullText:", fullText);
     return fullText;
   } catch (error) {
     console.error("Agent execution failed:", error);
+    console.error("Error details:", error.message, error.stack);
     throw error;
   }
 };
