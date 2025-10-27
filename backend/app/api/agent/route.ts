@@ -7,55 +7,47 @@ import { searchMessages, groupBy, formatReport, getConversationMessages } from '
 const agentTools = {
   getConversationMessages: tool({
     description: 'Fetch recent messages from a conversation. This is the PRIMARY tool for getting conversation context. Use this FIRST for summarization, decision extraction, or general analysis tasks. Returns up to 50 most recent messages in chronological order.',
-    parameters: z.object({
+    inputSchema: z.object({
       conversationId: z.string().describe('The conversation ID to fetch messages from'),
       limit: z.number().optional().describe('Number of messages to fetch (max 50, defaults to 50 if not provided)'),
     }),
-    execute: async ({ conversationId, limit }: { conversationId: string; limit?: number }) => {
+    execute: async ({ conversationId, limit }) => {
       console.log('[TOOL: getConversationMessages] Called with:', { conversationId, limit });
-      const conversationIdStr: string = conversationId;
-      const limitNum: number = Math.min(limit ?? 50, 50);
-      const result = await getConversationMessages(conversationIdStr, limitNum);
+      const result = await getConversationMessages(conversationId, Math.min(limit ?? 50, 50));
       console.log('[TOOL: getConversationMessages] Returned', result.length, 'messages');
       return result;
     },
-  } as any),
+  }),
 
   searchMessages: tool({
     description: 'Search for specific messages using date ranges or keywords. Use this when the user asks for messages from a specific time period or containing specific terms. For general conversation access, use getConversationMessages instead.',
-    parameters: z.object({
+    inputSchema: z.object({
       conversationId: z.string().describe('The conversation ID to search within'),
       startDate: z.string().optional().describe('Start date in ISO format (e.g., 2024-01-01)'),
       endDate: z.string().optional().describe('End date in ISO format (e.g., 2024-01-31)'),
       keyword: z.string().optional().describe('Keyword to search for in message text'),
     }),
-    execute: async ({ conversationId, startDate, endDate, keyword }: { conversationId: string; startDate?: string; endDate?: string; keyword?: string }) => {
+    execute: async ({ conversationId, startDate, endDate, keyword }) => {
       console.log('[TOOL: searchMessages] Called with:', { conversationId, startDate, endDate, keyword });
-      const conversationIdStr: string = conversationId;
-      const startDateStr: string | undefined = startDate;
-      const endDateStr: string | undefined = endDate;
-      const keywordStr: string | undefined = keyword;
-      
-      const result = await searchMessages(conversationIdStr, {
-        startDate: startDateStr,
-        endDate: endDateStr,
-        keyword: keywordStr,
+      const result = await searchMessages(conversationId, {
+        startDate,
+        endDate,
+        keyword,
       });
       console.log('[TOOL: searchMessages] Returned', result.length, 'messages');
       return result;
     },
-  } as any),
+  }),
 
   extractActionItems: tool({
     description: 'Extract action items and tasks from a list of messages. Identifies messages containing commitments, todos, and assignments. Use this AFTER getting messages with getConversationMessages or searchMessages.',
-    parameters: z.object({
+    inputSchema: z.object({
       messages: z.array(z.any()).describe('Array of message objects to analyze'),
     }),
-    execute: async ({ messages }: { messages: any[] }) => {
+    execute: async ({ messages }) => {
       console.log('[TOOL: extractActionItems] Called with', messages.length, 'messages');
-      const messagesList: any[] = messages;
       // Simplified extraction logic
-      const result = messagesList
+      const result = messages
         .filter((message: any) =>
           message.text.includes('will') ||
           message.text.includes('todo') ||
@@ -69,37 +61,34 @@ const agentTools = {
       console.log('[TOOL: extractActionItems] Extracted', result.length, 'action items');
       return result;
     },
-  } as any),
+  }),
 
   categorizeByPerson: tool({
     description: 'Group a list of action items by the person assigned to them. Use this to organize action items after extraction.',
-    parameters: z.object({
+    inputSchema: z.object({
       actionItems: z.array(z.any()).describe('Array of action items to group by assignedTo field'),
     }),
-    execute: async ({ actionItems }: { actionItems: any[] }) => {
+    execute: async ({ actionItems }) => {
       console.log('[TOOL: categorizeByPerson] Called with', actionItems.length, 'items');
-      const items: any[] = actionItems;
-      const result = groupBy(items, 'assignedTo');
+      const result = groupBy(actionItems, 'assignedTo');
       console.log('[TOOL: categorizeByPerson] Grouped into', Object.keys(result).length, 'categories');
       return result;
     },
-  } as any),
+  }),
 
   generateReport: tool({
     description: 'Format data into a clean, readable markdown report with sections and bullet points. Use this as a final step to present organized information to the user.',
-    parameters: z.object({
+    inputSchema: z.object({
       data: z.any().describe('Data to format (typically an object with categories as keys and arrays as values)'),
       title: z.string().describe('Title for the report'),
     }),
-    execute: async ({ data, title }: { data: any; title: string }) => {
+    execute: async ({ data, title }) => {
       console.log('[TOOL: generateReport] Called with title:', title);
-      const reportData: any = data;
-      const reportTitle: string = title;
-      const result = formatReport(reportData, reportTitle);
+      const result = formatReport(data, title);
       console.log('[TOOL: generateReport] Generated report with', result.length, 'characters');
       return result;
     },
-  } as any),
+  }),
 };
 
 export async function POST(req: Request) {
