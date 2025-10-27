@@ -1,4 +1,4 @@
-import { generateText, tool } from 'ai';
+import { generateText, tool, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -154,10 +154,10 @@ Approach:
       tools: agentTools,
       system: systemPrompt,
       prompt: `Conversation ID: ${conversationId}\n\nUser request: ${userQuery}`,
-      maxSteps: 3, // Try to allow multiple steps
-    } as any); // Cast to any since maxSteps might not be in types yet
+      stopWhen: [stepCountIs(5)], // Allow up to 5 steps for multi-tool flows
+    });
 
-    console.log('[AGENT ROUTE] Generation complete after all steps');
+    console.log('[AGENT ROUTE] Generation complete after all steps, total steps:', result.steps?.length || 0);
 
     console.log('[AGENT ROUTE] Generation complete:', {
       text: result.text || '(empty)',
