@@ -1,7 +1,7 @@
 /**
  * Design Tokens - React Native
  *
- * Foundational design values for the Goico SOS design system.
+ * Foundational design values for the SOS design system.
  * Adapted from web design system for React Native.
  */
 

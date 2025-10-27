@@ -233,8 +233,10 @@ export default function HomeScreen({ navigation }) {
   const combinedList = [
     // Add group conversations first with type marker
     ...groupConversations.map((conv) => ({ ...conv, type: "group" })),
-    // Add users with type marker
-    ...users.map((user) => ({ ...user, type: "user" })),
+    // Add users with type marker, excluding the current user
+    ...users
+      .filter((user) => user.userId !== currentUser.uid)
+      .map((user) => ({ ...user, type: "user" })),
   ];
 
   const renderUser = ({ item }) => {
@@ -367,18 +369,24 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <Text style={styles.headerTitle}>Messages</Text>
-      <Text style={styles.headerSubtitle}>
-        {groupConversations.length > 0 &&
-          `${groupConversations.length} ${
-            groupConversations.length === 1 ? "group" : "groups"
-          } • `}
-        {users.length} {users.length === 1 ? "user" : "users"}
-      </Text>
-    </View>
-  );
+  const renderHeader = () => {
+    const otherUsersCount = users.filter(
+      (user) => user.userId !== currentUser.uid
+    ).length;
+
+    return (
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Messages</Text>
+        <Text style={styles.headerSubtitle}>
+          {groupConversations.length > 0 &&
+            `${groupConversations.length} ${
+              groupConversations.length === 1 ? "group" : "groups"
+            } • `}
+          {otherUsersCount} {otherUsersCount === 1 ? "user" : "users"}
+        </Text>
+      </View>
+    );
+  };
 
   if (isLoading) {
     return (

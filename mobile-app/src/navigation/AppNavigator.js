@@ -216,7 +216,7 @@ export default function AppNavigator() {
               name="Home"
               component={HomeScreen}
               options={{
-                title: "Goico SOS",
+                title: "SOS",
                 headerShown: true,
               }}
             />
