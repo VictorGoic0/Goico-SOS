@@ -80,14 +80,23 @@ export const executeAgent = async (userQuery, conversationId, onChunk) => {
       throw new Error(`Agent error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const text = data.text || "";
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
 
-    if (text && onChunk) {
-      onChunk(text, text);
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      fullText += chunk;
+
+      if (onChunk) {
+        onChunk(chunk, fullText);
+      }
     }
 
-    return text;
+    return fullText;
   } catch (error) {
     console.error("Agent execution failed:", error);
     throw error;

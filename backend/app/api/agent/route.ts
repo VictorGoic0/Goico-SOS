@@ -1,6 +1,5 @@
-import { generateText, tool, stepCountIs } from 'ai';
+import { streamText, tool, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
-import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { searchMessages, groupBy, formatReport, getConversationMessages } from '@/lib/agent-tools';
 
@@ -124,7 +123,7 @@ Approach:
 4. Call generateReport(categorizedData, "Action Items by Person")
 5. Return the formatted report with context`;
 
-    const result = await generateText({
+    const result = streamText({
       model: openai('gpt-4o-mini'),
       tools: agentTools,
       system: systemPrompt,
@@ -132,7 +131,7 @@ Approach:
       stopWhen: [stepCountIs(5)],
     });
 
-    return NextResponse.json({ text: result.text });
+    return result.toTextStreamResponse();
 
   } catch (error) {
     console.error('[AGENT ROUTE] Error occurred:', error);

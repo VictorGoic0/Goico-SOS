@@ -30,20 +30,11 @@ export default function AgentChatScreen({ route }) {
   }, [messages]);
 
   const handleSubmit = async () => {
-    console.log(
-      "handleSubmit called, query:",
-      query,
-      "processing:",
-      processing
-    );
-
     if (!query.trim() || processing) {
-      console.log("Bailing early - query empty or already processing");
       return;
     }
 
     const userQuery = query.trim();
-    console.log("Processing query:", userQuery);
     setQuery("");
 
     // Add user message
@@ -56,12 +47,10 @@ export default function AgentChatScreen({ route }) {
       status: "delivered",
     };
 
-    console.log("Adding user message:", userMessage);
     setMessages((prev) => [...prev, userMessage]);
     setProcessing(true);
 
     try {
-      console.log("About to call executeAgent...");
       // Add initial agent message that will be updated with streaming
       const agentMessageId = `agent-${Date.now()}`;
       const agentMessage = {
@@ -77,8 +66,6 @@ export default function AgentChatScreen({ route }) {
 
       await executeAgent(userQuery, conversationId, (chunk, fullText) => {
         // Update agent message with streaming text
-        console.log("AgentChatScreen received chunk:", chunk);
-        console.log("AgentChatScreen fullText:", fullText);
         setMessages((prev) => {
           const updated = [...prev];
           const lastIndex = updated.length - 1;
