@@ -1728,14 +1728,25 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   vercel --prod
   ```
 
+**Bug Fix: Header Overflow Menu:**
+
+- [x] 19. File: `mobile-app/src/screens/ChatScreen.js`
+- [x] 20. Issue: Too many buttons in header (6 total: Search, Summarize, Action Items, Decisions, Agent, Delete)
+- [x] 21. Solution: Create overflow menu with text labels
+  - Keep in header: Search (🔍), Overflow menu (⋮)
+  - Move to menu: Conversation Summary, Action Items, Decisions, AI Agent, Delete Conversation
+  - Use Modal with semi-transparent overlay
+  - Add text labels with icons for clarity
+  - Maintain disabled state logic for Delete option
+
 **Test Decision Tracking:**
 
-- [ ] 19. Create conversation with clear decisions:
+- [ ] 22. Create conversation with clear decisions:
   - "Let's go with option B for the architecture"
   - "We agreed to extend the deadline to Q2"
   - "Decided to use microservices approach"
-- [ ] 20. Test extraction:
-  - Tap "✓ Decisions" button
+- [ ] 23. Test extraction:
+  - Tap "Decisions" from overflow menu
   - Verify decisions extracted correctly
   - Check participants list is accurate
   - Verify context and confidence levels
@@ -1743,20 +1754,20 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test Multi-Step Agent:**
 
-- [ ] 21. Test complex workflow:
+- [ ] 24. Test complex workflow:
 
   - Query: "Find all action items from last week, categorize by person, and create a summary report"
   - Verify streaming response updates UI
   - Check final report is well-formatted and accurate
   - Total response time should be <15 seconds
 
-- [ ] 22. Test simpler queries:
+- [ ] 25. Test simpler queries:
 
   - "Summarize this conversation"
   - "What decisions were made?"
   - "Who has pending tasks?"
 
-- [ ] 23. Test error handling:
+- [ ] 26. Test error handling:
   - Invalid conversation ID
   - Network errors
   - No results scenarios
@@ -1777,16 +1788,17 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test Before Merge:**
 
-- [ ] 24. Backend endpoints deploy successfully
-- [ ] 25. Decision tracking identifies decisions correctly
-- [ ] 26. Decisions screen shows timeline view
-- [ ] 27. Multi-step agent executes complex workflows
-- [ ] 28. Agent streaming works and updates UI in real-time
-- [ ] 29. Final reports are well-formatted
-- [ ] 30. Error handling works for edge cases
-- [ ] 31. Response times meet targets (<15s for agent)
-- [ ] 32. Navigation between screens works
-- [ ] 33. All AI features work end-to-end
+- [ ] 27. Backend endpoints deploy successfully
+- [ ] 28. Decision tracking identifies decisions correctly
+- [ ] 29. Decisions screen shows timeline view
+- [ ] 30. Multi-step agent executes complex workflows
+- [ ] 31. Agent streaming works and updates UI in real-time
+- [ ] 32. Final reports are well-formatted
+- [ ] 33. Error handling works for edge cases
+- [ ] 34. Response times meet targets (<15s for agent)
+- [ ] 35. Navigation between screens works
+- [ ] 36. All AI features work end-to-end
+- [ ] 37. Header overflow menu works correctly
 
 ---
 

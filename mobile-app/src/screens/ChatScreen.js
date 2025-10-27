@@ -14,6 +14,7 @@ import {
   Alert,
   FlatList,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -85,6 +86,9 @@ export default function ChatScreen({ route, navigation }) {
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
+
+  // Overflow menu state
+  const [showOverflowMenu, setShowOverflowMenu] = useState(false);
 
   // Typing indicators state
   const [typingUserIds, setTypingUserIds] = useState([]);
@@ -472,59 +476,14 @@ export default function ChatScreen({ route, navigation }) {
             <Text style={styles.aiButtonText}>🔍</Text>
           </TouchableOpacity>
 
-          {/* AI Buttons */}
+          {/* Overflow Menu Button */}
           <TouchableOpacity
             style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
-            onPress={handleSummarize}
+            onPress={() => setShowOverflowMenu(true)}
             disabled={!hasMessages}
             activeOpacity={0.7}
           >
-            <Text style={styles.aiButtonText}>📝</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
-            onPress={handleActionItems}
-            disabled={!hasMessages}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.aiButtonText}>📋</Text>
-          </TouchableOpacity>
-
-          {/* Decisions Button */}
-          <TouchableOpacity
-            style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
-            onPress={() => navigation.navigate("Decisions", { conversationId })}
-            disabled={!hasMessages}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.aiButtonText}>✓</Text>
-          </TouchableOpacity>
-
-          {/* Agent Chat Button */}
-          <TouchableOpacity
-            style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
-            onPress={() => navigation.navigate("AgentChat", { conversationId })}
-            disabled={!hasMessages}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.aiButtonText}>🤖</Text>
-          </TouchableOpacity>
-
-          {/* Delete Button */}
-          <TouchableOpacity
-            style={[
-              styles.deleteButton,
-              (!hasMessages || isDeleting) && styles.deleteButtonDisabled,
-            ]}
-            onPress={handleDeleteConversation}
-            disabled={!hasMessages || isDeleting}
-            activeOpacity={0.7}
-          >
-            {isDeleting ? (
-              <ActivityIndicator size="small" color={colors.neutral.white} />
-            ) : (
-              <Text style={styles.deleteButtonText}>🗑️</Text>
-            )}
+            <Text style={styles.aiButtonText}>⋮</Text>
           </TouchableOpacity>
         </View>
       ),
@@ -877,6 +836,103 @@ export default function ChatScreen({ route, navigation }) {
         summary={summary}
         loading={loadingSummary}
       />
+
+      {/* Overflow Menu Modal */}
+      <Modal
+        visible={showOverflowMenu}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowOverflowMenu(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowOverflowMenu(false)}
+        >
+          <View style={styles.overflowMenu}>
+            {/* Conversation Summary */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowOverflowMenu(false);
+                handleSummarize();
+              }}
+            >
+              <Text style={styles.menuIcon}>📝</Text>
+              <Text style={styles.menuText}>Conversation Summary</Text>
+            </TouchableOpacity>
+
+            {/* Action Items */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowOverflowMenu(false);
+                handleActionItems();
+              }}
+            >
+              <Text style={styles.menuIcon}>📋</Text>
+              <Text style={styles.menuText}>Action Items</Text>
+            </TouchableOpacity>
+
+            {/* Decisions */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowOverflowMenu(false);
+                navigation.navigate("Decisions", { conversationId });
+              }}
+            >
+              <Text style={styles.menuIcon}>✓</Text>
+              <Text style={styles.menuText}>Decisions</Text>
+            </TouchableOpacity>
+
+            {/* AI Agent */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowOverflowMenu(false);
+                navigation.navigate("AgentChat", { conversationId });
+              }}
+            >
+              <Text style={styles.menuIcon}>🤖</Text>
+              <Text style={styles.menuText}>AI Agent</Text>
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.menuDivider} />
+
+            {/* Delete Conversation */}
+            <TouchableOpacity
+              style={[styles.menuItem, isDeleting && styles.menuItemDisabled]}
+              onPress={() => {
+                setShowOverflowMenu(false);
+                handleDeleteConversation();
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.error.base}
+                    style={styles.menuIcon}
+                  />
+                  <Text style={[styles.menuText, styles.menuTextDanger]}>
+                    Deleting...
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.menuIcon}>🗑️</Text>
+                  <Text style={[styles.menuText, styles.menuTextDanger]}>
+                    Delete Conversation
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -1095,5 +1151,56 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
     color: colors.text.tertiary,
     fontWeight: typography.fontWeight.medium,
+  },
+  // Overflow menu styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingTop: 56, // Height of header
+    paddingRight: spacing[2],
+  },
+  overflowMenu: {
+    backgroundColor: colors.neutral.white,
+    borderRadius: 8,
+    minWidth: 240,
+    maxWidth: 280,
+    shadowColor: colors.neutral.darkest,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    minHeight: 48,
+  },
+  menuItemDisabled: {
+    opacity: 0.5,
+  },
+  menuIcon: {
+    fontSize: 20,
+    marginRight: spacing[3],
+    width: 24,
+    textAlign: "center",
+    paddingTop: 2,
+  },
+  menuText: {
+    fontSize: typography.fontSize.base,
+    color: colors.text.primary,
+    flex: 1,
+    flexWrap: "wrap",
+  },
+  menuTextDanger: {
+    color: colors.error.base,
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: colors.border.light,
+    marginVertical: spacing[1],
   },
 });
