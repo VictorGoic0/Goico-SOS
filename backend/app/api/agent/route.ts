@@ -42,7 +42,7 @@ const agentTools = {
   extractActionItems: tool({
     description: 'Extract action items and tasks from a list of messages. Identifies messages containing commitments, todos, and assignments. Use this AFTER getting messages with getConversationMessages or searchMessages.',
     inputSchema: z.object({
-      messages: z.array(z.any()).describe('Array of message objects to analyze'),
+      messages: z.array(z.record(z.unknown())).describe('Array of message objects to analyze'),
     }),
     execute: async ({ messages }) => {
       console.log('[TOOL: extractActionItems] Called with', messages.length, 'messages');
@@ -66,7 +66,7 @@ const agentTools = {
   categorizeByPerson: tool({
     description: 'Group a list of action items by the person assigned to them. Use this to organize action items after extraction.',
     inputSchema: z.object({
-      actionItems: z.array(z.any()).describe('Array of action items to group by assignedTo field'),
+      actionItems: z.array(z.record(z.unknown())).describe('Array of action items to group by assignedTo field'),
     }),
     execute: async ({ actionItems }) => {
       console.log('[TOOL: categorizeByPerson] Called with', actionItems.length, 'items');
@@ -79,7 +79,7 @@ const agentTools = {
   generateReport: tool({
     description: 'Format data into a clean, readable markdown report with sections and bullet points. Use this as a final step to present organized information to the user.',
     inputSchema: z.object({
-      data: z.any().describe('Data to format (typically an object with categories as keys and arrays as values)'),
+      data: z.record(z.unknown()).describe('Data to format (typically an object with categories as keys and arrays as values)'),
       title: z.string().describe('Title for the report'),
     }),
     execute: async ({ data, title }) => {
