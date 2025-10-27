@@ -1721,7 +1721,7 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Deploy Backend:**
 
-- [ ] 18. Deploy all changes to Vercel:
+- [x] 18. Deploy all changes to Vercel:
 
   ```bash
   cd backend
@@ -1772,11 +1772,11 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test Decision Tracking:**
 
-- [ ] 22. Create conversation with clear decisions:
+- [x] 22. Create conversation with clear decisions:
   - "Let's go with option B for the architecture"
   - "We agreed to extend the deadline to Q2"
   - "Decided to use microservices approach"
-- [ ] 23. Test extraction:
+- [x] 23. Test extraction:
   - Tap "Decisions" from overflow menu
   - Verify decisions extracted correctly
   - Check participants list is accurate
@@ -1785,20 +1785,20 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test Multi-Step Agent:**
 
-- [ ] 24. Test complex workflow:
+- [ ] 24. Test complex workflow (NOT WORKING - TO BE REVISITED):
 
   - Query: "Find all action items from last week, categorize by person, and create a summary report"
   - Verify streaming response updates UI
   - Check final report is well-formatted and accurate
   - Total response time should be <15 seconds
 
-- [ ] 25. Test simpler queries:
+- [x] 25. Test simpler queries:
 
   - "Summarize this conversation"
   - "What decisions were made?"
   - "Who has pending tasks?"
 
-- [ ] 26. Test error handling:
+- [x] 26. Test error handling:
   - Invalid conversation ID
   - Network errors
   - No results scenarios
@@ -1819,17 +1819,17 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Test Before Merge:**
 
-- [ ] 27. Backend endpoints deploy successfully
-- [ ] 28. Decision tracking identifies decisions correctly
-- [ ] 29. Decisions screen shows timeline view
-- [ ] 30. Multi-step agent executes complex workflows
-- [ ] 31. Agent streaming works and updates UI in real-time
-- [ ] 32. Final reports are well-formatted
-- [ ] 33. Error handling works for edge cases
-- [ ] 34. Response times meet targets (<15s for agent)
-- [ ] 35. Navigation between screens works
-- [ ] 36. All AI features work end-to-end
-- [ ] 37. Header overflow menu works correctly
+- [x] 27. Backend endpoints deploy successfully
+- [x] 28. Decision tracking identifies decisions correctly
+- [x] 29. Decisions screen shows timeline view
+- [ ] 30. Multi-step agent executes complex workflows (TO BE REVISITED)
+- [x] 31. Agent streaming works and updates UI in real-time
+- [x] 32. Final reports are well-formatted
+- [x] 33. Error handling works for edge cases
+- [x] 34. Response times meet targets (<15s for agent)
+- [x] 35. Navigation between screens works
+- [x] 36. All AI features work end-to-end (simple queries)
+- [x] 37. Header overflow menu works correctly
 
 ---
 
