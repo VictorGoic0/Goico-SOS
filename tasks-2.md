@@ -1271,15 +1271,16 @@ Respond with:
         { status: 500 }
       );
     }
+  ```
 
 }
 
-```
+````
 
 **Create Multi-Step Agent Backend:**
 
-- [ ] 3. File: `backend/lib/agent-tools.ts`
-- [ ] 4. Create helper functions for agent tools:
+- [x] 3. File: `backend/lib/agent-tools.ts`
+- [x] 4. Create helper functions for agent tools:
 
 ```typescript
 import { getMessagesFromFirebase, db } from "./firebase-admin";
