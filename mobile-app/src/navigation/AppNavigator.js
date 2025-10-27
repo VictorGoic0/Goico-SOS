@@ -43,6 +43,9 @@ import { getUserProfile } from "../utils/profile";
 import usePresence from "../hooks/usePresence";
 import usePresenceSync from "../hooks/usePresenceSync";
 
+// Components
+import ConnectionStatusBanner from "../components/ConnectionStatusBanner";
+
 const Stack = createNativeStackNavigator();
 
 // Create navigation reference for use outside of navigation context
@@ -174,114 +177,122 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer ref={navigationRef}>
-      {currentUser ? (
-        hasUsername ? (
-          // Main Stack - User is authenticated and has completed profile
-          <Stack.Navigator
-            screenOptions={{
-              headerStyle: {
-                backgroundColor: colors.primary.mediumDark,
-              },
-              headerTintColor: colors.neutral.white,
-              headerTitleStyle: {
-                fontWeight: typography.fontWeight.semibold,
-              },
-            }}
-          >
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{
-                title: "SOS",
-                headerShown: true,
+    <View style={{ flex: 1 }}>
+      {/* Global Connection Status Banner */}
+      <ConnectionStatusBanner />
+
+      <NavigationContainer ref={navigationRef}>
+        {currentUser ? (
+          hasUsername ? (
+            // Main Stack - User is authenticated and has completed profile
+            <Stack.Navigator
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: colors.primary.mediumDark,
+                },
+                headerTintColor: colors.neutral.white,
+                headerTitleStyle: {
+                  fontWeight: typography.fontWeight.semibold,
+                },
               }}
-            />
-            <Stack.Screen
-              name="Chat"
-              component={ChatScreen}
-              options={{
-                headerShown: true,
-                headerBackTitle: "Back",
+            >
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{
+                  title: "SOS",
+                  headerShown: true,
+                }}
+              />
+              <Stack.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{
+                  headerShown: true,
+                  headerBackTitle: "Back",
+                }}
+              />
+              <Stack.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{
+                  title: "Profile",
+                  headerShown: true,
+                  headerBackTitle: "Back",
+                }}
+              />
+              <Stack.Screen
+                name="CreateGroup"
+                component={CreateGroupScreen}
+                options={{
+                  title: "Create Group",
+                  headerShown: true,
+                  headerBackTitle: "Back",
+                }}
+              />
+              <Stack.Screen
+                name="GroupInfo"
+                component={GroupInfoScreen}
+                options={{
+                  title: "Group Info",
+                  headerShown: true,
+                  headerBackTitle: "Back",
+                }}
+              />
+              <Stack.Screen
+                name="ActionItems"
+                component={ActionItemsScreen}
+                options={{
+                  title: "Action Items",
+                  headerShown: true,
+                  headerBackTitle: "Back",
+                }}
+              />
+              <Stack.Screen
+                name="Decisions"
+                component={DecisionsScreen}
+                options={{
+                  title: "Decisions",
+                  headerShown: true,
+                  headerBackTitle: "Back",
+                }}
+              />
+              <Stack.Screen
+                name="AgentChat"
+                component={AgentChatScreen}
+                options={{
+                  title: "AI Agent",
+                  headerShown: true,
+                  headerBackTitle: "Back",
+                }}
+              />
+            </Stack.Navigator>
+          ) : (
+            // Profile Setup Stack - User is authenticated but needs to complete profile
+            <Stack.Navigator
+              screenOptions={{
+                headerShown: false,
               }}
-            />
-            <Stack.Screen
-              name="Profile"
-              component={ProfileScreen}
-              options={{
-                title: "Profile",
-                headerShown: true,
-                headerBackTitle: "Back",
-              }}
-            />
-            <Stack.Screen
-              name="CreateGroup"
-              component={CreateGroupScreen}
-              options={{
-                title: "Create Group",
-                headerShown: true,
-                headerBackTitle: "Back",
-              }}
-            />
-            <Stack.Screen
-              name="GroupInfo"
-              component={GroupInfoScreen}
-              options={{
-                title: "Group Info",
-                headerShown: true,
-                headerBackTitle: "Back",
-              }}
-            />
-            <Stack.Screen
-              name="ActionItems"
-              component={ActionItemsScreen}
-              options={{
-                title: "Action Items",
-                headerShown: true,
-                headerBackTitle: "Back",
-              }}
-            />
-            <Stack.Screen
-              name="Decisions"
-              component={DecisionsScreen}
-              options={{
-                title: "Decisions",
-                headerShown: true,
-                headerBackTitle: "Back",
-              }}
-            />
-            <Stack.Screen
-              name="AgentChat"
-              component={AgentChatScreen}
-              options={{
-                title: "AI Agent",
-                headerShown: true,
-                headerBackTitle: "Back",
-              }}
-            />
-          </Stack.Navigator>
+            >
+              <Stack.Screen
+                name="ProfileSetup"
+                component={ProfileSetupScreen}
+              />
+            </Stack.Navigator>
+          )
         ) : (
-          // Profile Setup Stack - User is authenticated but needs to complete profile
+          // Auth Stack - User is not authenticated
           <Stack.Navigator
             screenOptions={{
               headerShown: false,
             }}
           >
-            <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
           </Stack.Navigator>
-        )
-      ) : (
-        // Auth Stack - User is not authenticated
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Signup" component={SignupScreen} />
-        </Stack.Navigator>
-      )}
-    </NavigationContainer>
+        )}
+      </NavigationContainer>
+    </View>
   );
 }
 

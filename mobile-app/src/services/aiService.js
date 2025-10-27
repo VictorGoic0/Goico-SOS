@@ -80,23 +80,36 @@ export const executeAgent = async (userQuery, conversationId, onChunk) => {
       throw new Error(`Agent error: ${response.status}`);
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = "";
+    // Check if streaming is supported (web) or if we need to fall back (mobile)
+    if (response.body && typeof response.body.getReader === "function") {
+      // Web environment - use streaming
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      const chunk = decoder.decode(value, { stream: true });
-      fullText += chunk;
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+
+        if (onChunk) {
+          onChunk(chunk, fullText);
+        }
+      }
+
+      return fullText;
+    } else {
+      // Mobile environment - fall back to full response
+      const text = await response.text();
 
       if (onChunk) {
-        onChunk(chunk, fullText);
+        onChunk(text, text);
       }
-    }
 
-    return fullText;
+      return text;
+    }
   } catch (error) {
     console.error("Agent execution failed:", error);
     throw error;
