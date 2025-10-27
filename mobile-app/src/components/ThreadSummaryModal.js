@@ -15,6 +15,7 @@ import {
   borderRadius,
   shadows,
 } from "../styles/tokens";
+import MarkdownText from "./MarkdownText";
 
 export default function ThreadSummaryModal({
   visible,
@@ -42,7 +43,9 @@ export default function ThreadSummaryModal({
             {loading ? (
               <ActivityIndicator size="large" color={colors.primary.base} />
             ) : summary ? (
-              <Text style={styles.summaryText}>{summary}</Text>
+              <MarkdownText textStyle={styles.summaryText}>
+                {summary}
+              </MarkdownText>
             ) : (
               <Text style={styles.errorText}>No summary available</Text>
             )}

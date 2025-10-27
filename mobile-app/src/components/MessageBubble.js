@@ -9,6 +9,7 @@ import {
   getAvatarColor,
   getInitials,
 } from "../utils/helpers";
+import MarkdownText from "./MarkdownText";
 
 /**
  * MessageBubble - Display a message in a chat
@@ -100,18 +101,20 @@ export default function MessageBubble({
             </View>
           )}
 
-          <Text
-            style={[
-              styles.messageText,
-              isSent
-                ? styles.sentText
-                : isAI
-                ? styles.aiText
-                : styles.receivedText,
-            ]}
-          >
-            {message.text}
-          </Text>
+          {isAI ? (
+            <MarkdownText textStyle={styles.aiText}>
+              {message.text}
+            </MarkdownText>
+          ) : (
+            <Text
+              style={[
+                styles.messageText,
+                isSent ? styles.sentText : styles.receivedText,
+              ]}
+            >
+              {message.text}
+            </Text>
+          )}
 
           {showTimestamp && (
             <View style={styles.metaContainer}>
