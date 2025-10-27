@@ -22,8 +22,10 @@ import SignupScreen from "../screens/SignupScreen";
 
 // Main Screens
 import ActionItemsScreen from "../screens/ActionItemsScreen";
+import AgentChatScreen from "../screens/AgentChatScreen";
 import ChatScreen from "../screens/ChatScreen";
 import CreateGroupScreen from "../screens/CreateGroupScreen";
+import DecisionsScreen from "../screens/DecisionsScreen";
 import GroupInfoScreen from "../screens/GroupInfoScreen";
 import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
@@ -258,6 +260,24 @@ export default function AppNavigator() {
               component={ActionItemsScreen}
               options={{
                 title: "Action Items",
+                headerShown: true,
+                headerBackTitle: "Back",
+              }}
+            />
+            <Stack.Screen
+              name="Decisions"
+              component={DecisionsScreen}
+              options={{
+                title: "Decisions",
+                headerShown: true,
+                headerBackTitle: "Back",
+              }}
+            />
+            <Stack.Screen
+              name="AgentChat"
+              component={AgentChatScreen}
+              options={{
+                title: "AI Agent",
                 headerShown: true,
                 headerBackTitle: "Back",
               }}

@@ -66,3 +66,41 @@ export const semanticSearch = async (
 export const detectPriority = async (messageText) => {
   return await callBackend("priority", { messageText });
 };
+
+// Multi-Step Agent with Streaming
+export const executeAgent = async (userQuery, conversationId, onChunk) => {
+  try {
+    const response = await fetch(`${API_URL}/api/agent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userQuery, conversationId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Agent error: ${response.status}`);
+    }
+
+    // Handle streaming response
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      fullText += chunk;
+
+      // Call onChunk callback for UI updates
+      if (onChunk) {
+        onChunk(chunk, fullText);
+      }
+    }
+
+    return fullText;
+  } catch (error) {
+    console.error("Agent execution failed:", error);
+    throw error;
+  }
+};

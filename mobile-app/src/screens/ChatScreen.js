@@ -490,6 +490,26 @@ export default function ChatScreen({ route, navigation }) {
             <Text style={styles.aiButtonText}>📋</Text>
           </TouchableOpacity>
 
+          {/* Decisions Button */}
+          <TouchableOpacity
+            style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
+            onPress={() => navigation.navigate("Decisions", { conversationId })}
+            disabled={!hasMessages}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.aiButtonText}>✓</Text>
+          </TouchableOpacity>
+
+          {/* Agent Chat Button */}
+          <TouchableOpacity
+            style={[styles.aiButton, !hasMessages && styles.aiButtonDisabled]}
+            onPress={() => navigation.navigate("AgentChat", { conversationId })}
+            disabled={!hasMessages}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.aiButtonText}>🤖</Text>
+          </TouchableOpacity>
+
           {/* Delete Button */}
           <TouchableOpacity
             style={[

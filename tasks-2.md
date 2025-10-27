@@ -1454,25 +1454,22 @@ Break down complex requests into steps and use available tools to complete the t
       );
     }
 
-}
-
-````
+}```
 
 **Update Mobile AI Service for Streaming:**
 
 - [x] 7. File: `mobile-app/src/services/aiService.js`
 - [x] 8. Add decision extraction function:
 
-```javascript
+````javascript
 export const extractDecisions = async (conversationId, messageCount = 100) => {
   return await callBackend('decisions', {
     conversationId,
     messageCount
   });
-};
-  ```
+};```
 
-- [ ] 9. Add agent function with streaming support:
+- [x] 9. Add agent function with streaming support:
 
   ```javascript
   export const executeAgent = async (userQuery, conversationId, onChunk) => {
@@ -1510,13 +1507,12 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
       console.error("Agent execution failed:", error);
       throw error;
     }
-  };
-  ```
+  };```
 
 **Create Decisions Screen:**
 
-- [ ] 10. File: `mobile-app/src/screens/DecisionsScreen.js`
-- [ ] 11. Implement decisions timeline view:
+- [x] 10. File: `mobile-app/src/screens/DecisionsScreen.js`
+- [x] 11. Implement decisions timeline view:
 
   ```javascript
   import React, { useState, useEffect } from "react";
@@ -1578,13 +1574,12 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
     );
   }
 
-  // Add styles...
-  ```
+  // Add styles...```
 
 **Create Agent Chat Screen:**
 
-- [ ] 12. File: `mobile-app/src/screens/AgentChatScreen.js`
-- [ ] 13. Implement agent chat interface with streaming:
+- [x] 12. File: `mobile-app/src/screens/AgentChatScreen.js`
+- [x] 13. Implement agent chat interface with streaming:
 
   ```javascript
   import React, { useState } from "react";
@@ -1690,12 +1685,12 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
   }
 
   // Add styles...
-  ```
+````
 
 **Update Navigation:**
 
-- [ ] 14. File: `mobile-app/src/navigation/AppNavigator.js`
-- [ ] 15. Add new screens:
+- [x] 14. File: `mobile-app/src/navigation/AppNavigator.js`
+- [x] 15. Add new screens:
 
   ```javascript
   <Stack.Screen
@@ -1712,8 +1707,8 @@ export const extractDecisions = async (conversationId, messageCount = 100) => {
 
 **Update ChatScreen with New Buttons:**
 
-- [ ] 16. File: `mobile-app/src/screens/ChatScreen.js`
-- [ ] 17. Add Decisions and Agent buttons to header:
+- [x] 16. File: `mobile-app/src/screens/ChatScreen.js`
+- [x] 17. Add Decisions and Agent buttons to header:
 
   ```javascript
   <TouchableOpacity onPress={() => navigation.navigate('Decisions', { conversationId })}>
@@ -2561,4 +2556,7 @@ Firebase (Firestore for messages)
 - **Document all API endpoints** in backend README
 
 Good luck implementing the AI features! 🤖✨
-````
+
+```
+
+```
