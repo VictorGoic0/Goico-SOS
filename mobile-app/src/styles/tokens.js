@@ -118,6 +118,14 @@ export const colors = {
     disabledBackground: "rgba(0, 0, 0, 0.12)",
     focus: "rgba(0, 0, 0, 0.12)",
   },
+
+  // AI Agent colors
+  ai: {
+    light: "#e879f9", // Bright magenta
+    main: "#c026d3", // Vibrant magenta
+    dark: "#a21caf", // Deeper purple
+    contrastText: "#ffffff",
+  },
 };
 
 // ============================================================================

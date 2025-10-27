@@ -112,6 +112,7 @@ export default function AgentChatScreen({ route }) {
 
   const renderMessage = ({ item, index }) => {
     const isSent = item.senderId === currentUser.uid;
+    const isAI = item.senderId === "ai-agent";
     const showTimestamp =
       index === 0 ||
       (messages[index - 1]?.timestamp &&
@@ -123,6 +124,7 @@ export default function AgentChatScreen({ route }) {
       <MessageBubble
         message={item}
         isSent={isSent}
+        isAI={isAI}
         isGroup={false}
         showTimestamp={showTimestamp}
         isLastMessage={index === messages.length - 1}

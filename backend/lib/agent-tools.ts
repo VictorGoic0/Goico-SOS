@@ -8,8 +8,6 @@ export async function searchMessages(
     keyword?: string;
   }
 ) {
-  console.log('[agent-tools.searchMessages] Searching messages:', { conversationId, filters });
-  
   let query: any = db
     .collection("conversations")
     .doc(conversationId)
@@ -24,22 +22,17 @@ export async function searchMessages(
   }
 
   const snapshot = await query.get();
-  console.log('[agent-tools.searchMessages] Snapshot size:', snapshot.size);
-  
   let messages = snapshot.docs.map((doc: any) => ({
     messageId: doc.id,
     ...doc.data(),
   }));
 
   if (filters.keyword) {
-    const beforeFilter = messages.length;
     messages = messages.filter((message: any) =>
       message.text.toLowerCase().includes(filters.keyword!.toLowerCase())
     );
-    console.log('[agent-tools.searchMessages] Keyword filter:', beforeFilter, '→', messages.length);
   }
 
-  console.log('[agent-tools.searchMessages] Returning', messages.length, 'messages');
   return messages;
 }
 
@@ -74,8 +67,6 @@ export async function getConversationMessages(
   conversationId: string,
   limit: number = 50
 ) {
-  console.log('[agent-tools.getConversationMessages] Fetching messages:', { conversationId, limit });
-  
   const snapshot = await db
     .collection("conversations")
     .doc(conversationId)
@@ -84,20 +75,12 @@ export async function getConversationMessages(
     .limit(limit)
     .get();
 
-  console.log('[agent-tools.getConversationMessages] Snapshot size:', snapshot.size);
-
   const messages = snapshot.docs
     .map((doc: any) => ({
       messageId: doc.id,
       ...doc.data(),
     }))
-    .reverse(); // Reverse to get chronological order (oldest to newest)
-
-  console.log('[agent-tools.getConversationMessages] Returning', messages.length, 'messages');
-  if (messages.length > 0) {
-    console.log('[agent-tools.getConversationMessages] First message:', messages[0]);
-    console.log('[agent-tools.getConversationMessages] Last message:', messages[messages.length - 1]);
-  }
+    .reverse();
 
   return messages;
 }

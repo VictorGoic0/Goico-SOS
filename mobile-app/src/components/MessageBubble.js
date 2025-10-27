@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  Alert,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors, spacing, typography } from "../styles/tokens";
@@ -25,6 +19,7 @@ import {
  * @param {boolean} isLastMessage - Whether this is the last message (for read indicator)
  * @param {Array} readBy - Array of user IDs who have read the message (for group chats, excluding sender)
  * @param {string} priority - Priority level: "high", "normal", or "low"
+ * @param {boolean} isAI - Whether this message is from the AI agent
  */
 export default function MessageBubble({
   message,
@@ -34,6 +29,7 @@ export default function MessageBubble({
   isLastMessage = false,
   readBy = [],
   priority = "normal",
+  isAI = false,
 }) {
   // Get sender info from usersMap (for group chats)
   const usersMap = useFirebaseStore((state) => state.usersMap);
@@ -89,7 +85,11 @@ export default function MessageBubble({
         <View
           style={[
             styles.bubble,
-            isSent ? styles.sentBubble : styles.receivedBubble,
+            isSent
+              ? styles.sentBubble
+              : isAI
+              ? styles.aiBubble
+              : styles.receivedBubble,
             priority === "high" && styles.highPriorityBubble,
           ]}
         >
@@ -103,7 +103,11 @@ export default function MessageBubble({
           <Text
             style={[
               styles.messageText,
-              isSent ? styles.sentText : styles.receivedText,
+              isSent
+                ? styles.sentText
+                : isAI
+                ? styles.aiText
+                : styles.receivedText,
             ]}
           >
             {message.text}
@@ -114,7 +118,11 @@ export default function MessageBubble({
               <Text
                 style={[
                   styles.timestamp,
-                  isSent ? styles.sentTimestamp : styles.receivedTimestamp,
+                  isSent
+                    ? styles.sentTimestamp
+                    : isAI
+                    ? styles.aiTimestamp
+                    : styles.receivedTimestamp,
                 ]}
               >
                 {message.timestamp
@@ -269,6 +277,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.lighter,
     borderBottomLeftRadius: 4,
   },
+  aiBubble: {
+    backgroundColor: colors.ai.main,
+    borderBottomLeftRadius: 4,
+  },
   highPriorityBubble: {
     borderWidth: 2,
     borderColor: "#FF3B30",
@@ -296,6 +308,9 @@ const styles = StyleSheet.create({
   receivedText: {
     color: colors.text.primary,
   },
+  aiText: {
+    color: colors.neutral.white,
+  },
   metaContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -309,6 +324,9 @@ const styles = StyleSheet.create({
   },
   receivedTimestamp: {
     color: colors.text.tertiary,
+  },
+  aiTimestamp: {
+    color: "rgba(255, 255, 255, 0.8)",
   },
   statusIcon: {
     fontSize: typography.fontSize.xs,

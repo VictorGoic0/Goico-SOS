@@ -49,7 +49,7 @@ ${conversationText}
 Return JSON array with decision, participants, timestamp, context, and confidence level.`;
 
     const { object } = await generateObject({
-      model: openai('gpt-4-turbo'),
+      model: openai('gpt-4o-mini'),
       schema: DecisionSchema,
       prompt,
     });
