@@ -1,18 +1,21 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **AI Search & Priority Complete - Agent Features Next**
+## Current Status: **Core + AI + Polish (Partial) Done; Dark Mode, PR #19, and RAG Next**
 
-### Overall Progress: 82% Complete (14/17 PRs Done)
+### Task Files (docs/)
 
-- ✅ **Planning Phase**: 100% Complete
-- ✅ **Foundation Phase**: 100% Complete (PRs #1-2)
-- ✅ **Core Features**: 100% Complete (PRs #3-8)
-- ✅ **Advanced Features**: 100% Complete (PRs #9-11)
-- ✅ **AI Features (Phase 1)**: 100% Complete (PRs #13-15 done)
-- ⏳ **AI Features (Phase 2)**: 0% Complete (PRs #16-18 remaining)
-- ⏳ **Polish & Deployment**: 0% Complete
+- **tasks-1.md** — PRs #1–#12 (core app; many done)
+- **tasks-2.md** — PRs #13–#16 (AI backend & features; done)
+- **tasks-3.md** — PRs #17–#19 (dark mode, polish completed/remaining)
+- **tasks-TDD.md** — RAG pipeline, 8 PRs (planned)
 
-**Current Focus**: Semantic search and priority detection complete. Next: AI Agent as a Conversation (PR #16), then decision tracking and final polish.
+### Overall Progress
+
+- ✅ **Foundation & Core**: PRs #1–#11 (setup, auth, profiles, messaging, groups, push, read receipts)
+- ✅ **AI Backend & Features**: PRs #13–#16 (Vercel, summarization, action items, search, priority, decision tracking, multi-step agent)
+- ✅ **Polish (completed)**: PR #18 — expo-image, push-on-PC behavior, Android deployment
+- ⏳ **Polish (remaining)**: PR #17 (Dark Mode & Message Reactions), PR #19 (error handling, health check, read receipt settings, docs, optional items)
+- ⏳ **RAG Pipeline**: 0% (tasks-TDD.md — Pinecone, embeddings, indexing, retrieval, search/agent RAG)
 
 ## What Works (Completed)
 
@@ -330,42 +333,28 @@
 - ✅ **Push Notifications**: Expo notifications with Vercel backend
 - ✅ **Read Receipts**: 1-on-1 and group chat read receipts with visual indicators
 
-### Phase 7: AI Features Implementation (PRs #13-18)
+### Phase 7: AI Features (docs/tasks-2.md — PRs #13–#16)
 
-**Status**: Phase 1 Complete (PRs #13-15)
+**Status**: ✅ Complete
 
 - ✅ **PR #13**: Vercel Backend Setup
-  - ✅ Next.js project with Vercel AI SDK
-  - ✅ Firebase Admin SDK integration
-  - ✅ Test endpoint deployed and verified
 - ✅ **PR #14**: Thread Summarization & Action Item Extraction
-  - ✅ Backend summarization endpoint (GPT-4o-mini)
-  - ✅ Backend action items endpoint with structured outputs
-  - ✅ Mobile UI integration (ThreadSummaryModal, ActionItemsScreen)
-  - ✅ ChatScreen integration with AI buttons
-  - ✅ Full end-to-end testing complete
 - ✅ **PR #15**: Smart Search & Priority Detection
-  - ✅ Hybrid semantic search (embeddings + keyword matching)
-  - ✅ Automatic priority detection for messages
-  - ✅ Search UI with responsive results container
-  - ✅ Priority display with red border and badge
-  - ✅ Configurable search parameters and threshold tuning
-- [ ] **PR #16**: AI Agent as a Conversation ⭐ NEXT
-  - AI agent as pinned conversation in HomeScreen
-  - Reuses existing ChatScreen for conversation UI
-  - Streaming responses in real-time
-  - Refactor Summary/Actions buttons to use agent with pre-filled prompts
-  - Complete transition to unified conversational AI interface
-- [ ] **PR #17**: Decision Tracking & Multi-Step Agent
-  - Decision extraction from conversations
-  - Advanced multi-step AI agent with tools
-  - Complex workflow execution (5+ steps)
-- [ ] **PR #18**: AI Features Polish & Integration
-  - Rate limiting and caching for all AI endpoints
-  - Error handling improvements and analytics
-  - Dark mode support for AI features
-  - Performance optimization
-  - Production readiness and monitoring
+- ✅ **PR #16**: Decision Tracking & Multi-Step Agent
+
+### Phase 8: Polish & UX (docs/tasks-3.md — PRs #17–#19)
+
+**Status**: Partial (PR #18 done; #17 and #19 remaining)
+
+- [ ] **PR #17**: Dark Mode & Message Reactions — theme system, reactions UI
+- ✅ **PR #18**: AI polish completed — expo-image, push-on-PC doc, Android deployment (tested)
+- [ ] **PR #19**: AI polish remaining — error handling, health check, read receipt settings, backend README, deploy, optional push profile photos
+
+### Phase 9: RAG Pipeline (docs/tasks-TDD.md)
+
+**Status**: Not started (8 PRs)
+
+- Pinecone setup & index; embedding service & metadata; message enrichment & indexing; retrieval; search endpoint RAG; agent retrieval tool; indexing triggers & docs. See `docs/TDD_RAG_Pipeline.md` and `docs/tasks-TDD.md`.
 
 ### Phase 8: Final Polish (Day 7)
 
@@ -421,26 +410,15 @@
 
 ## Next Immediate Actions
 
-### Priority 1: Project Setup (PR #1)
+### From docs/tasks-3.md
 
-1. **Create Expo Project**: `npx create-expo-app messaging-app`
-2. **Install Dependencies**: Firebase, Zustand, React Navigation
-3. **Set up Firebase**: Create project and configure all services
-4. **Test Basic Setup**: Ensure app runs on device
+1. **PR #17**: Dark Mode & Message Reactions — ThemeContext, tokens, theme toggle, reactions (Firestore + UI).
+2. **PR #19**: Remaining polish — backend error handler, health check, README, deploy; mobile error handling, skeletons, read receipt settings; optional push profile photos; test-all-AI checklist.
 
-### Priority 2: Core Architecture (PR #2)
+### From docs/tasks-TDD.md (after polish)
 
-1. **Create Zustand Stores**: Implement 3-store pattern
-2. **Set up Navigation**: Auth and main navigation stacks
-3. **Firebase Integration**: Test Firebase connection
-4. **Basic Authentication**: Implement signup/login flow
-
-### Priority 3: First Features (PR #3-5)
-
-1. **Profile Setup**: Complete user profile creation
-2. **User List**: Display all users with basic info
-3. **Presence Tracking**: Show online/offline status
-4. **Basic Testing**: Test on multiple devices
+3. **RAG PR #1**: Pinecone account, index `messages` (1536 dims, cosine), backend env and client.
+4. **RAG PRs #2–#8**: Embeddings, metadata, enrichment & indexing, retrieval, search endpoint RAG, agent retrieval tool, indexing triggers & docs.
 
 ## Success Metrics Tracking
 

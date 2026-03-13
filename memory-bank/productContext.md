@@ -194,6 +194,7 @@ Build a modern messaging platform that combines real-time communication with AI 
 
 ### Long Term
 
+- **RAG pipeline** (in progress): Semantic search and agent context via Pinecone + embeddings (see `docs/TDD_RAG_Pipeline.md`, `docs/tasks-TDD.md`)
 - Web application version
 - Enterprise features
 - API for third-party integrations

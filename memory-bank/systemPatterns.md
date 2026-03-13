@@ -310,14 +310,14 @@ AuthStack:
   - ProfileSetupScreen (first-time only)
 
 MainStack:
-  - HomeScreen (User List)
-  - ChatScreen
-  - ProfileScreen (current user)
-  - OtherUserProfileScreen
-  - CreateGroupScreen (post-MVP)
-  - GroupInfoScreen (post-MVP)
-  - AIChatScreen (post-MVP)
+  - HomeScreen (User List; AI agent as pinned conversation)
+  - ChatScreen (human and agent conversations)
+  - ProfileScreen, OtherUserProfileScreen
+  - CreateGroupScreen, GroupInfoScreen
+  - ActionItemsScreen, DecisionsScreen, etc.
 ```
+
+**Backend (Vercel):** Next.js API routes under `backend/app/api/` for summarize, extract-actions, search, priority, agent, send-notification. **Planned:** RAG with Pinecone (see docs/tasks-TDD.md).
 
 ## State Management Patterns
 

@@ -2,11 +2,11 @@
 
 ## Current Work Focus
 
-### Project Status: **AI Search & Priority Features Complete**
+### Project Status: **AI Features Complete Through PR #16; Polish & RAG Next**
 
-The project has completed PRs #1-11 (all core messaging features including read receipts), PR #13 (Vercel Backend Setup), PR #14 (Thread Summarization & Action Items), and PR #15 (Smart Search & Priority Detection). The application now has fully functional 1-on-1 and group messaging with push notifications, read receipts, AI-powered thread analysis, semantic search, and automatic priority detection.
+The project has completed core messaging (PRs #1–#11), AI backend and features (PRs #13–#16: Vercel, summarization, action items, search, priority, decision tracking, multi-step agent), and completed polish items in PR #18 (expo-image, push-on-PC behavior, Android deployment). Task lists are organized in `docs/`: **tasks-1.md** (PRs #1–#12), **tasks-2.md** (PRs #13–#16), **tasks-3.md** (PRs #17–#19), **tasks-TDD.md** (RAG pipeline, 8 PRs).
 
-**Current Architecture**: React Native mobile app → Vercel serverless functions → OpenAI GPT-4o-mini (text) + text-embedding-3-small (embeddings) + Firebase Firestore
+**Current Architecture**: React Native (mobile-app/) → Vercel serverless (backend/) → OpenAI (GPT-4o-mini, text-embedding-3-small) + Firebase (Firestore, Realtime DB, Storage). **Planned**: RAG with Pinecone for semantic search and agent context (see docs/TDD_RAG_Pipeline.md).
 
 ### Completed PRs
 
@@ -78,17 +78,24 @@ The project has completed PRs #1-11 (all core messaging features including read 
 
 ### Next Steps
 
-**AI Features Roadmap:**
+**From docs/tasks-3.md:**
 
-- ✅ PR #15: Smart Search & Priority Detection (COMPLETE)
-- ⏳ PR #16: AI Agent as a Conversation (unified conversational interface) - NEXT
-- PR #17: Decision Tracking & Multi-Step Agent
-- PR #18: AI Features Polish & Integration
+- ⏳ PR #17: Dark Mode & Message Reactions (tasks-3)
+- ✅ PR #18: AI polish completed (expo-image, Push PC, Android) — done and tested
+- ⏳ PR #19: AI polish remaining (error handling, health check, read receipts, docs, optional push profile photos)
+
+**From docs/tasks-TDD.md (RAG pipeline):**
+
+- ⏳ PR #1 TDD: Pinecone setup & index
+- ⏳ PR #2–#8 TDD: Embeddings, metadata, indexing, retrieval, search endpoint RAG, agent retrieval tool, triggers & docs
 
 **Completed Features:**
 
-- ✅ PRs #1-11: Core messaging, profiles, presence, group chats, push notifications, read receipts
-- ✅ PRs #13-15: AI backend setup + thread analysis + semantic search + priority detection
+- ✅ PRs #1–#11: Core messaging, profiles, presence, group chats, push notifications, read receipts
+- ✅ PRs #13–#16: AI backend (Vercel), summarization, action items, search, priority, decision tracking, multi-step agent
+- ✅ PR #18: AI polish completed (expo-image, push-on-PC doc, Android deployment)
+
+**Documentation layout:** `docs/tasks-1.md` (PRs #1–#12), `docs/tasks-2.md` (PRs #13–#16), `docs/tasks-3.md` (PRs #17–#19), `docs/tasks-TDD.md` (RAG, 8 PRs). See `docs/PRD.md`, `docs/TDD_RAG_Pipeline.md`.
 
 ## Recent Changes
 

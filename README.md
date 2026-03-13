@@ -38,12 +38,13 @@ Built as a learning project to demonstrate production-grade mobile development p
 
    ```bash
    git clone <repository-url>
-   cd "Week 2 - Mobile Messaging App"
+   cd MessageAI
    ```
 
 2. **Install dependencies**
 
    ```bash
+   cd mobile-app
    npm install
    ```
 
@@ -108,28 +109,30 @@ Clear cache from the emulator (terminal cache clear doesn't work reliably):
 ## 📁 Project Structure
 
 ```
-Week 2 - Mobile Messaging App/
-├── App.js                    # Main app entry point
-├── app.json                  # Expo configuration
-├── package.json              # Dependencies and scripts
-├── .env                      # Environment variables (Firebase config)
-├── assets/                   # Images, icons, splash screens
-└── src/                      # Application source code
-    ├── screens/              # Screen components (Login, Chat, etc.)
-    ├── components/           # Reusable UI components
-    ├── stores/               # Zustand state management (3-store pattern)
-    │   ├── localStore.js     # Local/optimistic updates
-    │   ├── presenceStore.js  # User presence data
-    │   └── firebaseStore.js  # Firebase data (source of truth)
-    ├── config/
-    │   └── firebase.js       # Firebase initialization
-    ├── utils/                # Helper functions
-    │   ├── auth.js           # Authentication utilities
-    │   ├── messaging.js      # Message sending/receiving
-    │   ├── presence.js       # Presence tracking
-    │   └── helpers.js        # General utilities
-    └── navigation/
-        └── AppNavigator.js   # Navigation configuration
+MessageAI/
+├── mobile-app/               # React Native (Expo) app
+│   ├── App.js                # Main app entry point
+│   ├── app.json              # Expo configuration
+│   ├── src/
+│   │   ├── screens/          # Login, Chat, Home, Profile, Group, AI, etc.
+│   │   ├── components/      # MessageBubble, UserListItem, design-system, etc.
+│   │   ├── stores/           # Zustand (localStore, presenceStore, firebaseStore)
+│   │   ├── config/           # firebase.js
+│   │   ├── utils/            # auth, conversation, presence, aiService, etc.
+│   │   └── navigation/       # AppNavigator
+│   └── .env                  # EXPO_PUBLIC_* (Firebase, backend URL)
+├── backend/                  # Next.js API (Vercel serverless)
+│   ├── app/api/              # /summarize, /extract-actions, /search, /priority, /agent, etc.
+│   └── lib/                  # Firebase Admin, OpenAI, shared utilities
+├── docs/                     # Product and implementation docs
+│   ├── PRD.md                # Product requirements
+│   ├── TDD_RAG_Pipeline.md   # RAG pipeline technical design
+│   ├── ARCHITECTURE_UPDATE.md
+│   ├── tasks-1.md            # PRs #1–#12 (core app + typing/dark mode prep)
+│   ├── tasks-2.md            # PRs #13–#16 (AI backend + agent)
+│   ├── tasks-3.md            # PRs #17–#19 (dark mode, polish completed/remaining)
+│   └── tasks-TDD.md          # RAG pipeline (8 PRs: Pinecone, embeddings, search, agent)
+└── memory-bank/              # Architecture and progress (projectbrief, progress, etc.)
 ```
 
 ## 🏗️ Architecture
@@ -145,14 +148,9 @@ This app uses a **3-store Zustand architecture** for optimal real-time performan
 - **Frontend**: React Native, Expo
 - **State Management**: Zustand (3-store pattern)
 - **Image Caching**: expo-image (disk + memory caching for smooth 60fps scrolling)
-- **Backend**: Firebase
-  - Authentication (email/password)
-  - Firestore (messages, profiles, conversations)
-  - Realtime Database (user presence)
-  - Storage (profile photos)
-  - Cloud Functions (push notifications)
+- **Backend**: Firebase (Auth, Firestore, Realtime DB, Storage) + **Vercel** (Next.js API for AI, push, search)
 - **Navigation**: React Navigation
-- **AI**: Vercel AI SDK with OpenAI GPT-4
+- **AI**: Vercel AI SDK, OpenAI (GPT-4, text-embedding-3-small); **Planned**: RAG with Pinecone (see `docs/tasks-TDD.md`)
 
 ## 🔥 Firebase Setup
 
@@ -203,7 +201,7 @@ This app requires Firebase for authentication, real-time messaging, user presenc
 1. In Project Overview, click the **Web** icon (`</>`)
 2. Register your app with a nickname (e.g., "messaging-app-web")
 3. Copy the Firebase configuration object
-4. Create a `.env` file in the project root:
+4. Create a `.env` file in `mobile-app/` (Expo app root):
 
 ```env
 EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key_here
@@ -355,20 +353,23 @@ eas build --platform android
 eas build --platform ios
 ```
 
-## 📖 Implementation Progress
+## 📖 Documentation & Implementation Progress
 
-- ✅ **PR #1**: React Native Setup & Environment Configuration
-- ⏳ **PR #2**: Firebase Configuration & Zustand Stores
-- ⏳ **PR #3**: Authentication (Signup & Login)
-- ⏳ **PR #4**: Profile Setup & User Creation
-- ⏳ **PR #5**: User List & Presence Tracking
-- ⏳ **PR #6**: One-on-One Messaging - Basic Chat UI
-- ⏳ **PR #7**: Message Sending with 3-Store Architecture
-- ⏳ **PR #8**: Profile Screen & Edit Profile
-- ⏳ **PR #9**: Group Chats
-- ⏳ **PR #10**: Push Notifications
-- ⏳ **PR #11**: AI Agent - Basic Integration
-- ⏳ **PR #12**: AI Agent - Advanced Features & Polish
+Implementation is split into **task files** in `docs/`:
+
+| File | Scope |
+|------|--------|
+| **tasks-1.md** | PRs #1–#12: Core app (setup, auth, profiles, messaging, groups, push, read receipts, typing indicators, dark mode/reactions prep) |
+| **tasks-2.md** | PRs #13–#16: AI backend (Vercel), summarization, action items, search, priority, decision tracking, multi-step agent |
+| **tasks-3.md** | PRs #17–#19: Dark mode & reactions (PR #17), AI polish completed (PR #18), AI polish remaining (PR #19) |
+| **tasks-TDD.md** | RAG pipeline (8 PRs): Pinecone, embeddings, indexing, retrieval, search endpoint, agent retrieval tool |
+
+**Current state**
+
+- **Done**: Core messaging (PRs #1–#9), push & read receipts (#10–#11), AI backend + summarization + action items + search + priority (#13–#15), decision tracking & agent (#16), polish (expo-image, Android, push-on-PC doc) in PR #18.
+- **In progress / next**: Dark mode & message reactions (PR #17), remaining polish (PR #19), then **RAG pipeline** per `docs/tasks-TDD.md` (semantic search + agent context with Pinecone).
+
+See `docs/PRD.md` for product requirements and `memory-bank/` for architecture and progress details.
 
 ## 🤝 Contributing
 
@@ -428,25 +429,21 @@ We welcome contributions! This project follows a structured PR-based development
 
 ### Implementation Plan
 
-This project follows a 17-PR implementation plan. See `tasks.md` for:
+Task lists live in `docs/`:
 
-- Detailed task breakdown
-- Implementation notes
-- Architectural decisions
-- Completed features
+- **docs/tasks-1.md** — Core app (PRs #1–#12)
+- **docs/tasks-2.md** — AI backend & features (PRs #13–#16)
+- **docs/tasks-3.md** — Dark mode, reactions, polish (PRs #17–#19)
+- **docs/tasks-TDD.md** — RAG pipeline (8 PRs: Pinecone, embeddings, semantic search, agent context)
 
-Current progress:
-
-- ✅ PRs #1-8: Foundation, Auth, Profiles, Messaging Core
-- 🔄 PR #9: Group Chats (In Progress)
-- ⏳ PRs #10-17: Notifications, Read Receipts, AI Features
+Each file has goals, subtasks, and test-before-merge checklists. See **Documentation & Implementation Progress** above for current state.
 
 ### Need Help?
 
-- Check `memory-bank/` folder for architecture documentation
-- Review `PRD.md` for product requirements
-- Look at existing code for patterns and examples
-- Open an issue for questions or suggestions
+- **Architecture & progress**: `memory-bank/` (projectbrief, progress, activeContext, systemPatterns, techContext)
+- **Product requirements**: `docs/PRD.md`
+- **RAG design**: `docs/TDD_RAG_Pipeline.md`
+- **Code patterns**: See existing screens and `memory-bank/systemPatterns.md`
 
 ## 📄 License
 

@@ -146,10 +146,18 @@ enableIndexedDbPersistence(db).catch((err) => {
 
 ## Project Structure
 
-### Directory Organization
+### Repo Layout
+
+- **MessageAI/** — monorepo root
+  - **mobile-app/** — React Native (Expo) app; run `npx expo start` from here
+  - **backend/** — Next.js API on Vercel (`/api/summarize`, `/api/search`, `/api/agent`, etc.)
+  - **docs/** — PRD.md, TDD_RAG_Pipeline.md, tasks-1.md through tasks-3.md, tasks-TDD.md
+  - **memory-bank/** — projectbrief, progress, activeContext, systemPatterns, techContext
+
+### Directory Organization (mobile-app)
 
 ```
-messaging-app/
+mobile-app/
 ├── src/
 │   ├── screens/           # Screen components
 │   │   ├── SignupScreen.js
@@ -186,13 +194,10 @@ messaging-app/
 │   │   └── AppNavigator.js
 │   └── styles/          # Design tokens and styles
 │       └── tokens.js
-├── functions/            # Firebase Cloud Functions
-│   └── index.js
-├── .env                 # Environment variables
-├── .gitignore
-├── app.json            # Expo configuration
+├── .env                 # EXPO_PUBLIC_* (Firebase, backend URL)
+├── app.json
 ├── package.json
-└── README.md
+└── ...
 ```
 
 ## Dependencies
@@ -385,6 +390,13 @@ eas build --platform android
 - **QR code not working**: Update Expo Go app
 - **Build failures**: Check EAS configuration
 - **Module not found**: Verify package installation
+
+## Planned: RAG Pipeline (docs/tasks-TDD.md)
+
+- **Pinecone** (free tier): Vector index for message embeddings (1536 dims, cosine).
+- **OpenAI text-embedding-3-small**: Embed messages and queries; one message = one vector; short-message enrichment (&lt;10 words → prepend previous).
+- **Flow**: Index messages on first use (or incrementally); search and agent query Pinecone filtered by conversationId, top 10; agent gets retrieval tool + recent Firestore fallback.
+- **No new deployment**: Pinecone over HTTP from existing Vercel backend. See `docs/TDD_RAG_Pipeline.md` and `docs/tasks-TDD.md`.
 
 ## Future Technical Considerations
 
