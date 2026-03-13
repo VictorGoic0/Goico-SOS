@@ -2,9 +2,9 @@
 
 ## Current Work Focus
 
-### Project Status: **AI Features Complete Through PR #16; Polish & RAG Next**
+### Project Status: **AI + Dark Mode Complete; Message Reactions, PR #19 & RAG Next**
 
-The project has completed core messaging (PRs #1–#11), AI backend and features (PRs #13–#16: Vercel, summarization, action items, search, priority, decision tracking, multi-step agent), and completed polish items in PR #18 (expo-image, push-on-PC behavior, Android deployment). Task lists are organized in `docs/`: **tasks-1.md** (PRs #1–#12), **tasks-2.md** (PRs #13–#16), **tasks-3.md** (PRs #17–#19), **tasks-TDD.md** (RAG pipeline, 8 PRs).
+The project has completed core messaging (PRs #1–#11), AI backend and features (PRs #13–#16: Vercel, summarization, action items, search, priority, decision tracking, multi-step agent), polish in PR #18 (expo-image, push-on-PC, Android), and **PR #17 Dark Mode** (theme system, ThemeContext, Appearance selector, theme applied to all screens). Task lists are in `docs/`: **tasks-1.md** (PRs #1–#12), **tasks-2.md** (PRs #13–#16), **tasks-3.md** (PRs #17–#19), **tasks-TDD.md** (RAG pipeline, 8 PRs).
 
 **Current Architecture**: React Native (mobile-app/) → Vercel serverless (backend/) → OpenAI (GPT-4o-mini, text-embedding-3-small) + Firebase (Firestore, Realtime DB, Storage). **Planned**: RAG with Pinecone for semantic search and agent context (see docs/TDD_RAG_Pipeline.md).
 
@@ -24,8 +24,20 @@ The project has completed core messaging (PRs #1–#11), AI backend and features
 12. ✅ **PR #13**: Vercel Backend Setup & Test Function
 13. ✅ **PR #14**: Thread Summarization & Action Item Extraction
 14. ✅ **PR #15**: Smart Search & Priority Detection
+15. ✅ **PR #16**: Decision Tracking & Multi-Step Agent
+16. ✅ **PR #17 (Dark Mode)**: Theme system, ThemeContext, Appearance (Light/System/Dark), theme applied to all screens and navigator
 
-### Recently Completed: **PR #15 - Smart Search & Priority Detection**
+### Recently Completed: **PR #17 - Dark Mode**
+
+- ✅ **themeColors** in `tokens.js`: `light` and `dark` semantic palettes (background, surface, text, border, messageBubble, userBubble, status, etc.)
+- ✅ **ThemeContext**: AsyncStorage persistence, `themeMode` (light/dark/system), `setTheme()`, `useColorScheme()` for system
+- ✅ **App**: Wrapped in `ThemeProvider`; `StatusBar` follows theme
+- ✅ **ProfileScreen**: Appearance section with Light / System / Dark selector
+- ✅ **Screens themed**: HomeScreen, ChatScreen, ProfileScreen, GroupInfoScreen, CreateGroupScreen, ActionItemsScreen, DecisionsScreen, AgentChatScreen, ThreadSummaryModal
+- ✅ **Components themed**: MessageBubble, UserListItem, CompactInput; AppNavigator header and loading screen
+- ⏳ **PR #17 Message Reactions**: Not yet implemented (reactions UI, Firestore schema, picker)
+
+### Previously: **PR #15 - Smart Search & Priority Detection**
 
 **PR #15 Highlights:**
 
@@ -80,7 +92,8 @@ The project has completed core messaging (PRs #1–#11), AI backend and features
 
 **From docs/tasks-3.md:**
 
-- ⏳ PR #17: Dark Mode & Message Reactions (tasks-3)
+- ✅ PR #17 Dark Mode: theme system, Appearance selector, all screens/components themed — done and tested
+- ⏳ PR #17 Message Reactions: reactions utils, MessageReactions/ReactionPicker, schema (remaining)
 - ✅ PR #18: AI polish completed (expo-image, Push PC, Android) — done and tested
 - ⏳ PR #19: AI polish remaining (error handling, health check, read receipts, docs, optional push profile photos)
 
@@ -93,6 +106,7 @@ The project has completed core messaging (PRs #1–#11), AI backend and features
 
 - ✅ PRs #1–#11: Core messaging, profiles, presence, group chats, push notifications, read receipts
 - ✅ PRs #13–#16: AI backend (Vercel), summarization, action items, search, priority, decision tracking, multi-step agent
+- ✅ PR #17 Dark Mode: ThemeContext, themeColors, Appearance (Light/System/Dark), all screens and nav themed
 - ✅ PR #18: AI polish completed (expo-image, push-on-PC doc, Android deployment)
 
 **Documentation layout:** `docs/tasks-1.md` (PRs #1–#12), `docs/tasks-2.md` (PRs #13–#16), `docs/tasks-3.md` (PRs #17–#19), `docs/tasks-TDD.md` (RAG, 8 PRs). See `docs/PRD.md`, `docs/TDD_RAG_Pipeline.md`.

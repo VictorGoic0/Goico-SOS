@@ -1,6 +1,6 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **Core + AI + Polish (Partial) Done; Dark Mode, PR #19, and RAG Next**
+## Current Status: **Core + AI + Dark Mode + Polish (Partial) Done; Message Reactions, PR #19, RAG Next**
 
 ### Task Files (docs/)
 
@@ -13,8 +13,8 @@
 
 - ✅ **Foundation & Core**: PRs #1–#11 (setup, auth, profiles, messaging, groups, push, read receipts)
 - ✅ **AI Backend & Features**: PRs #13–#16 (Vercel, summarization, action items, search, priority, decision tracking, multi-step agent)
-- ✅ **Polish (completed)**: PR #18 — expo-image, push-on-PC behavior, Android deployment
-- ⏳ **Polish (remaining)**: PR #17 (Dark Mode & Message Reactions), PR #19 (error handling, health check, read receipt settings, docs, optional items)
+- ✅ **Polish (completed)**: PR #17 Dark Mode (theme system, Appearance, all screens themed), PR #18 — expo-image, push-on-PC behavior, Android deployment
+- ⏳ **Polish (remaining)**: PR #17 Message Reactions, PR #19 (error handling, health check, read receipt settings, docs, optional items)
 - ⏳ **RAG Pipeline**: 0% (tasks-TDD.md — Pinecone, embeddings, indexing, retrieval, search/agent RAG)
 
 ## What Works (Completed)
@@ -244,6 +244,16 @@
 - Priority factors: urgency indicators, deadlines, blockers, escalations
 - Priority stored in message document (prevents re-analysis)
 
+### PR #17: Dark Mode ✅ (Complete)
+
+- ✅ `themeColors` in `tokens.js`: `light` and `dark` semantic palettes
+- ✅ ThemeContext with AsyncStorage persistence, `themeMode` (light/dark/system), `setTheme()`, `useColorScheme()`
+- ✅ App wrapped in ThemeProvider; StatusBar follows theme
+- ✅ ProfileScreen Appearance section: Light / System / Dark selector
+- ✅ All screens themed: HomeScreen, ChatScreen, ProfileScreen, GroupInfoScreen, CreateGroupScreen, ActionItemsScreen, DecisionsScreen, AgentChatScreen, ThreadSummaryModal
+- ✅ Components themed: MessageBubble, UserListItem, CompactInput; AppNavigator header and loading screen
+- ✅ Theme persistence and contrast verified
+
 ### PR #9: Group Chats ✅ (Complete)
 
 **Features Implemented:**
@@ -344,9 +354,10 @@
 
 ### Phase 8: Polish & UX (docs/tasks-3.md — PRs #17–#19)
 
-**Status**: Partial (PR #18 done; #17 and #19 remaining)
+**Status**: Partial (PR #17 Dark Mode and PR #18 done; PR #17 Message Reactions and PR #19 remaining)
 
-- [ ] **PR #17**: Dark Mode & Message Reactions — theme system, reactions UI
+- ✅ **PR #17 Dark Mode**: ThemeContext, themeColors, Appearance (Light/System/Dark), all screens/components/navigator themed; persistence via AsyncStorage
+- [ ] **PR #17 Message Reactions**: reactions utils, MessageReactions, ReactionPicker, Firestore schema
 - ✅ **PR #18**: AI polish completed — expo-image, push-on-PC doc, Android deployment (tested)
 - [ ] **PR #19**: AI polish remaining — error handling, health check, read receipt settings, backend README, deploy, optional push profile photos
 
@@ -412,7 +423,7 @@
 
 ### From docs/tasks-3.md
 
-1. **PR #17**: Dark Mode & Message Reactions — ThemeContext, tokens, theme toggle, reactions (Firestore + UI).
+1. **PR #17 Message Reactions**: reactions utils, MessageReactions, ReactionPicker, Firestore schema (Dark Mode done).
 2. **PR #19**: Remaining polish — backend error handler, health check, README, deploy; mobile error handling, skeletons, read receipt settings; optional push profile photos; test-all-AI checklist.
 
 ### From docs/tasks-TDD.md (after polish)

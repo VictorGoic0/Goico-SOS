@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,14 +7,140 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
+import { useTheme } from "../contexts/ThemeContext";
 import { extractActionItems } from "../services/aiService";
-import { colors } from "../styles/tokens";
+import { colors as tokenColors } from "../styles/tokens";
 
 export default function ActionItemsScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const { conversationId } = route.params;
   const [actionItems, setActionItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background },
+        loading: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        },
+        loadingText: {
+          marginTop: 16,
+          fontSize: 16,
+          color: colors.textSecondary,
+        },
+        errorContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+          padding: 20,
+        },
+        errorText: {
+          fontSize: 16,
+          color: colors.statusBusy,
+          textAlign: "center",
+          marginBottom: 16,
+        },
+        retryButton: {
+          backgroundColor: tokenColors.primary.base,
+          paddingHorizontal: 24,
+          paddingVertical: 12,
+          borderRadius: 8,
+        },
+        retryButtonText: {
+          color: "white",
+          fontSize: 16,
+          fontWeight: "600",
+        },
+        listContent: { padding: 16 },
+        item: {
+          backgroundColor: colors.surface,
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 12,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        },
+        task: {
+          fontSize: 16,
+          fontWeight: "600",
+          color: colors.text,
+          marginBottom: 8,
+        },
+        assigned: {
+          fontSize: 14,
+          color: colors.textSecondary,
+          marginBottom: 4,
+        },
+        deadline: {
+          fontSize: 14,
+          color: colors.statusBusy,
+          marginBottom: 8,
+        },
+        footer: {
+          flexDirection: "row",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 8,
+        },
+        statusBadge: {
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          borderRadius: 12,
+        },
+        statusPending: { backgroundColor: "#FFF3CD" },
+        statusCompleted: { backgroundColor: "#D1E7DD" },
+        statusText: {
+          fontSize: 12,
+          fontWeight: "600",
+          textTransform: "capitalize",
+        },
+        context: {
+          flex: 1,
+          fontSize: 13,
+          color: colors.textSecondary,
+          fontStyle: "italic",
+        },
+        emptyContainer: {
+          alignItems: "center",
+          justifyContent: "center",
+          paddingVertical: 60,
+          paddingHorizontal: 40,
+        },
+        empty: {
+          fontSize: 18,
+          color: colors.textSecondary,
+          textAlign: "center",
+          marginBottom: 8,
+        },
+        emptySubtext: {
+          fontSize: 14,
+          color: colors.textSecondary,
+          textAlign: "center",
+        },
+        refreshButton: {
+          backgroundColor: tokenColors.primary.base,
+          padding: 16,
+          alignItems: "center",
+          margin: 16,
+          borderRadius: 8,
+        },
+        refreshText: {
+          color: "white",
+          fontSize: 16,
+          fontWeight: "600",
+        },
+      }),
+    [colors]
+  );
 
   useEffect(() => {
     loadActionItems();
@@ -62,7 +188,7 @@ export default function ActionItemsScreen({ route, navigation }) {
   if (loading) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color={colors.primary.base} />
+        <ActivityIndicator size="large" color={tokenColors.primary.base} />
         <Text style={styles.loadingText}>Extracting action items...</Text>
       </View>
     );
@@ -101,132 +227,3 @@ export default function ActionItemsScreen({ route, navigation }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.default,
-  },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.background.default,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: colors.text.secondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.background.default,
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: colors.error.main,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  retryButton: {
-    backgroundColor: colors.primary.base,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  listContent: {
-    padding: 16,
-  },
-  item: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  task: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.text.primary,
-    marginBottom: 8,
-  },
-  assigned: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    marginBottom: 4,
-  },
-  deadline: {
-    fontSize: 14,
-    color: colors.error.main,
-    marginBottom: 8,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusPending: {
-    backgroundColor: "#FFF3CD",
-  },
-  statusCompleted: {
-    backgroundColor: "#D1E7DD",
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "capitalize",
-  },
-  context: {
-    flex: 1,
-    fontSize: 13,
-    color: colors.text.secondary,
-    fontStyle: "italic",
-  },
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-    paddingHorizontal: 40,
-  },
-  empty: {
-    fontSize: 18,
-    color: colors.text.secondary,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.text.tertiary,
-    textAlign: "center",
-  },
-  refreshButton: {
-    backgroundColor: colors.primary.base,
-    padding: 16,
-    alignItems: "center",
-    margin: 16,
-    borderRadius: 8,
-  },
-  refreshText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
+import { useTheme } from "../contexts/ThemeContext";
 import useFirebaseStore from "../stores/firebaseStore";
-import { colors, spacing, typography } from "../styles/tokens";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import {
   formatMessageTime,
   formatTimestamp,
@@ -32,7 +33,7 @@ export default function MessageBubble({
   priority = "normal",
   isAI = false,
 }) {
-  // Get sender info from usersMap (for group chats)
+  const { colors } = useTheme();
   const usersMap = useFirebaseStore((state) => state.usersMap);
   const sender = usersMap[message.senderId];
 
@@ -40,6 +41,146 @@ export default function MessageBubble({
   const showSenderInfo = isGroup && !isSent;
   const isRead = message.status === "read";
   const isSending = message.status === "sending";
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flexDirection: "row",
+          marginVertical: spacing[1],
+          marginHorizontal: spacing[4],
+        },
+        sentContainer: { justifyContent: "flex-end" },
+        receivedContainer: { justifyContent: "flex-start" },
+        senderAvatarContainer: {
+          marginRight: spacing[2],
+          marginTop: spacing[4],
+        },
+        senderAvatar: {
+          width: 24,
+          height: 24,
+          borderRadius: 12,
+          backgroundColor: colors.skeleton,
+        },
+        senderAvatarPlaceholder: {
+          width: 24,
+          height: 24,
+          borderRadius: 12,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        senderAvatarText: {
+          fontSize: typography.fontSize.xs,
+          fontWeight: typography.fontWeight.semibold,
+          color: tokenColors.neutral.white,
+        },
+        bubbleWrapper: { maxWidth: "75%" },
+        senderName: {
+          fontSize: typography.fontSize.xs,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.textSecondary,
+          marginBottom: spacing[1],
+          marginLeft: spacing[1],
+        },
+        bubble: {
+          paddingHorizontal: spacing[3],
+          paddingVertical: spacing[2],
+          borderRadius: 16,
+        },
+        sentBubble: {
+          backgroundColor: colors.userBubble,
+          borderBottomRightRadius: 4,
+        },
+        receivedBubble: {
+          backgroundColor: colors.messageBubble,
+          borderBottomLeftRadius: 4,
+        },
+        aiBubble: {
+          backgroundColor: tokenColors.ai.main,
+          borderBottomLeftRadius: 4,
+        },
+        highPriorityBubble: {
+          borderWidth: 2,
+          borderColor: colors.statusBusy,
+        },
+        priorityBadge: {
+          backgroundColor: colors.statusBusy,
+          paddingHorizontal: spacing[2],
+          paddingVertical: spacing[1],
+          borderRadius: 4,
+          marginBottom: spacing[2],
+          alignSelf: "flex-start",
+        },
+        priorityText: {
+          color: tokenColors.neutral.white,
+          fontSize: typography.fontSize.xs,
+          fontWeight: typography.fontWeight.bold,
+        },
+        messageText: {
+          fontSize: typography.fontSize.base,
+          lineHeight: typography.lineHeight.relaxed * typography.fontSize.base,
+        },
+        sentText: { color: colors.userBubbleText },
+        receivedText: { color: colors.text },
+        aiText: { color: tokenColors.neutral.white },
+        metaContainer: {
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: spacing[1],
+        },
+        timestamp: { fontSize: typography.fontSize.xs },
+        sentTimestamp: { color: "rgba(255, 255, 255, 0.8)" },
+        receivedTimestamp: { color: colors.textSecondary },
+        aiTimestamp: { color: "rgba(255, 255, 255, 0.8)" },
+        statusIcon: {
+          fontSize: typography.fontSize.xs,
+          marginLeft: spacing[1],
+          color: "rgba(255, 255, 255, 0.8)",
+        },
+        readIndicator: {
+          fontSize: typography.fontSize.xs,
+          color: colors.textSecondary,
+          marginTop: spacing[1],
+          marginRight: 0,
+          alignSelf: "flex-end",
+        },
+        groupReadIndicator: {
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: spacing[1],
+          alignSelf: "flex-end",
+        },
+        groupReadText: {
+          fontSize: typography.fontSize.xs,
+          color: colors.textSecondary,
+          marginRight: spacing[2],
+        },
+        miniAvatarsContainer: { flexDirection: "row", alignItems: "center" },
+        miniAvatar: {
+          width: 16,
+          height: 16,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: colors.background,
+        },
+        miniAvatarPlaceholder: {
+          width: 16,
+          height: 16,
+          borderRadius: 8,
+          justifyContent: "center",
+          alignItems: "center",
+          borderWidth: 1,
+          borderColor: colors.background,
+        },
+        miniAvatarText: {
+          fontSize: 8,
+          fontWeight: typography.fontWeight.bold,
+          color: tokenColors.neutral.white,
+        },
+        miniAvatarOverlap: { marginLeft: -6 },
+      }),
+    [colors]
+  );
 
   return (
     <View
@@ -205,7 +346,7 @@ export default function MessageBubble({
                   style={[
                     styles.miniAvatarPlaceholder,
                     styles.miniAvatarOverlap,
-                    { backgroundColor: colors.neutral.dark },
+                    { backgroundColor: colors.skeleton },
                   ]}
                 >
                   <Text style={styles.miniAvatarText}>
@@ -220,166 +361,3 @@ export default function MessageBubble({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    marginVertical: spacing[1],
-    marginHorizontal: spacing[4],
-  },
-  sentContainer: {
-    justifyContent: "flex-end",
-  },
-  receivedContainer: {
-    justifyContent: "flex-start",
-  },
-  // Sender avatar (for group messages)
-  senderAvatarContainer: {
-    marginRight: spacing[2],
-    marginTop: spacing[4], // Align with sender name
-  },
-  senderAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.neutral.lighter,
-  },
-  senderAvatarPlaceholder: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  senderAvatarText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.white,
-  },
-  // Bubble wrapper (includes sender name and bubble)
-  bubbleWrapper: {
-    maxWidth: "75%",
-  },
-  senderName: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.secondary,
-    marginBottom: spacing[1],
-    marginLeft: spacing[1],
-  },
-  bubble: {
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: 16,
-  },
-  sentBubble: {
-    backgroundColor: colors.primary.base,
-    borderBottomRightRadius: 4,
-  },
-  receivedBubble: {
-    backgroundColor: colors.neutral.lighter,
-    borderBottomLeftRadius: 4,
-  },
-  aiBubble: {
-    backgroundColor: colors.ai.main,
-    borderBottomLeftRadius: 4,
-  },
-  highPriorityBubble: {
-    borderWidth: 2,
-    borderColor: "#FF3B30",
-  },
-  priorityBadge: {
-    backgroundColor: "#FF3B30",
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
-    borderRadius: 4,
-    marginBottom: spacing[2],
-    alignSelf: "flex-start",
-  },
-  priorityText: {
-    color: colors.neutral.white,
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.bold,
-  },
-  messageText: {
-    fontSize: typography.fontSize.base,
-    lineHeight: typography.lineHeight.relaxed * typography.fontSize.base,
-  },
-  sentText: {
-    color: colors.neutral.white,
-  },
-  receivedText: {
-    color: colors.text.primary,
-  },
-  aiText: {
-    color: colors.neutral.white,
-  },
-  metaContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: spacing[1],
-  },
-  timestamp: {
-    fontSize: typography.fontSize.xs,
-  },
-  sentTimestamp: {
-    color: "rgba(255, 255, 255, 0.8)",
-  },
-  receivedTimestamp: {
-    color: colors.text.tertiary,
-  },
-  aiTimestamp: {
-    color: "rgba(255, 255, 255, 0.8)",
-  },
-  statusIcon: {
-    fontSize: typography.fontSize.xs,
-    marginLeft: spacing[1],
-    color: "rgba(255, 255, 255, 0.8)",
-  },
-  readIndicator: {
-    fontSize: typography.fontSize.xs,
-    color: colors.text.secondary,
-    marginTop: spacing[1],
-    marginRight: 0,
-    alignSelf: "flex-end",
-  },
-  groupReadIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: spacing[1],
-    alignSelf: "flex-end",
-  },
-  groupReadText: {
-    fontSize: typography.fontSize.xs,
-    color: colors.text.secondary,
-    marginRight: spacing[2],
-  },
-  miniAvatarsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  miniAvatar: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.background.default,
-  },
-  miniAvatarPlaceholder: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.background.default,
-  },
-  miniAvatarText: {
-    fontSize: 8,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.white,
-  },
-  miniAvatarOverlap: {
-    marginLeft: -6, // Overlap avatars slightly
-  },
-});

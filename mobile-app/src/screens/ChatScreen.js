@@ -8,7 +8,7 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -33,10 +33,11 @@ import {
   semanticSearch,
   summarizeThread,
 } from "../services/aiService";
+import { useTheme } from "../contexts/ThemeContext";
 import useFirebaseStore from "../stores/firebaseStore";
 import useLocalStore from "../stores/localStore";
 import usePresenceStore from "../stores/presenceStore";
-import { colors, spacing, typography } from "../styles/tokens";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import {
   deleteConversation,
   getOrCreateConversation,
@@ -50,6 +51,7 @@ import {
 } from "../utils/typingIndicator";
 
 export default function ChatScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const { otherUser: routeOtherUser, conversationId: routeConversationId } =
     route.params;
 
@@ -364,6 +366,246 @@ export default function ChatScreen({ route, navigation }) {
     otherUser ? state.isUserOnline(otherUser.userId) : false
   );
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background },
+        loadingContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        },
+        loadingText: {
+          marginTop: spacing[4],
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+        },
+        messagesList: {
+          paddingVertical: spacing[4],
+          flexGrow: 1,
+          justifyContent: "flex-end",
+        },
+        emptyContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: spacing[8],
+        },
+        emptyText: {
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+          textAlign: "center",
+        },
+        inputContainer: {
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          backgroundColor: colors.surface,
+        },
+        headerContent: {
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        headerAvatarContainer: { position: "relative", marginRight: spacing[2] },
+        headerAvatar: {
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          backgroundColor: colors.skeleton,
+        },
+        headerAvatarPlaceholder: {
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        headerAvatarInitials: {
+          fontSize: typography.fontSize.sm,
+          fontWeight: typography.fontWeight.semibold,
+          color: tokenColors.neutral.white,
+        },
+        headerOnlineIndicator: {
+          position: "absolute",
+          bottom: 0,
+          right: 0,
+          width: 12,
+          height: 12,
+          borderRadius: 6,
+          borderWidth: 2,
+          borderColor: colors.surface,
+        },
+        headerTextContainer: { alignItems: "center", justifyContent: "center" },
+        headerTitle: {
+          fontSize: typography.fontSize.base,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text,
+        },
+        headerSubtitle: {
+          fontSize: typography.fontSize.xs,
+          color: colors.statusAvailable,
+          marginTop: spacing[0],
+        },
+        headerRightContainer: {
+          flexDirection: "row",
+          alignItems: "center",
+          marginRight: spacing[2],
+        },
+        aiButton: {
+          paddingHorizontal: spacing[2],
+          paddingVertical: spacing[2],
+          marginRight: spacing[1],
+          minWidth: 32,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        aiButtonDisabled: { opacity: 0.3 },
+        aiButtonText: { fontSize: 18 },
+        deleteButton: {
+          paddingHorizontal: spacing[2],
+          paddingVertical: spacing[2],
+          minWidth: 40,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        deleteButtonDisabled: { opacity: 0.3 },
+        deleteButtonText: { fontSize: 22 },
+        typingIndicator: {
+          paddingHorizontal: spacing[4],
+          paddingVertical: spacing[2],
+          backgroundColor: colors.background,
+        },
+        typingText: {
+          fontSize: typography.fontSize.sm,
+          color: colors.textSecondary,
+          fontStyle: "italic",
+        },
+        searchContainer: {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: spacing[4],
+          paddingVertical: spacing[2],
+          backgroundColor: colors.inputBackground,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        searchInput: {
+          flex: 1,
+          fontSize: typography.fontSize.base,
+          color: colors.text,
+          backgroundColor: colors.surface,
+          paddingHorizontal: spacing[3],
+          paddingVertical: spacing[2],
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        searchInputDisabled: {
+          backgroundColor: colors.skeleton,
+          opacity: 0.6,
+          color: colors.textSecondary,
+        },
+        searchButton: {
+          marginLeft: spacing[2],
+          backgroundColor: tokenColors.primary.base,
+          paddingHorizontal: spacing[3],
+          paddingVertical: spacing[2],
+          borderRadius: 8,
+          minWidth: 44,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        searchButtonText: { fontSize: 18 },
+        clearSearchButton: {
+          marginLeft: spacing[2],
+          paddingHorizontal: spacing[2],
+          paddingVertical: spacing[2],
+        },
+        clearSearchText: {
+          fontSize: 20,
+          color: colors.textSecondary,
+        },
+        searchResultsContainer: {
+          maxHeight: "60%",
+          backgroundColor: colors.background,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        searchResults: { flexGrow: 0, flexShrink: 1 },
+        searchResult: {
+          padding: spacing[3],
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+          backgroundColor: colors.surface,
+        },
+        searchResultSender: {
+          fontSize: typography.fontSize.sm,
+          fontWeight: typography.fontWeight.semibold,
+          color: tokenColors.primary.base,
+          marginBottom: spacing[1],
+        },
+        searchResultText: {
+          fontSize: typography.fontSize.base,
+          color: colors.text,
+          marginBottom: spacing[1],
+        },
+        searchResultMeta: { flexDirection: "row", alignItems: "center" },
+        searchResultSimilarity: {
+          fontSize: typography.fontSize.xs,
+          color: colors.textSecondary,
+          fontWeight: typography.fontWeight.medium,
+        },
+        modalOverlay: {
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          justifyContent: "flex-start",
+          alignItems: "flex-end",
+          paddingTop: 56,
+          paddingRight: spacing[2],
+        },
+        overflowMenu: {
+          backgroundColor: colors.surface,
+          borderRadius: 8,
+          minWidth: 240,
+          maxWidth: 280,
+          shadowColor: colors.text,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        },
+        menuItem: {
+          flexDirection: "row",
+          alignItems: "flex-start",
+          paddingHorizontal: spacing[4],
+          paddingVertical: spacing[3],
+          minHeight: 48,
+        },
+        menuItemDisabled: { opacity: 0.5 },
+        menuIcon: {
+          fontSize: 20,
+          marginRight: spacing[3],
+          width: 24,
+          textAlign: "center",
+          paddingTop: 2,
+        },
+        menuText: {
+          fontSize: typography.fontSize.base,
+          color: colors.text,
+          flex: 1,
+          flexWrap: "wrap",
+        },
+        menuTextDanger: { color: tokenColors.error.main },
+        menuDivider: {
+          height: 1,
+          backgroundColor: colors.border,
+          marginVertical: spacing[1],
+        },
+      }),
+    [colors]
+  );
+
   // Set navigation header with profile photo and online status
   useEffect(() => {
     const hasMessages = conversationMessages.length > 0;
@@ -437,8 +679,8 @@ export default function ChatScreen({ route, navigation }) {
                     styles.headerOnlineIndicator,
                     {
                       backgroundColor: isOnline
-                        ? colors.success.main
-                        : colors.neutral.mediumLight,
+                        ? colors.statusAvailable
+                        : colors.textDisabled,
                     },
                   ]}
                 />
@@ -505,6 +747,7 @@ export default function ChatScreen({ route, navigation }) {
     conversationMessages.length,
     isDeleting,
     isGroup,
+    styles,
     conversation,
     conversationId,
   ]);
@@ -660,7 +903,7 @@ export default function ChatScreen({ route, navigation }) {
   if (isLoading || !conversationId) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary.base} />
+        <ActivityIndicator size="large" color={tokenColors.primary.base} />
         <Text style={styles.loadingText}>Loading conversation...</Text>
       </View>
     );
@@ -683,7 +926,7 @@ export default function ChatScreen({ route, navigation }) {
               styles.searchInput,
               searching && styles.searchInputDisabled,
             ]}
-            placeholderTextColor={colors.text.tertiary}
+            placeholderTextColor={colors.textSecondary}
             returnKeyType="search"
             onSubmitEditing={handleSearch}
             editable={!searching}
@@ -694,7 +937,7 @@ export default function ChatScreen({ route, navigation }) {
             disabled={searching || !searchQuery.trim()}
           >
             {searching ? (
-              <ActivityIndicator size="small" color={colors.neutral.white} />
+              <ActivityIndicator size="small" color={tokenColors.neutral.white} />
             ) : (
               <Text style={styles.searchButtonText}>🔍</Text>
             )}
@@ -910,7 +1153,7 @@ export default function ChatScreen({ route, navigation }) {
                 <>
                   <ActivityIndicator
                     size="small"
-                    color={colors.error.base}
+                    color={tokenColors.error.main}
                     style={styles.menuIcon}
                   />
                   <Text style={[styles.menuText, styles.menuTextDanger]}>
@@ -932,271 +1175,3 @@ export default function ChatScreen({ route, navigation }) {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.default,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.background.default,
-  },
-  loadingText: {
-    marginTop: spacing[4],
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-  },
-  messagesList: {
-    paddingVertical: spacing[4],
-    flexGrow: 1,
-    justifyContent: "flex-end",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: spacing[8],
-  },
-  emptyText: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-    textAlign: "center",
-  },
-  inputContainer: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border.light,
-    backgroundColor: colors.background.paper,
-  },
-  // Header styles
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerAvatarContainer: {
-    position: "relative",
-    marginRight: spacing[2],
-  },
-  headerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.neutral.lighter,
-  },
-  headerAvatarPlaceholder: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerAvatarInitials: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.white,
-  },
-  headerOnlineIndicator: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: colors.background.paper,
-  },
-  headerTextContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-  },
-  headerSubtitle: {
-    fontSize: typography.fontSize.xs,
-    color: colors.success.main,
-    marginTop: spacing[0],
-  },
-  headerRightContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: spacing[2],
-  },
-  aiButton: {
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[2],
-    marginRight: spacing[1],
-    minWidth: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  aiButtonDisabled: {
-    opacity: 0.3,
-  },
-  aiButtonText: {
-    fontSize: 18,
-  },
-  deleteButton: {
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[2],
-    minWidth: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  deleteButtonDisabled: {
-    opacity: 0.3,
-  },
-  deleteButtonText: {
-    fontSize: 22,
-  },
-  typingIndicator: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    backgroundColor: colors.background.default,
-  },
-  typingText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-    fontStyle: "italic",
-  },
-  // Search styles
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    backgroundColor: colors.neutral.lighter,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    backgroundColor: colors.neutral.white,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-  },
-  searchInputDisabled: {
-    backgroundColor: colors.neutral.light,
-    opacity: 0.6,
-    color: colors.text.secondary,
-  },
-  searchButton: {
-    marginLeft: spacing[2],
-    backgroundColor: colors.primary.base,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: 8,
-    minWidth: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  searchButtonText: {
-    fontSize: 18,
-  },
-  clearSearchButton: {
-    marginLeft: spacing[2],
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[2],
-  },
-  clearSearchText: {
-    fontSize: 20,
-    color: colors.text.secondary,
-  },
-  searchResultsContainer: {
-    maxHeight: "60%", // Limit to 60% of screen height
-    backgroundColor: colors.background.default,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  searchResults: {
-    flexGrow: 0, // Don't grow beyond content
-    flexShrink: 1, // Allow shrinking if needed
-  },
-  searchResult: {
-    padding: spacing[3],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-    backgroundColor: colors.neutral.white,
-  },
-  searchResultSender: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.base,
-    marginBottom: spacing[1],
-  },
-  searchResultText: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    marginBottom: spacing[1],
-  },
-  searchResultMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  searchResultSimilarity: {
-    fontSize: typography.fontSize.xs,
-    color: colors.text.tertiary,
-    fontWeight: typography.fontWeight.medium,
-  },
-  // Overflow menu styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-start",
-    alignItems: "flex-end",
-    paddingTop: 56, // Height of header
-    paddingRight: spacing[2],
-  },
-  overflowMenu: {
-    backgroundColor: colors.neutral.white,
-    borderRadius: 8,
-    minWidth: 240,
-    maxWidth: 280,
-    shadowColor: colors.neutral.darkest,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
-    minHeight: 48,
-  },
-  menuItemDisabled: {
-    opacity: 0.5,
-  },
-  menuIcon: {
-    fontSize: 20,
-    marginRight: spacing[3],
-    width: 24,
-    textAlign: "center",
-    paddingTop: 2,
-  },
-  menuText: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    flex: 1,
-    flexWrap: "wrap",
-  },
-  menuTextDanger: {
-    color: colors.error.base,
-  },
-  menuDivider: {
-    height: 1,
-    backgroundColor: colors.border.light,
-    marginVertical: spacing[1],
-  },
-});

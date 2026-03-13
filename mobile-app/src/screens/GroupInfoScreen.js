@@ -1,5 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,12 +15,14 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import Button from "../components/Button";
+import { useTheme } from "../contexts/ThemeContext";
 import useFirebaseStore from "../stores/firebaseStore";
-import { colors, spacing, typography } from "../styles/tokens";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import { updateGroupConversation } from "../utils/conversation";
 import { getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function GroupInfoScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const { conversationId } = route.params;
 
   const currentUser = useFirebaseStore((state) => state.currentUser);
@@ -145,6 +147,151 @@ export default function GroupInfoScreen({ route, navigation }) {
     .map((userId) => users.find((u) => u.userId === userId))
     .filter(Boolean);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background },
+        loadingContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        },
+        loadingText: {
+          marginTop: spacing[4],
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+        },
+        scrollView: { flex: 1 },
+        photoSection: {
+          alignItems: "center",
+          paddingVertical: spacing[6],
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        photoButton: { marginBottom: spacing[2] },
+        groupPhotoLarge: {
+          width: 120,
+          height: 120,
+          borderRadius: 60,
+          backgroundColor: colors.skeleton,
+        },
+        groupPhotoPlaceholder: {
+          width: 120,
+          height: 120,
+          borderRadius: 60,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        groupPhotoPlaceholderText: { fontSize: 48 },
+        photoHint: {
+          fontSize: typography.fontSize.sm,
+          color: colors.textSecondary,
+        },
+        section: {
+          paddingHorizontal: spacing[4],
+          paddingTop: spacing[6],
+          paddingBottom: spacing[4],
+        },
+        sectionHeader: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: spacing[3],
+        },
+        sectionTitle: {
+          fontSize: typography.fontSize.lg,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text,
+        },
+        participantCount: {
+          fontSize: typography.fontSize.sm,
+          color: tokenColors.primary.base,
+          fontWeight: typography.fontWeight.semibold,
+        },
+        input: {
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 8,
+          padding: spacing[3],
+          fontSize: typography.fontSize.base,
+          color: colors.text,
+          marginTop: spacing[2],
+        },
+        participantList: { marginTop: spacing[2] },
+        participantItem: {
+          flexDirection: "row",
+          alignItems: "center",
+          padding: spacing[3],
+          backgroundColor: colors.surface,
+          borderRadius: 8,
+          marginBottom: spacing[2],
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        avatarContainer: { marginRight: spacing[3] },
+        avatar: {
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          backgroundColor: colors.skeleton,
+        },
+        avatarPlaceholder: {
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        avatarText: {
+          fontSize: typography.fontSize.lg,
+          fontWeight: typography.fontWeight.semibold,
+          color: tokenColors.neutral.white,
+        },
+        userInfo: { flex: 1, justifyContent: "center" },
+        displayName: {
+          fontSize: typography.fontSize.base,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text,
+          marginBottom: spacing[1],
+        },
+        username: {
+          fontSize: typography.fontSize.sm,
+          color: colors.textSecondary,
+        },
+        youBadge: {
+          backgroundColor: tokenColors.primary.lighter,
+          paddingHorizontal: spacing[2],
+          paddingVertical: spacing[1],
+          borderRadius: 4,
+        },
+        youBadgeText: {
+          fontSize: typography.fontSize.xs,
+          fontWeight: typography.fontWeight.semibold,
+          color: tokenColors.primary.base,
+        },
+        emptyContainer: { padding: spacing[8], alignItems: "center" },
+        emptyText: {
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+          textAlign: "center",
+        },
+        buttonSection: {
+          paddingHorizontal: spacing[4],
+          paddingTop: spacing[4],
+          paddingBottom: spacing[6],
+        },
+        dangerButtonContainer: {
+          padding: spacing[4],
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+        },
+      }),
+    [colors]
+  );
+
   // Render participant item
   const renderParticipantItem = ({ item }) => (
     <View style={styles.participantItem}>
@@ -194,7 +341,7 @@ export default function GroupInfoScreen({ route, navigation }) {
   if (isLoading || !conversation) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary.base} />
+        <ActivityIndicator size="large" color={tokenColors.primary.base} />
         <Text style={styles.loadingText}>Loading group info...</Text>
       </View>
     );
@@ -253,7 +400,7 @@ export default function GroupInfoScreen({ route, navigation }) {
             value={groupName}
             onChangeText={setGroupName}
             maxLength={50}
-            placeholderTextColor={colors.text.tertiary}
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
@@ -310,163 +457,3 @@ export default function GroupInfoScreen({ route, navigation }) {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.default,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.background.default,
-  },
-  loadingText: {
-    marginTop: spacing[4],
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  photoSection: {
-    alignItems: "center",
-    paddingVertical: spacing[6],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  photoButton: {
-    marginBottom: spacing[2],
-  },
-  groupPhotoLarge: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: colors.neutral.lighter,
-  },
-  groupPhotoPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  groupPhotoPlaceholderText: {
-    fontSize: 48,
-  },
-  photoHint: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-  },
-  section: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[6],
-    paddingBottom: spacing[4],
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: spacing[3],
-  },
-  sectionTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-  },
-  participantCount: {
-    fontSize: typography.fontSize.sm,
-    color: colors.primary.base,
-    fontWeight: typography.fontWeight.semibold,
-  },
-  input: {
-    backgroundColor: colors.background.paper,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    borderRadius: 8,
-    padding: spacing[3],
-    fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    marginTop: spacing[2],
-  },
-  participantList: {
-    marginTop: spacing[2],
-  },
-  participantItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing[3],
-    backgroundColor: colors.background.paper,
-    borderRadius: 8,
-    marginBottom: spacing[2],
-    borderWidth: 1,
-    borderColor: colors.border.light,
-  },
-  avatarContainer: {
-    marginRight: spacing[3],
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.neutral.lighter,
-  },
-  avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.white,
-  },
-  userInfo: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  displayName: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-    marginBottom: spacing[1],
-  },
-  username: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-  },
-  youBadge: {
-    backgroundColor: colors.primary.lighter,
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
-    borderRadius: 4,
-  },
-  youBadgeText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.base,
-  },
-  emptyContainer: {
-    padding: spacing[8],
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-    textAlign: "center",
-  },
-  buttonSection: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[4],
-    paddingBottom: spacing[6],
-  },
-  dangerButtonContainer: {
-    padding: spacing[4],
-    backgroundColor: colors.background.paper,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.light,
-  },
-});

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { colors, spacing, typography } from "../styles/tokens";
+import { useTheme } from "../contexts/ThemeContext";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 
 /**
  * CompactInput - Compact input for chat interfaces
@@ -40,8 +41,54 @@ export default function CompactInput({
   buttonStyle = {},
   ...props
 }) {
+  const { colors } = useTheme();
   const canSubmit =
     !submitDisabled && !disabled && !isSubmitting && value.trim();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flexDirection: "row",
+          alignItems: "flex-end",
+          padding: spacing[3],
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+        },
+        input: {
+          flex: 1,
+          minHeight: 40,
+          maxHeight: 100,
+          backgroundColor: colors.inputBackground,
+          borderRadius: 20,
+          paddingHorizontal: spacing[4],
+          paddingVertical: spacing[2],
+          fontSize: typography.fontSize.base,
+          color: colors.text,
+          marginRight: spacing[2],
+        },
+        submitButton: {
+          backgroundColor: tokenColors.primary.base,
+          paddingHorizontal: spacing[4],
+          paddingVertical: spacing[2],
+          borderRadius: 20,
+          minWidth: 60,
+          alignItems: "center",
+          justifyContent: "center",
+          height: 40,
+        },
+        submitButtonDisabled: {
+          backgroundColor: colors.skeleton,
+        },
+        submitButtonText: {
+          color: tokenColors.neutral.white,
+          fontSize: typography.fontSize.base,
+          fontWeight: typography.fontWeight.semibold,
+        },
+      }),
+    [colors]
+  );
 
   return (
     <View style={[styles.container, style]}>
@@ -49,7 +96,7 @@ export default function CompactInput({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.text.tertiary}
+        placeholderTextColor={colors.textSecondary}
         editable={!disabled && !isSubmitting}
         multiline={multiline}
         maxLength={maxLength}
@@ -74,44 +121,3 @@ export default function CompactInput({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    padding: spacing[3],
-    backgroundColor: colors.background.paper,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.light,
-  },
-  input: {
-    flex: 1,
-    minHeight: 40,
-    maxHeight: 100,
-    backgroundColor: colors.background.default,
-    borderRadius: 20,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    marginRight: spacing[2],
-  },
-  submitButton: {
-    backgroundColor: colors.primary.base,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    borderRadius: 20,
-    minWidth: 60,
-    alignItems: "center",
-    justifyContent: "center",
-    height: 40,
-  },
-  submitButtonDisabled: {
-    backgroundColor: colors.neutral.mediumLight,
-  },
-  submitButtonText: {
-    color: colors.neutral.white,
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-  },
-});

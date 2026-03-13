@@ -12,61 +12,27 @@ Dark mode is a standard expectation for modern apps and provides better usabilit
 
 **Implement Dark Mode:**
 
-- [ ] File: `src/contexts/ThemeContext.js`
-- [ ] Create theme context with light/dark color palettes:
-
-  ```javascript
-  const lightTheme = {
-    background: "#FFFFFF",
-    text: "#000000",
-    messageBubble: "#F0F0F0",
-    userMessageBubble: "#007AFF",
-    border: "#E0E0E0",
-    statusAvailable: "#00D856",
-    statusBusy: "#FF3B30",
-    statusAway: "#FFCC00",
-  };
-
-  const darkTheme = {
-    background: "#000000",
-    text: "#FFFFFF",
-    messageBubble: "#1C1C1E",
-    userMessageBubble: "#0A84FF",
-    border: "#38383A",
-    statusAvailable: "#00FF00", // Brighter for dark mode
-    statusBusy: "#FF0000",
-    statusAway: "#FFD700",
-  };
-  ```
-
-- [ ] Add theme toggle to Profile screen
-- [ ] Save theme preference to Firestore user document (or AsyncStorage for device persistence)
-- [ ] Load theme preference on app start
-- [ ] Apply theme to all screens
-
-**ThemeContext with Device Persistence (optional consolidation):**
-
-- [ ] File: `mobile-app/src/contexts/ThemeContext.js` (or `src/contexts/ThemeContext.js`)
-- [ ] Create theme context with AsyncStorage persistence and system preference:
+- [x] File: `mobile-app/src/styles/tokens.js`: add `themeColors` export with `light` and `dark` objects (background, surface, text, border, messageBubble, userBubble, status colors, etc.). Keep existing `colors` as primitive palette; `themeColors` is the semantic theme layer.
+- [x] File: `src/contexts/ThemeContext.js`: create theme context with AsyncStorage persistence and system preference:
   - Use `useColorScheme()` from React Native for system theme
   - State: `themeMode` — `'light' | 'dark' | 'system'`
   - Load saved theme from AsyncStorage on mount
   - Expose `setTheme(mode)` that saves to AsyncStorage and updates state
   - Compute `isDark` from `themeMode === 'system' ? systemColorScheme : themeMode`
-- [ ] File: `mobile-app/src/styles/tokens.js` (or equivalent): add `colors.light` and `colors.dark` with background, surface, text, border, primary, etc., mirroring light theme with dark variants
-- [ ] Wrap app in `ThemeProvider` in `App.js`; render `AppNavigator` and `StatusBar style="auto"` inside
-- [ ] In Profile screen: add "Appearance" section with theme selector — Light / System / Dark (TouchableOpacity per option, call `setTheme`)
-- [ ] Apply theme to all screens: HomeScreen, ChatScreen, ProfileScreen, GroupInfoScreen, CreateGroupScreen, ThreadSummaryModal, ActionItemsScreen, DecisionsScreen, AgentChatScreen (use `useTheme()` and `colors.dark` / `colors.light` per `isDark`)
+  - Expose `colors` from `themeColors.light` or `themeColors.dark` based on `isDark`
+- [x] Wrap app in `ThemeProvider` in `App.js`; render `AppNavigator` and `StatusBar style="auto"` inside
+- [x] In Profile screen: add "Appearance" section with theme selector — Light / System / Dark (TouchableOpacity per option, call `setTheme`)
+- [x] Apply theme to all screens: use `useTheme()` and apply `colors` (theme semantic tokens) in HomeScreen, ChatScreen, ProfileScreen, GroupInfoScreen, CreateGroupScreen, ThreadSummaryModal, ActionItemsScreen, DecisionsScreen, and any agent/chat screens
 
 **Update All Components for Dark Mode:**
 
-- [ ] File: `src/screens/ChatScreen.js`
-- [ ] File: `src/screens/HomeScreen.js`
-- [ ] File: `src/screens/ProfileScreen.js`
-- [ ] File: `src/components/MessageBubble.js`
-- [ ] File: `src/components/UserListItem.js`
-- [ ] All AI feature screens
-- [ ] Use theme colors instead of hardcoded colors
+- [x] File: `src/screens/ChatScreen.js`
+- [x] File: `src/screens/HomeScreen.js`
+- [x] File: `src/screens/ProfileScreen.js`
+- [x] File: `src/components/MessageBubble.js`
+- [x] File: `src/components/UserListItem.js`
+- [x] All AI feature screens
+- [x] Use theme colors instead of hardcoded colors
 
 **Implement Message Reactions:**
 
@@ -127,12 +93,12 @@ Dark mode is a standard expectation for modern apps and provides better usabilit
 
 **Test Dark Mode:**
 
-- [ ] Toggle dark mode in Profile settings
-- [ ] Verify theme updates immediately across all screens
-- [ ] Check status colors are brighter in dark mode
-- [ ] Verify text contrast is readable (WCAG AA)
-- [ ] Test theme persistence (close app, reopen)
-- [ ] Test with all AI features
+- [x] Toggle dark mode in Profile settings
+- [x] Verify theme updates immediately across all screens
+- [x] Check status colors are brighter in dark mode
+- [x] Verify text contrast is readable (WCAG AA)
+- [x] Test theme persistence (close app, reopen)
+- [x] Test with all AI features
 
 **Test Message Reactions:**
 
@@ -159,9 +125,9 @@ Dark mode is a standard expectation for modern apps and provides better usabilit
 
 **Test Before Merge:**
 
-- [ ] Dark mode works across all screens
-- [ ] Theme persistence works correctly
-- [ ] Text contrast meets accessibility standards
+- [x] Dark mode works across all screens
+- [x] Theme persistence works correctly
+- [x] Text contrast meets accessibility standards
 - [ ] Message reactions work in real-time
 - [ ] Reaction picker appears on long-press
 - [ ] Multiple users can react simultaneously

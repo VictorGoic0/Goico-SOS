@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import { updateProfile } from "firebase/auth";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,14 +13,16 @@ import {
 import { Image } from "expo-image";
 import Button from "../components/Button";
 import Input from "../components/Input";
+import { useTheme } from "../contexts/ThemeContext";
 import { auth } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
-import { colors, spacing, typography } from "../styles/tokens";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import { signOutUser } from "../utils/auth";
 import { getAvatarColor, getInitials } from "../utils/helpers";
 import { updateUserProfile, uploadProfileImage } from "../utils/profile";
 
 export default function ProfileScreen({ navigation }) {
+  const { colors, themeMode, setTheme } = useTheme();
   // Get current user from Firebase store
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const setCurrentUser = useFirebaseStore((state) => state.setCurrentUser);
@@ -175,6 +177,118 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background },
+        content: { padding: spacing[6] },
+        photoSection: { alignItems: "center", marginBottom: spacing[8] },
+        profilePhoto: {
+          width: 120,
+          height: 120,
+          borderRadius: 60,
+          marginBottom: spacing[4],
+        },
+        placeholderPhoto: { justifyContent: "center", alignItems: "center" },
+        placeholderText: {
+          fontSize: typography.fontSize["3xl"],
+          fontWeight: typography.fontWeight.bold,
+          color: tokenColors.neutral.white,
+        },
+        changePhotoButton: { paddingVertical: spacing[2], paddingHorizontal: spacing[4] },
+        changePhotoText: {
+          fontSize: typography.fontSize.base,
+          color: tokenColors.primary.base,
+          fontWeight: typography.fontWeight.semibold,
+        },
+        uploadingContainer: {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: spacing[2],
+        },
+        uploadingText: {
+          marginLeft: spacing[2],
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+        },
+        fieldContainer: { marginBottom: spacing[6] },
+        label: {
+          fontSize: typography.fontSize.sm,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text,
+          marginBottom: spacing[2],
+        },
+        nonEditableField: {
+          backgroundColor: colors.inputBackground,
+          borderRadius: 8,
+          padding: spacing[4],
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        nonEditableText: {
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+        },
+        charCount: {
+          fontSize: typography.fontSize.xs,
+          color: colors.textSecondary,
+          textAlign: "right",
+          marginTop: spacing[1],
+        },
+        statusContainer: { flexDirection: "row", gap: spacing[2] },
+        statusOption: {
+          flex: 1,
+          paddingVertical: spacing[3],
+          paddingHorizontal: spacing[4],
+          borderRadius: 8,
+          borderWidth: 2,
+          borderColor: colors.border,
+          backgroundColor: colors.surface,
+          alignItems: "center",
+        },
+        statusOptionActive: {
+          borderColor: tokenColors.primary.base,
+          backgroundColor: tokenColors.primary.lighter,
+        },
+        statusOptionText: {
+          fontSize: typography.fontSize.sm,
+          fontWeight: typography.fontWeight.medium,
+          color: colors.textSecondary,
+        },
+        statusOptionTextActive: {
+          color: tokenColors.primary.base,
+          fontWeight: typography.fontWeight.semibold,
+        },
+        themeRow: { flexDirection: "row", gap: spacing[2] },
+        themeOption: {
+          flex: 1,
+          paddingVertical: spacing[3],
+          paddingHorizontal: spacing[4],
+          borderRadius: 8,
+          borderWidth: 2,
+          borderColor: colors.border,
+          backgroundColor: colors.surface,
+          alignItems: "center",
+        },
+        themeOptionActive: {
+          borderColor: tokenColors.primary.base,
+          backgroundColor: tokenColors.primary.lighter,
+        },
+        themeOptionText: {
+          fontSize: typography.fontSize.sm,
+          fontWeight: typography.fontWeight.medium,
+          color: colors.textSecondary,
+        },
+        themeOptionTextActive: {
+          color: tokenColors.primary.base,
+          fontWeight: typography.fontWeight.semibold,
+        },
+        saveButton: { marginTop: spacing[4] },
+        signOutButton: { marginTop: spacing[4], marginBottom: spacing[8] },
+      }),
+    [colors]
+  );
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
@@ -205,7 +319,7 @@ export default function ProfileScreen({ navigation }) {
           {/* Change Photo Button */}
           {isUploading ? (
             <View style={styles.uploadingContainer}>
-              <ActivityIndicator size="small" color={colors.primary.base} />
+              <ActivityIndicator size="small" color={tokenColors.primary.base} />
               <Text style={styles.uploadingText}>Uploading...</Text>
             </View>
           ) : (
@@ -285,6 +399,32 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
 
+        {/* Appearance */}
+        <View style={styles.fieldContainer}>
+          <Text style={styles.label}>Appearance</Text>
+          <View style={styles.themeRow}>
+            {(["light", "system", "dark"]).map((mode) => (
+              <TouchableOpacity
+                key={mode}
+                style={[
+                  styles.themeOption,
+                  themeMode === mode && styles.themeOptionActive,
+                ]}
+                onPress={() => setTheme(mode)}
+              >
+                <Text
+                  style={[
+                    styles.themeOptionText,
+                    themeMode === mode && styles.themeOptionTextActive,
+                  ]}
+                >
+                  {mode === "system" ? "System" : mode === "dark" ? "Dark" : "Light"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         {/* Save Changes Button */}
         <Button
           onPress={handleSaveChanges}
@@ -306,111 +446,3 @@ export default function ProfileScreen({ navigation }) {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.default,
-  },
-  content: {
-    padding: spacing[6],
-  },
-  photoSection: {
-    alignItems: "center",
-    marginBottom: spacing[8],
-  },
-  profilePhoto: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: spacing[4],
-  },
-  placeholderPhoto: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  placeholderText: {
-    fontSize: typography.fontSize["3xl"],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.white,
-  },
-  changePhotoButton: {
-    paddingVertical: spacing[2],
-    paddingHorizontal: spacing[4],
-  },
-  changePhotoText: {
-    fontSize: typography.fontSize.base,
-    color: colors.primary.base,
-    fontWeight: typography.fontWeight.semibold,
-  },
-  uploadingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing[2],
-  },
-  uploadingText: {
-    marginLeft: spacing[2],
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-  },
-  fieldContainer: {
-    marginBottom: spacing[6],
-  },
-  label: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-    marginBottom: spacing[2],
-  },
-  nonEditableField: {
-    backgroundColor: colors.background.subtle,
-    borderRadius: 8,
-    padding: spacing[4],
-    borderWidth: 1,
-    borderColor: colors.border.light,
-  },
-  nonEditableText: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-  },
-  charCount: {
-    fontSize: typography.fontSize.xs,
-    color: colors.text.tertiary,
-    textAlign: "right",
-    marginTop: spacing[1],
-  },
-  statusContainer: {
-    flexDirection: "row",
-    gap: spacing[2],
-  },
-  statusOption: {
-    flex: 1,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: colors.border.light,
-    backgroundColor: colors.background.paper,
-    alignItems: "center",
-  },
-  statusOptionActive: {
-    borderColor: colors.primary.base,
-    backgroundColor: colors.primary.lighter,
-  },
-  statusOptionText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.text.secondary,
-  },
-  statusOptionTextActive: {
-    color: colors.primary.base,
-    fontWeight: typography.fontWeight.semibold,
-  },
-  saveButton: {
-    marginTop: spacing[4],
-  },
-  signOutButton: {
-    marginTop: spacing[4],
-    marginBottom: spacing[8],
-  },
-});
