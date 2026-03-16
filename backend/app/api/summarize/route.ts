@@ -2,7 +2,7 @@ import { generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { NextResponse } from 'next/server';
 import { getMessagesFromFirebase } from '@/lib/firebase-admin';
-import { verifyToken } from '@/lib/auth';
+import { authenticate } from '@/lib/auth';
 
 // Type for message data from Firestore
 interface Message {
@@ -18,7 +18,7 @@ interface Message {
 export async function POST(req: Request) {
   try {
     try {
-      await verifyToken(req);
+      await authenticate(req);
     } catch (e) {
       if (e instanceof Response) return e;
       throw e;

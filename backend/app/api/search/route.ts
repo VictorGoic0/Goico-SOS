@@ -2,7 +2,7 @@ import { embed } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
 import { getMessagesFromFirebase, FirebaseMessage } from "@/lib/firebase-admin";
-import { verifyToken } from "@/lib/auth";
+import { authenticate } from "@/lib/auth";
 
 // Search configuration
 const SIMILARITY_THRESHOLD = 0.4; // Adjust this to tune search precision vs recall
@@ -33,7 +33,7 @@ function cosineSimilarity(vectorA: number[], vectorB: number[]): number {
 export async function POST(req: Request) {
   try {
     try {
-      await verifyToken(req);
+      await authenticate(req);
     } catch (e) {
       if (e instanceof Response) return e;
       throw e;

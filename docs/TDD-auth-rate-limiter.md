@@ -108,30 +108,23 @@ export async function POST(req: Request) {
 
 ### Storage: Upstash Redis over HTTP
 
-Upstash Redis uses `fetch` under the hood — fully compatible with the Node.js runtime used in route handlers. Environment variables are already set.
+Uses `@upstash/redis` and `@upstash/ratelimit`. Environment variables: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
 
-**No new library needed** — use `@upstash/redis` which is already available, or raw `fetch` calls to the Upstash REST API if preferred.
+### Strategy: Fixed window, per-user + global
 
-### Strategy: Fixed window per user
-
-- Window: 60 seconds
-- Limit: TBD (suggested: 20 requests/min for AI routes, 60 requests/min for lighter routes)
-- Key: `rate_limit:{userId}`
-- Storage: Upstash Redis — increment counter with TTL on first request in window
+- **Per-user:** 10 requests / 24h (identifier = `uid`), prefix `rate:user:sos`
+- **Global:** 100 requests / 24h (identifier = `"app"`), prefix `rate:global:sos`
+- Order: check global first, then per-user (global is cheaper to fail fast)
 
 ### `checkRateLimit` signature
 
 ```ts
 // backend/lib/auth.ts
-export async function checkRateLimit(
-  userId: string,
-  options?: { limit?: number; windowSeconds?: number }
-): Promise<void>
+export async function checkRateLimit(uid: string): Promise<void>
 ```
 
-- Increments `rate_limit:{userId}` in Redis with `INCR`
-- On first increment (result === 1), sets TTL with `EXPIRE`
-- If count exceeds limit, throws `new Response('Too Many Requests', { status: 429 })`
+- Uses Upstash Ratelimit `fixedWindow(10, '24 h')` for user and `fixedWindow(100, '24 h')` for global
+- If limit exceeded, throws `Response` with status 429 and JSON body: `{ error: "RateLimitExceeded", detail: string, retryAfter: number }` (retryAfter in seconds)
 - Returns `void` on success
 
 ### `authenticate` convenience wrapper
@@ -157,13 +150,6 @@ export async function POST(req: Request) {
 }
 ```
 
-Routes that need a custom limit (e.g., lighter endpoints):
-
-```ts
-const user = await verifyToken(req);
-await checkRateLimit(user.uid, { limit: 60, windowSeconds: 60 });
-```
-
 ---
 
 ## File Checklist
@@ -185,6 +171,7 @@ await checkRateLimit(user.uid, { limit: 60, windowSeconds: 60 });
 |----------|-------------|---------------|
 | Missing `Authorization` header | 401 | `Unauthorized` |
 | Invalid or expired token | 401 | `Unauthorized` |
-| Rate limit exceeded | 429 | `Too Many Requests` |
+| Rate limit exceeded (user) | 429 | `{ "error": "RateLimitExceeded", "detail": "You have reached your daily request limit (10/day).", "retryAfter": number }` |
+| Rate limit exceeded (global) | 429 | `{ "error": "RateLimitExceeded", "detail": "App daily request limit reached (100/day).", "retryAfter": number }` |
 
-The mobile app should handle 401 by triggering a re-authentication flow, and 429 by surfacing a user-facing error message.
+The mobile app should handle 401 by triggering re-authentication, and 429 by showing the `detail` message and optionally using `retryAfter` for a countdown or disable duration.

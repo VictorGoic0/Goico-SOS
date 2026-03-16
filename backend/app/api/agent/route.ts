@@ -2,7 +2,7 @@ import { streamText, tool, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { searchMessages, groupBy, formatReport, getConversationMessages } from '@/lib/agent-tools';
-import { verifyToken } from '@/lib/auth';
+import { authenticate } from '@/lib/auth';
 
 // Define tools the agent can use
 const agentTools = {
@@ -78,9 +78,8 @@ const agentTools = {
 
 export async function POST(req: Request) {
   try {
-    let user;
     try {
-      user = await verifyToken(req);
+      await authenticate(req);
     } catch (e) {
       if (e instanceof Response) return e;
       throw e;

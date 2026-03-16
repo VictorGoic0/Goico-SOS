@@ -3,7 +3,7 @@ import { openai } from '@ai-sdk/openai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getMessagesFromFirebase } from '@/lib/firebase-admin';
-import { verifyToken } from '@/lib/auth';
+import { authenticate } from '@/lib/auth';
 
 // Define Zod schema for action items
 const ActionItemSchema = z.object({
@@ -32,7 +32,7 @@ interface Message {
 export async function POST(req: Request) {
   try {
     try {
-      await verifyToken(req);
+      await authenticate(req);
     } catch (e) {
       if (e instanceof Response) return e;
       throw e;

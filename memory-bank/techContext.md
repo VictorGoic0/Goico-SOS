@@ -343,6 +343,7 @@ eas build --platform android
 - **API Keys**: Store in .env file, never commit to version control
 - **Firebase Config**: Use environment variables for all sensitive data
 - **OpenAI Key**: Keep API key secure and monitor usage
+- **Backend (backend/.env.local)**: Firebase Admin (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`), Upstash Redis (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), optional `CORS_ORIGIN` for CORS. See `docs/auth-rate-limiter.md`.
 
 ### Data Privacy
 

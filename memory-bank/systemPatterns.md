@@ -317,7 +317,7 @@ MainStack:
   - ActionItemsScreen, DecisionsScreen, etc.
 ```
 
-**Backend (Vercel):** Next.js API routes under `backend/app/api/` for summarize, extract-actions, search, priority, agent, send-notification. **Planned:** RAG with Pinecone (see docs/tasks-TDD.md).
+**Backend (Vercel):** Next.js API routes under `backend/app/api/` for summarize, extract-actions, search, priority, agent, send-notification. All protected by **auth + rate limiting**: no Edge middleware (firebase-admin is Node-only); shared helpers in `backend/lib/auth.ts` — `verifyToken(req)` (Firebase Admin), `checkRateLimit(uid)` (Upstash Redis: 10/user/24h, 100 global/24h), `authenticate(req)` = verify then limit. Mobile sends `Authorization: Bearer <idToken>` on every request. See `docs/auth-rate-limiter.md`. **Planned:** RAG with Pinecone (see docs/tasks-TDD.md).
 
 ## State Management Patterns
 

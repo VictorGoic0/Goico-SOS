@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.53",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "ai": "^5.0.76",
     "firebase-admin": "^13.5.0",
     "next": "15.1.3",
