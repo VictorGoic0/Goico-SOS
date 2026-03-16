@@ -2,6 +2,7 @@ import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { verifyToken } from "@/lib/auth";
 
 // Define priority detection schema
 const PrioritySchema = z.object({
@@ -12,6 +13,13 @@ const PrioritySchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    try {
+      await verifyToken(req);
+    } catch (e) {
+      if (e instanceof Response) return e;
+      throw e;
+    }
+
     const { messageText } = await req.json();
 
     // Validate input

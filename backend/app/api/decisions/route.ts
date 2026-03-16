@@ -3,6 +3,7 @@ import { openai } from '@ai-sdk/openai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getMessagesFromFirebase } from '@/lib/firebase-admin';
+import { verifyToken } from '@/lib/auth';
 
 const DecisionSchema = z.object({
   decisions: z.array(
@@ -18,6 +19,13 @@ const DecisionSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    try {
+      await verifyToken(req);
+    } catch (e) {
+      if (e instanceof Response) return e;
+      throw e;
+    }
+
     const { conversationId, messageCount = 100 } = await req.json();
 
     if (!conversationId) {

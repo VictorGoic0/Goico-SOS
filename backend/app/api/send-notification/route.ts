@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase-admin";
+import { verifyToken } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
+    try {
+      await verifyToken(req);
+    } catch (e) {
+      if (e instanceof Response) return e;
+      throw e;
+    }
+
     const {
       conversationId,
       messageId,

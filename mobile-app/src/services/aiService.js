@@ -1,11 +1,20 @@
+import { auth } from "../config/firebase";
+
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+async function getAuthHeader() {
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) throw new Error("Not authenticated");
+  return { Authorization: `Bearer ${token}` };
+}
 
 // Helper function with error handling
 const callBackend = async (endpoint, body) => {
   try {
+    const headers = await getAuthHeader();
     const response = await fetch(`${API_URL}/api/${endpoint}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...headers, "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
@@ -70,9 +79,10 @@ export const detectPriority = async (messageText) => {
 // Multi-Step Agent
 export const executeAgent = async (userQuery, conversationId, onChunk) => {
   try {
+    const headers = await getAuthHeader();
     const response = await fetch(`${API_URL}/api/agent`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...headers, "Content-Type": "application/json" },
       body: JSON.stringify({ userQuery, conversationId }),
     });
 

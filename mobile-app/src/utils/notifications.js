@@ -1,6 +1,7 @@
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import { auth } from "../config/firebase";
 
 /**
  * Configure how notifications are handled when app is in foreground
@@ -125,9 +126,14 @@ export async function sendPushNotification(
   const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
   try {
+    const token = await auth.currentUser?.getIdToken();
+    const headers = {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
     const response = await fetch(`${API_URL}/api/send-notification`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         conversationId,
         messageId,
