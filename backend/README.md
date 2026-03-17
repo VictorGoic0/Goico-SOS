@@ -34,3 +34,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## RAG / Pinecone
+
+The RAG pipeline stores message embeddings in Pinecone for semantic search and agent context.
+
+- **Index name:** `messages` (configurable via `PINECONE_INDEX_NAME`)
+- **Dimensions:** 512 (matches OpenAI `text-embedding-3-small` with dimensions=512)
+- **Metric:** Cosine similarity
+- **Required env vars:** `PINECONE_API_KEY`, `PINECONE_INDEX_NAME`
+
+See [docs/TDD_RAG_Pipeline.md](../docs/TDD_RAG_Pipeline.md) for full design.
+
+Embeddings use OpenAI `text-embedding-3-small` with 512 dimensions via `backend/lib/embeddings.ts` (`embedText`, `embedTexts`).

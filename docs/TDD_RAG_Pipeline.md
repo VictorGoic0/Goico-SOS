@@ -39,7 +39,7 @@ The current backend has two limitations:
 | Component | Technology | Reason |
 |---|---|---|
 | Vector Database | Pinecone (free tier) | Fully managed, purpose-built for vector search, generous free tier (100k vectors), minimal latency from Vercel US East |
-| Embedding Model | OpenAI `text-embedding-3-small` | Already using OpenAI, small model is fast and cheap, 1536-dimensional output |
+| Embedding Model | OpenAI `text-embedding-3-small` | Already using OpenAI, small model is fast and cheap; use dimensions=512 for 512-dimensional output |
 
 No new deployment platform is required. Pinecone is accessed via HTTP SDK from existing Vercel serverless functions.
 
@@ -143,7 +143,7 @@ Currently fetches the N most recent messages from Firestore as context. With RAG
 | Setting | Value |
 |---|---|
 | Index name | `messages` |
-| Dimensions | 1536 (matches `text-embedding-3-small` output) |
+| Dimensions | 512 (matches `text-embedding-3-small` with dimensions=512) |
 | Metric | Cosine similarity |
 | Tier | Free (100k vector limit) |
 | Cloud / Region | AWS us-east-1 (co-located with Vercel US East) |

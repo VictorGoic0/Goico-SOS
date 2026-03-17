@@ -19,48 +19,48 @@ The RAG pipeline stores message embeddings in Pinecone. One index holds all conv
 
 **Pinecone Account & Index:**
 
-- [ ] Sign up at [pinecone.io](https://www.pinecone.io/) and create a project (free tier)
-- [ ] Create an index with:
+- [x] Sign up at [pinecone.io](https://www.pinecone.io/) and create a project (free tier)
+- [x] Create an index with:
   - **Name:** `messages`
-  - **Dimensions:** 1536 (matches `text-embedding-3-small`)
+  - **Dimensions:** 512 (matches `text-embedding-3-small` with dimensions=512)
   - **Metric:** Cosine similarity
   - **Cloud / Region:** AWS us-east-1 (co-located with Vercel US East)
   - **Tier:** Free (100k vector limit)
-- [ ] Copy API key from Pinecone console
+- [x] Copy API key from Pinecone console
 
 **Backend Environment:**
 
-- [ ] Add to backend `.env` (and Vercel env vars):
+- [x] Add to backend `.env` (and Vercel env vars):
   ```
   PINECONE_API_KEY=...
   PINECONE_INDEX_NAME=messages
   ```
-- [ ] Ensure `.env` and `.env.local` remain in `.gitignore`
+- [x] Ensure `.env` and `.env.local` remain in `.gitignore`
 
 **Pinecone Client Library:**
 
-- [ ] Install Pinecone SDK in backend:
+- [x] Install Pinecone SDK in backend:
   ```bash
   cd backend
   npm install @pinecone-database/pinecone
   ```
-- [ ] File: `backend/lib/pinecone.ts`
+- [x] File: `backend/lib/pinecone.ts`
   - Initialize Pinecone client with `PINECONE_API_KEY`
   - Export helper: `getMessagesIndex()` that returns the index object for `PINECONE_INDEX_NAME`
   - Throw clear error if env vars are missing
 
 **Documentation:**
 
-- [ ] In `backend/README.md`, add section "RAG / Pinecone":
+- [x] In `backend/README.md`, add section "RAG / Pinecone":
   - Index name and dimensions
   - Required env vars
   - Link to TDD_RAG_Pipeline.md for full design
 
 **Test Before Merge:**
 
-- [ ] Backend can import `getMessagesIndex()` without error when env is set
-- [ ] Calling `getMessagesIndex().describeIndexStats()` (or equivalent) returns index stats (e.g. vector count)
-- [ ] Deploy to Vercel and verify env vars are set; no runtime errors on cold start
+- [x] Backend can import `getMessagesIndex()` without error when env is set
+- [x] Calling `getMessagesIndex().describeIndexStats()` (or equivalent) returns index stats (e.g. vector count) — use `logIndexStatsForVerification()` and console.log output to verify
+- [x] Deploy to Vercel and verify env vars are set; no runtime errors on cold start
 
 ---
 
@@ -70,25 +70,25 @@ The RAG pipeline stores message embeddings in Pinecone. One index holds all conv
 
 ### Why This Matters
 
-Every message and every query is embedded with the same model (`text-embedding-3-small`, 1536 dimensions). Centralizing this in one place keeps the pipeline consistent. The metadata schema is fixed by the TDD and must match what retrieval and the agent expect.
+Every message and every query is embedded with the same model (`text-embedding-3-small`, 512 dimensions). Centralizing this in one place keeps the pipeline consistent. The metadata schema is fixed by the TDD and must match what retrieval and the agent expect.
 
 ### Subtasks
 
 **Embedding Model:**
 
-- [ ] File: `backend/lib/embeddings.ts`
-- [ ] Function: `embedText(text: string): Promise<number[]>`
+- [x] File: `backend/lib/embeddings.ts`
+- [x] Function: `embedText(text: string): Promise<number[]>`
   - Call OpenAI API: `text-embedding-3-small`
-  - Return the embedding vector (length 1536)
+  - Return the embedding vector (length 512)
   - Use existing OpenAI client/config from the project
-- [ ] Function: `embedTexts(texts: string[]): Promise<number[][]>` (batch for indexing many messages)
+- [x] Function: `embedTexts(texts: string[]): Promise<number[][]>` (batch for indexing many messages)
   - Call OpenAI with array of inputs where supported to reduce round-trips
   - Return array of vectors in same order as input
 
 **Metadata Schema (TypeScript types):**
 
-- [ ] File: `backend/lib/rag-types.ts` (or equivalent)
-- [ ] Define type for vector metadata stored in Pinecone:
+- [x] File: `backend/lib/rag-types.ts` (or equivalent)
+- [x] Define type for vector metadata stored in Pinecone:
   ```typescript
   export interface MessageVectorMetadata {
     messageId: string;        // Firestore message document ID
@@ -99,12 +99,12 @@ Every message and every query is embedded with the same model (`text-embedding-3
     timestamp: number;       // Unix ms
   }
   ```
-- [ ] Document in code that Pinecone index dimensions = 1536 and metric = cosine
+- [x] Document in code that Pinecone index dimensions = 512 and metric = cosine
 
 **Verification:**
 
-- [ ] Call `embedText("hello world")` and assert result is array of length 1536
-- [ ] Optionally: small script or test that embeds 2 strings and checks cosine similarity is higher for similar text
+- [x] Call `embedText("hello world")` and assert result is array of length 512
+- [x] Optionally: small script or test that embeds 2 strings and checks cosine similarity is higher for similar text
 
 **Files Created:**
 
@@ -117,9 +117,9 @@ Every message and every query is embedded with the same model (`text-embedding-3
 
 **Test Before Merge:**
 
-- [ ] `embedText` returns 1536-dimensional vector
-- [ ] `embedTexts` returns same number of vectors as inputs
-- [ ] Metadata type is exported and used in next PRs for type safety
+- [x] `embedText` returns 512-dimensional vector
+- [x] `embedTexts` returns same number of vectors as inputs
+- [x] Metadata type is exported and used in next PRs for type safety
 
 ---
 
