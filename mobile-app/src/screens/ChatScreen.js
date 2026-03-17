@@ -1021,6 +1021,7 @@ export default function ChatScreen({ route, navigation }) {
               isLastMessage={isLastMessage}
               readBy={readBy}
               priority={item.priority || "normal"}
+              conversationId={conversationId}
             />
           );
         }}

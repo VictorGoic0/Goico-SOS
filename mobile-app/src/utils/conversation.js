@@ -146,6 +146,7 @@ export const sendMessage = async (
       timestamp: serverTimestamp(),
       status: "sent",
       imageURL: null,
+      reactions: [],
     };
 
     const docRef = await addDoc(messagesRef, messageData);

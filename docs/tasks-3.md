@@ -36,59 +36,57 @@ Dark mode is a standard expectation for modern apps and provides better usabilit
 
 **Implement Message Reactions:**
 
-- [ ] File: `src/utils/reactions.js`
-- [ ] Function: `addReaction(conversationId, messageId, userId, emoji)`
+- [x] File: `src/utils/reactions.js`
+- [x] Function: `addReaction(conversationId, messageId, userId, emoji)`
 
   - Add reaction to message document in Firestore
   - Use `arrayUnion` to add reaction object
-  - Structure: `{ userId, emoji, timestamp }`
+  - Structure: `{ userId, emoji, timestamp }` — use client `Timestamp.now()` (Firestore does not allow `serverTimestamp()` inside `arrayUnion()`)
 
-- [ ] Function: `removeReaction(conversationId, messageId, userId, emoji)`
+- [x] Function: `removeReaction(conversationId, messageId, userId, emoji)`
 
   - Remove specific reaction from message
-  - Use `arrayRemove` to remove reaction object
+  - Use `arrayRemove` to remove reaction object (read doc first to get exact object for removal)
 
-- [ ] Function: `listenToReactions(conversationId, messageId, onReactionsUpdate)`
+- [x] Function: `listenToReactions(conversationId, messageId, onReactionsUpdate)`
   - Listen to message document changes
   - Return reactions array
   - Return unsubscribe function
 
 **Create Reaction UI:**
 
-- [ ] File: `src/components/MessageReactions.js`
-- [ ] Display reactions below message
-- [ ] Show emoji with count (👍 3)
-- [ ] Tap reaction to add/remove
-- [ ] Long-press to see who reacted
-- [ ] Available emojis: 👍 ❤️ 😂 🎉 😮 😢
+- [x] File: `src/components/MessageReactions.js`
+- [x] Display reactions below message
+- [x] Show emoji with count (👍 3)
+- [x] Tap reaction to add/remove
+- [x] Long-press to see who reacted
+- [x] Available emojis: 👍 ❤️ 😂 🎉 😮 😢
 
 **Add Reaction Picker:**
 
-- [ ] File: `src/components/ReactionPicker.js`
-- [ ] Modal with emoji grid
-- [ ] Tap emoji to add reaction
-- [ ] Close on tap outside
-- [ ] Position near message
+- [x] File: `src/components/ReactionPicker.js`
+- [x] Modal with emoji grid
+- [x] Tap emoji to add reaction
+- [x] Close on tap outside
+- [x] Position near message
 
 **Update MessageBubble:**
 
-- [ ] File: `src/components/MessageBubble.js`
-- [ ] Add long-press handler to show reaction picker
-- [ ] Display MessageReactions component
-- [ ] Handle reaction tap events
+- [x] File: `src/components/MessageBubble.js`
+- [x] Add long-press handler to show reaction picker
+- [x] Display MessageReactions component
+- [x] Handle reaction tap events
 
 **Update Message Schema:**
 
-- [ ] File: `src/utils/conversation.js`
-- [ ] Add reactions field to message creation:
+- [x] File: `src/utils/conversation.js`
+- [x] Add reactions field to message creation (initial empty array). When adding a reaction via `arrayUnion`, use client `Timestamp.now()` — not `serverTimestamp()`, which cannot be used inside `arrayUnion()`:
   ```javascript
-  {
-    text: "...",
-    reactions: [
-      { userId: "user1", emoji: "👍", timestamp: serverTimestamp() },
-      { userId: "user2", emoji: "❤️", timestamp: serverTimestamp() }
-    ]
-  }
+  // New message:
+  { text: "...", reactions: [], ... }
+
+  // Reaction object (in arrayUnion):
+  { userId: "user1", emoji: "👍", timestamp: Timestamp.now() }
   ```
 
 **Test Dark Mode:**
@@ -102,12 +100,12 @@ Dark mode is a standard expectation for modern apps and provides better usabilit
 
 **Test Message Reactions:**
 
-- [ ] Long-press message → reaction picker appears
-- [ ] Tap emoji → reaction added to message
-- [ ] Tap existing reaction → removes reaction
-- [ ] Multiple users can react to same message
-- [ ] Reactions sync in real-time across devices
-- [ ] Long-press reaction → shows who reacted
+- [x] Long-press message → reaction picker appears
+- [x] Tap emoji → reaction added to message
+- [x] Tap existing reaction → removes reaction
+- [x] Multiple users can react to same message
+- [x] Reactions sync in real-time across devices
+- [x] Long-press reaction → shows who reacted
 
 **Files Created:**
 
@@ -128,10 +126,10 @@ Dark mode is a standard expectation for modern apps and provides better usabilit
 - [x] Dark mode works across all screens
 - [x] Theme persistence works correctly
 - [x] Text contrast meets accessibility standards
-- [ ] Message reactions work in real-time
-- [ ] Reaction picker appears on long-press
-- [ ] Multiple users can react simultaneously
-- [ ] Reactions display correctly in both themes
+- [x] Message reactions work in real-time
+- [x] Reaction picker appears on long-press
+- [x] Multiple users can react simultaneously
+- [x] Reactions display correctly in both themes
 
 ---
 

@@ -10,7 +10,10 @@ import {
   getAvatarColor,
   getInitials,
 } from "../utils/helpers";
+import { addReaction } from "../utils/reactions";
 import MarkdownText from "./MarkdownText";
+import MessageReactions from "./MessageReactions";
+import ReactionPicker from "./ReactionPicker";
 
 /**
  * MessageBubble - Display a message in a chat
@@ -22,6 +25,7 @@ import MarkdownText from "./MarkdownText";
  * @param {Array} readBy - Array of user IDs who have read the message (for group chats, excluding sender)
  * @param {string} priority - Priority level: "high", "normal", or "low"
  * @param {boolean} isAI - Whether this message is from the AI agent
+ * @param {string} [conversationId] - Conversation ID (required for reactions)
  */
 export default function MessageBubble({
   message,
@@ -32,10 +36,17 @@ export default function MessageBubble({
   readBy = [],
   priority = "normal",
   isAI = false,
+  conversationId,
 }) {
   const { colors } = useTheme();
   const usersMap = useFirebaseStore((state) => state.usersMap);
+  const currentUserId = useFirebaseStore((state) => state.currentUser?.uid);
   const sender = usersMap[message.senderId];
+
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const messageId = message.messageId;
+  const canReact =
+    !!conversationId && !!messageId && !!currentUserId && !isAI;
 
   // Show sender info only for group chats AND received messages (not sent by current user)
   const showSenderInfo = isGroup && !isSent;
@@ -224,7 +235,7 @@ export default function MessageBubble({
           </Text>
         )}
 
-        <View
+        <TouchableOpacity
           style={[
             styles.bubble,
             isSent
@@ -234,6 +245,9 @@ export default function MessageBubble({
               : styles.receivedBubble,
             priority === "high" && styles.highPriorityBubble,
           ]}
+          onLongPress={canReact ? () => setShowReactionPicker(true) : undefined}
+          activeOpacity={1}
+          delayLongPress={400}
         >
           {/* High priority badge */}
           {priority === "high" && (
@@ -279,7 +293,18 @@ export default function MessageBubble({
               )}
             </View>
           )}
-        </View>
+        </TouchableOpacity>
+
+        {/* Message reactions (tap to add/remove, long-press to see who reacted) */}
+        {canReact && (
+          <MessageReactions
+            conversationId={conversationId}
+            messageId={messageId}
+            currentUserId={currentUserId}
+            reactions={message.reactions}
+            usersMap={usersMap}
+          />
+        )}
 
         {/* Show "Read X ago" indicator outside bubble for last sent message that has been read */}
         {isSent && isRead && message.readAt && isLastMessage && !isGroup && (
@@ -358,6 +383,17 @@ export default function MessageBubble({
           </TouchableOpacity>
         )}
       </View>
+
+      <ReactionPicker
+        visible={showReactionPicker}
+        onSelect={(emoji) => {
+          addReaction(conversationId, messageId, currentUserId, emoji).catch(
+            (err) => console.error("Add reaction failed:", err)
+          );
+          setShowReactionPicker(false);
+        }}
+        onClose={() => setShowReactionPicker(false)}
+      />
     </View>
   );
 }
