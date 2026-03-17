@@ -349,7 +349,7 @@ Dark mode is a standard expectation for modern apps and provides better usabilit
 
 ## PR #19: AI Features Polish & Integration (remaining work)
 
-**Goal**: Complete remaining polish — error handling, health check, read receipts, documentation, and optional enhancements
+**Goal**: Error handler, health check, and optional push notification profile photos
 
 ### Subtasks
 
@@ -396,72 +396,10 @@ Dark mode is a standard expectation for modern apps and provides better usabilit
   }
   ```
 
-**Improve Mobile Error Handling:**
-
-- [ ] 3. File: `mobile-app/src/services/aiService.js`
-- [ ] 4. Enhance error messages:
-
-  ```javascript
-  const callBackend = async (endpoint, body) => {
-    try {
-      const response = await fetch(`${API_URL}/api/${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": getCurrentUserId(),
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          const data = await response.json();
-          const resetAt = new Date(data.resetAt);
-          throw new Error(
-            `Rate limit exceeded. Try again at ${resetAt.toLocaleTimeString()}`
-          );
-        }
-
-        if (response.status === 404) {
-          throw new Error("No messages found in this conversation");
-        }
-
-        throw new Error(`Server error (${response.status}). Please try again.`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      if (error.message.includes("Network request failed")) {
-        throw new Error(
-          "Connection failed. Check your internet and try again."
-        );
-      }
-      throw error;
-    }
-  };
-  ```
-
-**Add Loading Skeletons:**
-
-- [ ] 5. Create skeleton components for AI screens:
-
-  ```javascript
-  // In each AI screen, show skeleton while loading:
-  {
-    loading && (
-      <View style={styles.skeleton}>
-        <View style={styles.skeletonLine} />
-        <View style={styles.skeletonLine} />
-        <View style={styles.skeletonLine} />
-      </View>
-    );
-  }
-  ```
-
 **Create Backend Health Check:**
 
-- [ ] 6. File: `backend/app/api/health/route.ts`
-- [ ] 7. Implement health check endpoint:
+- [ ] 3. File: `backend/app/api/health/route.ts`
+- [ ] 4. Implement health check endpoint:
 
   ```typescript
   import { NextResponse } from "next/server";
@@ -492,42 +430,11 @@ Dark mode is a standard expectation for modern apps and provides better usabilit
   }
   ```
 
-**Update Backend README:**
-
-- [ ] 8. File: `backend/README.md`
-- [ ] 9. Document:
-  - All API endpoints
-  - Request/response formats
-  - Error codes
-  - Environment variables
-  - Testing instructions
-
-**Deploy Final Backend:**
-
-- [ ] 10. Deploy to Vercel:
-
-  ```bash
-  cd backend
-  vercel --prod
-  ```
-
-**Add Read Receipt Settings:**
-
-- [ ] 11. In `src/screens/ProfileScreen.js`:
-
-  - Add toggle: "Send Read Receipts" (default: enabled)
-  - Save preference to Firestore user document
-  - Respect user's privacy choice
-
-- [ ] 12. Update read receipt logic:
-  - Only send read receipts if user has enabled them
-  - Still show received read receipts regardless of setting
-
 **Push Notification Profile Photos (Nice-to-Have):**
 
 Note: Currently, profile photos are included in notification data but don't display in the notification banner. These are optional enhancements:
 
-- [ ] 13. **Option 1: iOS Notification Service Extension**
+- [ ] 5. **Option 1: iOS Notification Service Extension**
 
   - Requires native Swift/Objective-C code
   - Intercepts notification before display
@@ -535,14 +442,14 @@ Note: Currently, profile photos are included in notification data but don't disp
   - Requires EAS Build or ejecting from Expo
   - Most control, but highest complexity
 
-- [ ] 14. **Option 2: Android Native Configuration**
+- [ ] 6. **Option 2: Android Native Configuration**
 
   - Configure large icon support via Expo config plugins
   - Easier than iOS implementation
   - Still requires EAS Build (not Expo Go)
   - Better Android notification appearance
 
-- [ ] 15. **Option 3: EAS Build + Config Plugin (Recommended)**
+- [ ] 7. **Option 3: EAS Build + Config Plugin (Recommended)**
 
   - Use Expo's build service instead of Expo Go
   - Add notification config plugin to `app.json`
@@ -564,46 +471,8 @@ Note: Currently, profile photos are included in notification data but don't disp
     }
     ```
 
-- [ ] 16. **Option 4: Eject to Bare React Native**
+- [ ] 8. **Option 4: Eject to Bare React Native**
   - Full native control over notifications
   - Implement custom notification service extensions
   - Lose Expo's managed workflow benefits
   - Maximum flexibility, maximum complexity
-
-**Test All AI Features:**
-
-- [ ] 17. Thread summarization with various conversation types
-- [ ] 18. Action item extraction with different task formats
-- [ ] 19. Semantic search with complex queries
-- [ ] 20. Priority detection with various urgency levels
-- [ ] 21. Decision tracking with different decision types
-- [ ] 22. Multi-step agent with complex workflows
-- [ ] 23. Error handling (invalid inputs, network errors)
-- [ ] 24. Dark mode (all AI screens)
-- [ ] 25. Performance (response times meet targets)
-- [ ] 26. Image loading performance with expo-image (smooth scrolling, instant cached images)
-
-**Files Created:**
-
-- `backend/lib/error-handler.ts` (error handling)
-- `backend/app/api/health/route.ts` (health check)
-
-**Files Modified:**
-
-- Backend API routes (add error handling)
-- All mobile AI screens (dark mode support)
-- `mobile-app/src/services/aiService.js` (improved error handling)
-- `backend/README.md` (complete documentation)
-
-**Test Before Merge:**
-
-- [ ] 27. All AI features work in dark mode
-- [ ] 28. Error handling is user-friendly
-- [ ] 29. Health check endpoint works
-- [ ] 30. All features work offline (with cached data)
-- [ ] 31. Performance meets targets
-- [ ] 32. Documentation is complete and accurate
-- [ ] 33. Backend is production-ready
-- [ ] 34. Read receipt settings toggle works in ProfileScreen
-- [ ] 35. Read receipts respect user privacy settings
-- [ ] 36. Memory usage improved (check via profiler if needed)
