@@ -112,14 +112,19 @@ export default function AppNavigator() {
     return unsubscribe;
   }, [setCurrentUser]);
 
-  // Listen to conversations for current user
+  // Listen to conversations and users for current user
   useEffect(() => {
     if (!currentUser?.uid || !hasUsername) {
       return;
     }
 
-    const unsubscribe = listenToConversations(currentUser.uid);
-    return unsubscribe;
+    const unsubConversations = listenToConversations(currentUser.uid);
+    useFirebaseStore.getState().subscribeToUsers();
+
+    return () => {
+      unsubConversations();
+      useFirebaseStore.getState().unsubscribeUsers();
+    };
   }, [currentUser?.uid, hasUsername]);
 
   // Handle app state changes (foreground/background)
@@ -252,13 +257,19 @@ export default function AppNavigator() {
               />
               <Stack.Screen
                 name="GroupInfo"
-                component={GroupInfoScreen}
                 options={{
                   title: "Group Info",
                   headerShown: true,
                   headerBackTitle: "Back",
                 }}
-              />
+              >
+                {(props) => (
+                  <GroupInfoScreen
+                    key={props.route.params?.conversationId ?? "group-info"}
+                    {...props}
+                  />
+                )}
+              </Stack.Screen>
               <Stack.Screen
                 name="ActionItems"
                 component={ActionItemsScreen}

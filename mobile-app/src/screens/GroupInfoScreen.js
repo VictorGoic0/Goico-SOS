@@ -1,5 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -31,19 +31,12 @@ export default function GroupInfoScreen({ route, navigation }) {
 
   const conversation = conversationsMap[conversationId];
 
-  const [groupName, setGroupName] = useState(conversation?.groupName || "");
+  // Keyed by conversationId in navigator so we remount when switching groups; no sync effect needed
+  const [groupName, setGroupName] = useState(conversation?.groupName ?? "");
   const [groupPhoto, setGroupPhoto] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Set group name when conversation loads
-  useEffect(() => {
-    if (conversation?.groupName) {
-      setGroupName(conversation.groupName);
-    }
-    setIsLoading(false);
-  }, [conversation]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Pick group photo
   const pickGroupPhoto = async () => {

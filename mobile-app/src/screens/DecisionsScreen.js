@@ -17,20 +17,27 @@ export default function DecisionsScreen({ route }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadDecisions();
-  }, []);
+    let ignore = false;
 
-  const loadDecisions = async () => {
-    try {
-      setLoading(true);
-      const result = await extractDecisions(conversationId);
-      setDecisions(result.decisions || []);
-    } catch (error) {
-      console.error("Failed to load decisions:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const loadDecisions = async () => {
+      try {
+        setLoading(true);
+        const result = await extractDecisions(conversationId);
+        if (!ignore) {
+          setDecisions(result.decisions || []);
+        }
+      } catch (error) {
+        if (!ignore) console.error("Failed to load decisions:", error);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    loadDecisions();
+
+    return () => {
+      ignore = true;
+    };
+  }, [conversationId]);
 
   const styles = useMemo(
     () =>

@@ -1,6 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import { collection, onSnapshot } from "firebase/firestore";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,7 +16,6 @@ import {
 import { Image } from "expo-image";
 import Button from "../components/Button";
 import { useTheme } from "../contexts/ThemeContext";
-import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import {
@@ -30,37 +28,14 @@ export default function CreateGroupScreen({ navigation }) {
   const { colors } = useTheme();
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const users = useFirebaseStore((state) => state.users);
-  const setUsers = useFirebaseStore((state) => state.setUsers);
+  const usersLoading = useFirebaseStore((state) => state.usersLoading);
+  // Filter out current user from the list
+  const visibleUsers = users.filter((user) => user.userId !== currentUser.uid);
 
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [groupPhoto, setGroupPhoto] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
-
-  // Fetch all users from Firestore
-  useEffect(() => {
-    const usersRef = collection(db, "users");
-
-    const unsubscribe = onSnapshot(
-      usersRef,
-      (snapshot) => {
-        const usersData = snapshot.docs.map((doc) => ({
-          userId: doc.id,
-          ...doc.data(),
-        }));
-
-        setUsers(usersData);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching users:", error);
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [setUsers]);
 
   // Toggle user selection
   const toggleUserSelection = (userId) => {
@@ -83,7 +58,7 @@ export default function CreateGroupScreen({ navigation }) {
       if (status !== "granted") {
         Alert.alert(
           "Permission Required",
-          "Please allow access to your photo library to select a group photo."
+          "Please allow access to your photo library to select a group photo.",
         );
         return;
       }
@@ -116,7 +91,7 @@ export default function CreateGroupScreen({ navigation }) {
     if (selectedUsers.length < 2) {
       Alert.alert(
         "Not Enough Participants",
-        "Please select at least 2 users to create a group."
+        "Please select at least 2 users to create a group.",
       );
       return;
     }
@@ -128,7 +103,7 @@ export default function CreateGroupScreen({ navigation }) {
       const conversationId = await createGroupConversation(
         groupName.trim(),
         selectedUsers,
-        null // No photo URL yet
+        null, // No photo URL yet
       );
 
       // Task 27: If group photo selected, update conversation with photo
@@ -143,7 +118,7 @@ export default function CreateGroupScreen({ navigation }) {
           // Continue without photo if upload fails
           Alert.alert(
             "Photo Upload Failed",
-            "Group was created but photo upload failed."
+            "Group was created but photo upload failed.",
           );
         }
       }
@@ -160,11 +135,6 @@ export default function CreateGroupScreen({ navigation }) {
       setIsCreating(false);
     }
   };
-
-  // Filter out current user from the list
-  const availableUsers = users.filter(
-    (user) => user.userId !== currentUser.uid
-  );
 
   const styles = useMemo(
     () =>
@@ -309,7 +279,7 @@ export default function CreateGroupScreen({ navigation }) {
           borderTopColor: colors.border,
         },
       }),
-    [colors]
+    [colors],
   );
 
   // Check if user is selected
@@ -366,7 +336,7 @@ export default function CreateGroupScreen({ navigation }) {
     );
   };
 
-  if (isLoading) {
+  if (usersLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={tokenColors.primary.base} />
@@ -429,13 +399,13 @@ export default function CreateGroupScreen({ navigation }) {
           </View>
 
           {/* User List */}
-          {availableUsers.length === 0 ? (
+          {visibleUsers.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No other users found</Text>
             </View>
           ) : (
             <FlatList
-              data={availableUsers}
+              data={visibleUsers}
               renderItem={renderUserItem}
               keyExtractor={(item) => item.userId}
               scrollEnabled={false}

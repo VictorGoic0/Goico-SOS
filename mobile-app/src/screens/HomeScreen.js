@@ -1,5 +1,4 @@
-import { collection, onSnapshot } from "firebase/firestore";
-import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import React, { useLayoutEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,7 +12,6 @@ import {
 import { Image } from "expo-image";
 import UserListItem from "../components/UserListItem";
 import { useTheme } from "../contexts/ThemeContext";
-import { db } from "../config/firebase";
 import useFirebaseStore from "../stores/firebaseStore";
 import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import { deleteConversation, getConversationId } from "../utils/conversation";
@@ -23,18 +21,18 @@ export default function HomeScreen({ navigation }) {
   const { colors } = useTheme();
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const users = useFirebaseStore((state) => state.users);
-  const setUsers = useFirebaseStore((state) => state.setUsers);
+  const usersLoading = useFirebaseStore((state) => state.usersLoading);
+  const refreshUsers = useFirebaseStore((state) => state.refreshUsers);
   const conversationsMap = useFirebaseStore((state) => state.conversationsMap);
   const conversations = useFirebaseStore((state) => state.conversations);
   const usersMap = useFirebaseStore((state) => state.usersMap);
 
-  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deletingConversationId, setDeletingConversationId] = useState(null);
 
   // Get group conversations
   const groupConversations = conversations.filter(
-    (conv) => conv.isGroup === true
+    (conv) => conv.isGroup === true,
   );
 
   const styles = useMemo(
@@ -112,7 +110,10 @@ export default function HomeScreen({ navigation }) {
         },
         headerProfileButton: { marginRight: spacing[4] },
         headerProfileImage: { width: 36, height: 36, borderRadius: 18 },
-        headerProfilePlaceholder: { justifyContent: "center", alignItems: "center" },
+        headerProfilePlaceholder: {
+          justifyContent: "center",
+          alignItems: "center",
+        },
         headerProfileInitials: {
           fontSize: typography.fontSize.sm,
           fontWeight: typography.fontWeight.semibold,
@@ -165,7 +166,7 @@ export default function HomeScreen({ navigation }) {
         },
         deletingIndicator: { marginLeft: spacing[2] },
       }),
-    [colors]
+    [colors],
   );
 
   // Configure header with profile icon
@@ -203,36 +204,10 @@ export default function HomeScreen({ navigation }) {
     });
   }, [navigation, currentUser, styles]);
 
-  // Fetch all users from Firestore
-  useEffect(() => {
-    const usersRef = collection(db, "users");
-
-    const unsubscribe = onSnapshot(
-      usersRef,
-      (snapshot) => {
-        const usersData = snapshot.docs.map((doc) => ({
-          userId: doc.id,
-          ...doc.data(),
-        }));
-
-        setUsers(usersData);
-        setIsLoading(false);
-        setIsRefreshing(false);
-      },
-      (error) => {
-        console.error("Error fetching users:", error);
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    );
-
-    // Cleanup listener on unmount
-    return () => unsubscribe();
-  }, [setUsers]);
-
   const handleRefresh = () => {
     setIsRefreshing(true);
-    // The onSnapshot listener will automatically refresh
+    refreshUsers()
+      .finally(() => setIsRefreshing(false));
   };
 
   const handleUserPress = (user) => {
@@ -282,7 +257,7 @@ export default function HomeScreen({ navigation }) {
           style: "destructive",
           onPress: () => handleDeleteConversation(conversationId, user),
         },
-      ]
+      ],
     );
   };
 
@@ -303,10 +278,10 @@ export default function HomeScreen({ navigation }) {
             handleDeleteConversation(
               conversation.conversationId,
               null,
-              conversation.groupName
+              conversation.groupName,
             ),
         },
-      ]
+      ],
     );
   };
 
@@ -330,7 +305,7 @@ export default function HomeScreen({ navigation }) {
       Alert.alert(
         "Delete failed",
         "Unable to delete conversation. Please try again.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
     } finally {
       setDeletingConversationId(null);
@@ -479,7 +454,7 @@ export default function HomeScreen({ navigation }) {
 
   const renderHeader = () => {
     const otherUsersCount = users.filter(
-      (user) => user.userId !== currentUser.uid
+      (user) => user.userId !== currentUser.uid,
     ).length;
 
     return (
@@ -496,7 +471,7 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
-  if (isLoading) {
+  if (usersLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={tokenColors.primary.base} />
