@@ -139,26 +139,36 @@ export default function ActionItemsScreen({ route, navigation }) {
           fontWeight: "600",
         },
       }),
-    [colors]
+    [colors],
   );
 
-  useEffect(() => {
-    loadActionItems();
-  }, []);
-
-  const loadActionItems = async () => {
+  const loadActionItems = async (getIgnore = () => false) => {
     try {
       setLoading(true);
       setError(null);
       const result = await extractActionItems(conversationId);
-      setActionItems(result.actionItems || []);
+      if (!getIgnore()) {
+        setActionItems(result.actionItems || []);
+      }
     } catch (error) {
-      console.error("Failed to load action items:", error);
-      setError(error.message || "Failed to load action items");
+      if (!getIgnore()) {
+        console.error("Failed to load action items:", error);
+        setError(error.message || "Failed to load action items");
+      }
     } finally {
-      setLoading(false);
+      if (!getIgnore()) setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let ignore = false;
+    loadActionItems(() => ignore);
+    return () => {
+      ignore = true;
+    };
+  }, [conversationId]);
+
+  const handleRefresh = () => loadActionItems();
 
   const renderItem = ({ item }) => (
     <View style={styles.item}>
@@ -198,7 +208,7 @@ export default function ActionItemsScreen({ route, navigation }) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadActionItems}>
+        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -221,7 +231,7 @@ export default function ActionItemsScreen({ route, navigation }) {
           </View>
         }
       />
-      <TouchableOpacity style={styles.refreshButton} onPress={loadActionItems}>
+      <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
         <Text style={styles.refreshText}>Refresh</Text>
       </TouchableOpacity>
     </View>

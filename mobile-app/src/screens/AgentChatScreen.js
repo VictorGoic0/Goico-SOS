@@ -84,15 +84,8 @@ export default function AgentChatScreen({ route }) {
           borderTopColor: colors.border,
         },
       }),
-    [colors]
+    [colors],
   );
-
-  useEffect(() => {
-    // Scroll to bottom when new messages appear
-    if (messages.length > 0 && flatListRef.current) {
-      flatListRef.current.scrollToEnd({ animated: true });
-    }
-  }, [messages]);
 
   const handleSubmit = async () => {
     if (!query.trim() || processing) {
