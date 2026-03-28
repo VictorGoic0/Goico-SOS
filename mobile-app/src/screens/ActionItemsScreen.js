@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { extractActionItems } from "../services/aiService";
 import { colors as tokenColors } from "../styles/tokens";
 
-export default function ActionItemsScreen({ route, navigation }) {
+export default function ActionItemsScreen({ route, navigation: _navigation }) {
   const { colors } = useTheme();
   const { conversationId } = route.params;
   const [actionItems, setActionItems] = useState([]);
@@ -142,7 +142,7 @@ export default function ActionItemsScreen({ route, navigation }) {
     [colors],
   );
 
-  const loadActionItems = async (getIgnore = () => false) => {
+  const loadActionItems = useCallback(async (getIgnore = () => false) => {
     try {
       setLoading(true);
       setError(null);
@@ -158,7 +158,7 @@ export default function ActionItemsScreen({ route, navigation }) {
     } finally {
       if (!getIgnore()) setLoading(false);
     }
-  };
+  }, [conversationId]);
 
   useEffect(() => {
     let ignore = false;
@@ -166,7 +166,7 @@ export default function ActionItemsScreen({ route, navigation }) {
     return () => {
       ignore = true;
     };
-  }, [conversationId]);
+  }, [loadActionItems]);
 
   const handleRefresh = () => loadActionItems();
 

@@ -55,19 +55,11 @@ export function usePresenceSync() {
           const lastSeenTime = userData.lastSeen || 0;
           const isRecent = now - lastSeenTime < ONLINE_THRESHOLD_MS;
 
-          if (isRecent) {
-            // User is online and recently active
-            filteredPresence[userId] = {
-              ...userData,
-              isOnline: true,
-            };
-          } else {
-            // User's heartbeat is stale - mark as offline
-            filteredPresence[userId] = {
-              ...userData,
-              isOnline: false,
-            };
-          }
+          // Recent heartbeat → online; stale → offline
+          filteredPresence[userId] = {
+            ...userData,
+            isOnline: isRecent,
+          };
         });
 
         // Write to Presence Store

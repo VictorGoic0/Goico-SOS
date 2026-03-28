@@ -1,4 +1,5 @@
-import { db } from "./firebase-admin";
+import type { Query } from "firebase-admin/firestore";
+import { db, type FirebaseMessage } from "./firebase-admin";
 
 export async function searchMessages(
   conversationId: string,
@@ -8,37 +9,47 @@ export async function searchMessages(
     keyword?: string;
   }
 ) {
-  let query: any = db
+  let queryRef: Query = db
     .collection("conversations")
     .doc(conversationId)
     .collection("messages");
 
   if (filters.startDate) {
-    query = query.where("timestamp", ">=", new Date(filters.startDate));
+    queryRef = queryRef.where("timestamp", ">=", new Date(filters.startDate));
   }
 
   if (filters.endDate) {
-    query = query.where("timestamp", "<=", new Date(filters.endDate));
+    queryRef = queryRef.where("timestamp", "<=", new Date(filters.endDate));
   }
 
-  const snapshot = await query.get();
-  let messages = snapshot.docs.map((doc: any) => ({
+  const snapshot = await queryRef.get();
+  let messages: FirebaseMessage[] = snapshot.docs.map((doc) => ({
     messageId: doc.id,
-    ...doc.data(),
+    ...(doc.data() as Omit<FirebaseMessage, "messageId">),
   }));
 
   if (filters.keyword) {
-    messages = messages.filter((message: any) =>
-      message.text.toLowerCase().includes(filters.keyword!.toLowerCase())
+    const keyword = filters.keyword.toLowerCase();
+    messages = messages.filter((message) =>
+      message.text.toLowerCase().includes(keyword)
     );
   }
 
   return messages;
 }
 
-export function groupBy(array: any[], key: string) {
-  return array.reduce((grouped, item) => {
-    const groupKey = item[key] || "Unassigned";
+export function groupBy<T extends Record<string, unknown>>(
+  array: T[],
+  key: string
+): Record<string, T[]> {
+  return array.reduce<Record<string, T[]>>((grouped, item) => {
+    const normalized = (item[key] as unknown) || "Unassigned";
+    const groupKey =
+      typeof normalized === "object" && normalized !== null
+        ? JSON.stringify(normalized)
+        : typeof normalized === "bigint"
+          ? normalized.toString()
+          : String(normalized as string | number | boolean);
     if (!grouped[groupKey]) {
       grouped[groupKey] = [];
     }
@@ -47,14 +58,22 @@ export function groupBy(array: any[], key: string) {
   }, {});
 }
 
-export function formatReport(data: any, title: string) {
+export function formatReport(data: Record<string, unknown>, title: string) {
   let report = `# ${title}\n\n`;
 
   for (const [key, items] of Object.entries(data)) {
     report += `## ${key}\n`;
     if (Array.isArray(items)) {
-      items.forEach((item: any, i: number) => {
-        report += `${i + 1}. ${item.task || JSON.stringify(item)}\n`;
+      items.forEach((item: unknown, i: number) => {
+        const line =
+          item &&
+          typeof item === "object" &&
+          item !== null &&
+          "task" in item &&
+          (item as { task?: unknown }).task != null
+            ? String((item as { task: unknown }).task)
+            : JSON.stringify(item);
+        report += `${i + 1}. ${line}\n`;
       });
     }
     report += "\n";
@@ -76,9 +95,9 @@ export async function getConversationMessages(
     .get();
 
   const messages = snapshot.docs
-    .map((doc: any) => ({
+    .map((doc) => ({
       messageId: doc.id,
-      ...doc.data(),
+      ...(doc.data() as Omit<FirebaseMessage, "messageId">),
     }))
     .reverse();
 

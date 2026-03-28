@@ -435,13 +435,10 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
-  const renderItem = ({ item }) => {
-    if (item.type === "group") {
-      return renderGroupConversation({ item });
-    } else {
-      return renderUser({ item });
-    }
-  };
+  const renderItem = ({ item }) =>
+    item.type === "group"
+      ? renderGroupConversation({ item })
+      : renderUser({ item });
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>

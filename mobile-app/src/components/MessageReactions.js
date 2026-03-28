@@ -9,14 +9,14 @@ import { spacing, typography } from "../styles/tokens";
  */
 function aggregateReactions(reactions) {
   const byEmoji = new Map();
-  for (const r of reactions || []) {
-    const key = r.emoji;
+  for (const reaction of reactions || []) {
+    const key = reaction.emoji;
     if (!byEmoji.has(key)) {
       byEmoji.set(key, { emoji: key, count: 0, userIds: [] });
     }
     const entry = byEmoji.get(key);
     entry.count += 1;
-    entry.userIds.push(r.userId);
+    entry.userIds.push(reaction.userId);
   }
   return Array.from(byEmoji.values());
 }
@@ -74,14 +74,13 @@ export default function MessageReactions({
 
   const handlePress = async (emoji) => {
     const hasReacted = reactions.some(
-      (r) => r.userId === currentUserId && r.emoji === emoji
+      (reaction) =>
+        reaction.userId === currentUserId && reaction.emoji === emoji
     );
     try {
-      if (hasReacted) {
-        await removeReaction(conversationId, messageId, currentUserId, emoji);
-      } else {
-        await addReaction(conversationId, messageId, currentUserId, emoji);
-      }
+      await (hasReacted
+        ? removeReaction(conversationId, messageId, currentUserId, emoji)
+        : addReaction(conversationId, messageId, currentUserId, emoji));
     } catch (err) {
       console.error("Reaction update failed:", err);
     }

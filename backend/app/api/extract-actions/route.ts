@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     // Format conversation text
     const conversationText = messages
       .reverse()
-      .map(m => `${m.senderUsername}: ${m.text}`)
+      .map(message => `${message.senderUsername}: ${message.text}`)
       .join('\n');
 
     const prompt = `Extract all action items from this conversation. Format as a list with:

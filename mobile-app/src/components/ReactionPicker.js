@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
-import { spacing, typography } from "../styles/tokens";
+import { spacing } from "../styles/tokens";
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "🎉", "😮", "😢"];
 

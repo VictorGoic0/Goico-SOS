@@ -21,8 +21,8 @@ import useFirebaseStore from "../stores/firebaseStore";
 export const checkUsernameExists = async (username) => {
   try {
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("username", "==", username.toLowerCase()));
-    const querySnapshot = await getDocs(q);
+    const usersQuery = query(usersRef, where("username", "==", username.toLowerCase()));
+    const querySnapshot = await getDocs(usersQuery);
     return !querySnapshot.empty;
   } catch (error) {
     console.error("Error checking username:", error);

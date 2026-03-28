@@ -72,7 +72,7 @@ export default function AppNavigator() {
     } else if (currentUser && !currentUser.username) {
       setHasUsername(false);
     }
-  }, [currentUser?.username]);
+  }, [currentUser?.username, currentUser]);
 
   // Listen to auth state changes and check for username
   useEffect(() => {

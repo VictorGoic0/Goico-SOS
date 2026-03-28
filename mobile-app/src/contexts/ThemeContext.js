@@ -27,7 +27,7 @@ export function ThemeProvider({ children }) {
         if (!cancelled && saved !== null) {
           setThemeModeState(saved);
         }
-      } catch (e) {
+      } catch  {
         // ignore
       } finally {
         if (!cancelled) setIsLoaded(true);
@@ -40,7 +40,7 @@ export function ThemeProvider({ children }) {
     setThemeModeState(mode);
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
-    } catch (e) {
+    } catch  {
       // ignore
     }
   }, []);

@@ -21,7 +21,7 @@ import { signOutUser } from "../utils/auth";
 import { getAvatarColor, getInitials } from "../utils/helpers";
 import { updateUserProfile, uploadProfileImage } from "../utils/profile";
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen({ navigation: _navigation }) {
   const { colors, themeMode, setTheme } = useTheme();
   // Get current user from Firebase store
   const currentUser = useFirebaseStore((state) => state.currentUser);
