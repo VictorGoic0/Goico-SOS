@@ -2,11 +2,11 @@
 
 ## Current Work Focus
 
-### Project Status: **AI + Dark Mode + Backend Auth & Rate Limiter Complete; Message Reactions, PR #19 & RAG Next**
+### Project Status: **AI + Dark Mode + Backend Auth & Rate Limiter Complete; RAG TDD PR #1–#8 Done; Message Reactions, PR #19 Next**
 
-The project has completed core messaging (PRs #1–#11), AI backend and features (PRs #13–#16: Vercel, summarization, action items, search, priority, decision tracking, multi-step agent), polish in PR #18 (expo-image, push-on-PC, Android), **PR #17 Dark Mode** (theme system, ThemeContext, Appearance selector, theme applied to all screens), and **Backend Auth & Rate Limiter** (Firebase ID token verification, Upstash Redis rate limiting, CORS). Task lists are in `docs/`: **tasks-1.md** (PRs #1–#12), **tasks-2.md** (PRs #13–#16), **tasks-3.md** (PRs #17–#19), **tasks-TDD.md** (RAG pipeline, 8 PRs).
+The project has completed core messaging (PRs #1–#11), AI backend and features (PRs #13–#16: Vercel, summarization, action items, search, priority, decision tracking, multi-step agent), polish in PR #18 (expo-image, push-on-PC, Android), **PR #17 Dark Mode** (theme system, ThemeContext, Appearance selector, theme applied to all screens), and **Backend Auth & Rate Limiter** (Firebase ID token verification, Upstash Redis rate limiting, CORS). **RAG (tasks-TDD.md)**: PRs #1–#8 complete — **`ensureConversationBackfilledForRag`** (full backfill when Pinecone has no vectors for `conversationId`), **`POST /api/index-message`** + mobile **`requestIndexMessageForRag`** for incremental upserts, retrieval default **topK = 5**. Task lists: **tasks-1.md**, **tasks-2.md**, **tasks-3.md**, **tasks-TDD.md**.
 
-**Current Architecture**: React Native (mobile-app/) → Vercel serverless (backend/) → OpenAI (GPT-4o-mini, text-embedding-3-small) + Firebase (Firestore, Realtime DB, Storage). All API routes protected by `authenticate()` (verify token + per-user and global rate limits). **Planned**: RAG with Pinecone for semantic search and agent context (see docs/TDD_RAG_Pipeline.md).
+**Current Architecture**: React Native (mobile-app/) → Vercel serverless (backend/) → OpenAI (GPT-4o-mini, text-embedding-3-small) + Firebase (Firestore, Realtime DB, Storage) + Pinecone (RAG index `messages`, 512 dims). All AI/RAG routes protected by `authenticate()`. **Next**: PR #19 polish / PR #17 reactions (see tasks-3.md).
 
 ### Completed PRs
 
@@ -107,8 +107,7 @@ The project has completed core messaging (PRs #1–#11), AI backend and features
 
 **From docs/tasks-TDD.md (RAG pipeline):**
 
-- ⏳ PR #1 TDD: Pinecone setup & index
-- ⏳ PR #2–#8 TDD: Embeddings, metadata, indexing, retrieval, search endpoint RAG, agent retrieval tool, triggers & docs
+- ✅ PR #1–#8 TDD: Backfill-if-empty, incremental index-message, topK 5, docs
 
 **Completed Features:**
 

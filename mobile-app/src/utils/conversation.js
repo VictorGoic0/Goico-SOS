@@ -1,3 +1,4 @@
+import { requestIndexMessageForRag } from "../services/aiService";
 import {
   addDoc,
   arrayRemove,
@@ -162,6 +163,8 @@ export const sendMessage = async (
       senderUsername,
       text
     ).catch((err) => console.error("Push notification failed:", err));
+
+    requestIndexMessageForRag(conversationId, docRef.id);
 
     return {
       messageId: docRef.id,

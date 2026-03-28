@@ -12,7 +12,8 @@ alwaysApply: false
 backend/
   app/api/          ← Next.js App Router route handlers. One folder per endpoint.
     agent/          ← AI agent: streamText + tool calls via Vercel AI SDK
-    search/         ← Semantic search (RAG: embed query → Pinecone → return hits)
+    index-message/  ← POST: incremental upsert or full backfill (no vectors for conversationId)
+    search/         ← POST: ensureConversationBackfilledForRag + retrieveSearchHits
     summarize/      ← Conversation summarization
     extract-actions/← Action item extraction
     decisions/      ← Decision extraction
@@ -24,9 +25,12 @@ backend/
     embeddings.ts   ← embedText(), embedTexts() via text-embedding-3-small
     rag-types.ts    ← MessageVectorMetadata and shared RAG interfaces
     agent-tools.ts  ← Tool implementations called by the agent route
-    message-enrichment.ts  ← Short-message enrichment (< 10 words → prepend prior)
-    firestore-messages.ts  ← getMessagesForConversation(), indexConversationMessages()
+    agent-retrieval-context.ts ← buildAgentRetrievalContext: retrieveMessages + recent Firestore merge
+    message-enrichment.ts  ← Short-message enrichment, buildEnrichedTextsForIndex
+    firestore-messages.ts  ← getMessagesForConversation(), getMessagesFromFirebase()
+    index-messages.ts      ← indexConversationMessages() — embed + Pinecone upsert
     retrieve-messages.ts   ← retrieveMessages() — Pinecone query path
+    retrieve-messages-utils.ts ← parse Pinecone metadata → MessageVectorMetadata; chronological sort
 ```
 
 **Hard rules:**
@@ -128,7 +132,7 @@ The retrieval and embedding primitives (`embedText`, `retrieveMessages`, `indexC
 RAG Graph nodes (backend/lib/rag-graph/ or backend/lib/rag/nodes/):
   checkIndexed.ts     ← Is this conversation indexed in Pinecone?
   indexMessages.ts    ← Fetch Firestore → enrich → embed → upsert
-  retrieveMessages.ts ← Embed query → Pinecone query → top 10
+  retrieveMessages.ts ← Embed query → Pinecone query → top 5 (DEFAULT_TOP_K)
   fallbackRecent.ts   ← Fetch N most recent from Firestore, dedupe by messageId
   buildContext.ts     ← Merge retrieved + fallback → LLM context string
 ```

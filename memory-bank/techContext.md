@@ -37,7 +37,7 @@
 ### Development Tools
 
 - **Package Manager**: npm
-- **Testing**: Manual testing only (no automated tests for MVP)
+- **Testing**: Manual testing for mobile MVP; **backend** uses Vitest for unit tests (`backend/`: `npm run test`, e.g. RAG message enrichment).
 - **Deployment**: Expo EAS Build for iOS and Android
 - **Version Control**: Git with GitHub
 
@@ -392,12 +392,12 @@ eas build --platform android
 - **Build failures**: Check EAS configuration
 - **Module not found**: Verify package installation
 
-## Planned: RAG Pipeline (docs/tasks-TDD.md)
+## RAG Pipeline (docs/tasks-TDD.md) — implemented
 
-- **Pinecone** (free tier): Vector index for message embeddings (1536 dims, cosine).
+- **Pinecone** (free tier): Index `messages`, **512** dims, cosine (`text-embedding-3-small` with `dimensions: 512`).
 - **OpenAI text-embedding-3-small**: Embed messages and queries; one message = one vector; short-message enrichment (&lt;10 words → prepend previous).
-- **Flow**: Index messages on first use (or incrementally); search and agent query Pinecone filtered by conversationId, top 10; agent gets retrieval tool + recent Firestore fallback.
-- **No new deployment**: Pinecone over HTTP from existing Vercel backend. See `docs/TDD_RAG_Pipeline.md` and `docs/tasks-TDD.md`.
+- **Flow**: If Pinecone has **no** vectors for `conversationId`, **`ensureConversationBackfilledForRag`** runs full `indexConversationMessages` (search + agent). Otherwise **incremental**: `POST /api/index-message` after send (`requestIndexMessageForRag` on mobile). Retrieval default **topK = 5**; agent merges recent Firestore messages.
+- **No new deployment**: Pinecone over HTTP from Vercel. See `docs/TDD_RAG_Pipeline.md` and `docs/tasks-TDD.md`.
 
 ## Future Technical Considerations
 

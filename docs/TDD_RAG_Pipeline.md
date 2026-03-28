@@ -27,7 +27,7 @@ The current backend has two limitations:
 
 ## Non-Goals
 
-- Real-time embedding of messages as they are sent (embeddings are generated on-demand or in batch)
+- Blocking the chat send UX on embedding (indexing runs asynchronously after persist via `index-message`)
 - Re-ranking, HyDE, query decomposition, or other advanced RAG techniques
 - Cross-user or cross-conversation search
 - Caching layer (may be added post-MVP)
@@ -71,11 +71,11 @@ No new deployment platform is required. Pinecone is accessed via HTTP SDK from e
 
 ---
 
-### 4. Top K = 10
+### 4. Top K = 5
 
-**Decision**: Retrieve the 10 most semantically similar messages for any given query.
+**Decision**: Retrieve the five most semantically similar messages for any given query.
 
-**Rationale**: 10 results provides enough context for the LLM to reason meaningfully without inflating token usage. For search, 10 results is a natural UI limit. For agent context, 10 focused messages outperforms 50 loosely related messages both in response quality and cost. This value should be revisited if retrieval quality testing reveals meaningful misses.
+**Rationale**: Five hits keep token usage and noise low while still giving the model focused evidence. Search UI and agent retrieval share this default. Revisit if retrieval testing shows systematic misses.
 
 ---
 
@@ -110,12 +110,14 @@ When a query comes in (either from the search endpoint or the agent), the backen
 
 1. Embeds the query text using `text-embedding-3-small`
 2. Queries Pinecone with the resulting vector, filtered by `conversationId`
-3. Returns the top 10 most similar messages by cosine similarity
+3. Returns the top five most similar messages by cosine similarity
 4. Passes those messages to the LLM as context
 
-When messages need to be indexed (on first use of a conversation, or incrementally as messages are sent), the backend:
+**Indexing behavior (default):** Incremental indexing is the norm: after a successful message write, the client triggers a small backend job to embed and upsert that message only. **Legacy conversations** (created before indexing existed) have **no** vectors in Pinecone for that `conversationId`. On the first RAG need for that conversation (search, agent retrieval, or the post-send index hook), if Pinecone returns no vectors for that conversation, the backend runs a **full** `indexConversationMessages` pass over all Firestore messages in the thread, then continues with incremental updates only.
 
-1. Fetches unindexed messages from Firestore
+When messages need to be indexed, the backend:
+
+1. Fetches messages from Firestore (full conversation for backfill, or one message + prior for incremental)
 2. Applies the short message enrichment rule (< 10 words → prepend prior message)
 3. Embeds each message
 4. Upserts vectors to Pinecone with full metadata
@@ -134,7 +136,7 @@ Currently performs keyword matching against Firestore. With RAG, the endpoint em
 
 ### Agent Endpoint
 
-Currently fetches the N most recent messages from Firestore as context. With RAG, the agent has access to a retrieval tool that embeds the user's query (or a sub-query the agent decides to form) and fetches the 10 most relevant messages from Pinecone. The agent can call this tool multiple times with different queries within a single turn, enabling multi-step retrieval for complex requests.
+Currently fetches the N most recent messages from Firestore as context. With RAG, the agent has access to a retrieval tool that embeds the user's query (or a sub-query the agent decides to form) and fetches the five most relevant messages from Pinecone. The agent can call this tool multiple times with different queries within a single turn, enabling multi-step retrieval for complex requests.
 
 ---
 
@@ -156,6 +158,6 @@ Currently fetches the N most recent messages from Firestore as context. With RAG
 
 **Embedding cost**: `text-embedding-3-small` costs $0.02 per 1 million tokens. Embedding 10,000 messages of average 20 words each costs roughly $0.01. This is negligible.
 
-**No real-time indexing**: For MVP, messages are indexed on first retrieval need rather than as they are sent. This means very recent messages may not yet be in Pinecone. A simple fallback (appending the most recent N messages from Firestore to the retrieved context) mitigates this.
+**Indexing timing**: Default path is incremental (post-send `index-message`). Legacy threads with no Pinecone vectors get a full backfill on first RAG use. Very new messages may still lag one request behind; the agent merges recent Firestore messages into retrieval context to mitigate that.
 
 **Short message enrichment is approximate**: Prepending the prior message captures immediate conversational context but not thread-level context. This is an acceptable tradeoff for MVP.

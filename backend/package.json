@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "oxlint",
-    "lint:fix": "oxlint --fix --fix-suggestions --fix-dangerously"
+    "lint:fix": "oxlint --fix --fix-suggestions --fix-dangerously",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.53",
@@ -30,6 +32,7 @@
     "oxlint": "^1.57.0",
     "oxlint-plugin-eslint": "^1.57.0",
     "oxlint-tsgolint": "^0.18.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.2"
   }
 }
