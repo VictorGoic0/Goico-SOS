@@ -1,7 +1,8 @@
 import { embed } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
-import { getMessagesFromFirebase, FirebaseMessage } from "@/lib/firebase-admin";
+import type { FirebaseMessage } from "@/lib/firebase-admin";
+import { getMessagesFromFirebase } from "@/lib/firebase-admin";
 import { authenticate } from "@/lib/auth";
 
 // Search configuration

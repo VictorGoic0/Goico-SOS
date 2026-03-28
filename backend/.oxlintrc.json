@@ -1,0 +1,21 @@
+{
+  "plugins": ["unicorn", "typescript"],
+  "jsPlugins": ["oxlint-plugin-eslint"],
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "rules": {
+    "no-unused-vars": "error",
+    "eslint-js/id-length": [
+      "error",
+      {
+        "min": 2,
+        "exceptions": ["i", "e"]
+      }
+    ],
+    "unicorn/no-useless-spread": "error",
+    "unicorn/prefer-ternary": "warn",
+    "@typescript-eslint/consistent-type-imports": "error"
+  }
+}

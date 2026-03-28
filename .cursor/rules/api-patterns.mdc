@@ -1,319 +1,155 @@
 ---
-description: Backend architecture and agent conventions for the OneVoice API
-globs: api/src/**/*.ts
-alwaysApply: true
+description: Backend architecture conventions for the Next.js Vercel backend
+globs: backend/**/*.ts
+alwaysApply: false
 ---
 
-  
-
-# API Patterns
-
-  
+# Backend Patterns
 
 ## Folder Responsibilities
 
-  
-
+```
+backend/
+  app/api/          ← Next.js App Router route handlers. One folder per endpoint.
+    agent/          ← AI agent: streamText + tool calls via Vercel AI SDK
+    search/         ← Semantic search (RAG: embed query → Pinecone → return hits)
+    summarize/      ← Conversation summarization
+    extract-actions/← Action item extraction
+    decisions/      ← Decision extraction
+    send-notification/
+  lib/
+    auth.ts         ← verifyToken(), checkRateLimit(), authenticate()
+    firebase-admin.ts ← Firebase Admin singleton (db, auth)
+    pinecone.ts     ← Pinecone client singleton + getMessagesIndex()
+    embeddings.ts   ← embedText(), embedTexts() via text-embedding-3-small
+    rag-types.ts    ← MessageVectorMetadata and shared RAG interfaces
+    agent-tools.ts  ← Tool implementations called by the agent route
+    message-enrichment.ts  ← Short-message enrichment (< 10 words → prepend prior)
+    firestore-messages.ts  ← getMessagesForConversation(), indexConversationMessages()
+    retrieve-messages.ts   ← retrieveMessages() — Pinecone query path
 ```
 
-api/src/
+**Hard rules:**
+- Route handlers in `app/api/` are thin: parse input, authenticate, call lib functions, return response. No business logic inline.
+- `lib/` files are pure functions or singletons — no `Request`/`Response` imports.
+- Firebase Admin (`lib/firebase-admin.ts`) is the only Firestore access point. Never use the client-side `firebase` SDK in the backend.
 
-  agents/          ← LLM orchestration. Anything that calls an LLM lives here.
+## Route Handler Pattern
 
-    <agent-name>/
-
-      prompts/     ← One file per prompt. Each file exports a typed builder function.
-
-      pipeline.ts  ← Orchestrates: retrieve → prompt → LLM → output
-
-      retriever.ts ← Retrieval step (embed query → similaritySearch)
-
-      index.ts     ← Barrel export for the agent
-
-  rag/             ← Pure data layer. No LLM calls. Ever.
-
-    embeddings.ts  ← chunkText, embedChunks, storeEmbeddings, ingestCommunication
-
-    index.ts
-
-  db/
-
-    client.ts      ← Prisma singleton
-
-    vector.ts      ← Raw pgvector SQL helpers (similaritySearch)
-
-  routes/          ← Thin Express routers. Validate input, resolve permissions, call services/agents.
-
-  services/        ← Business logic over Prisma. No LLM. No direct SQL.
-
-  middleware/      ← auth, attachUser, requireRole, validateBody
-
-  pii/             ← PII scrubbing. No LLM. Pure string transforms.
-
-  utils/           ← Shared non-domain helpers (serialize, etc.)
-
-```
-
-  
-
-**Hard rule:** `rag/` never imports from `agents/`. `agents/` may import from `rag/` and `db/`. Routes never import directly from `agents/` internals — they go through the agent's `index.ts` barrel.
-
-  
-
-## Agent Structure
-
-  
-
-Every agent lives in `src/agents/<name>/`. The pattern is:
-
-  
-
-```
-
-agents/
-
-  rag/
-
-    prompts/
-
-      rag-assistant.ts
-
-    retriever.ts
-
-    pipeline.ts
-
-    index.ts
-
-  contradiction/          ← Phase 5
-
-    prompts/
-
-      detect-contradiction.ts
-
-    nodes/
-
-      ingestNewComm.ts
-
-      retrieveHistory.ts
-
-      detectContradiction.ts
-
-      applyFix.ts
-
-      persist.ts
-
-    graph.ts
-
-    state.ts
-
-    index.ts
-
-```
-
-  
-
-## LLM Calls — Always Via LangChain
-
-  
-
-All LLM calls must go through `@langchain/openai` (or `@langchain/anthropic` when we switch to Claude), **never** the raw `openai` SDK. The `openai` package is reserved for `text-embedding-3-small` only.
-
-  
+All routes use the Next.js App Router `export async function POST(req: Request)` convention. Authentication is required on every route via `authenticate(req)` from `lib/auth.ts`.
 
 ```typescript
+// ✅ GOOD — thin route handler
+export async function POST(req: Request) {
+  try {
+    await authenticate(req);
+  } catch (e) {
+    if (e instanceof Response) return e;
+    throw e;
+  }
 
-// ❌ BAD — raw OpenAI SDK for chat
+  const { conversationId, query } = await req.json();
 
-import OpenAI from "openai";
+  if (!conversationId || !query) {
+    return new Response(
+      JSON.stringify({ error: "conversationId and query are required" }),
+      { status: 400 }
+    );
+  }
 
-const openai = new OpenAI();
-
-const res = await openai.chat.completions.create({ ... });
-
-  
-
-// ✅ GOOD — LangChain wrapper
-
-import { ChatOpenAI } from "@langchain/openai";
-
-import { SystemMessage, HumanMessage } from "@langchain/core/messages";
-
-const llm = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 });
-
-const stream = await llm.stream([new SystemMessage(prompt), new HumanMessage(query)]);
-
+  const results = await retrieveMessages(conversationId, query);
+  return new Response(JSON.stringify(results), { status: 200 });
+}
 ```
 
-  
+## Authentication — Always Via authenticate()
 
-LangChain's wrappers give us LangSmith tracing, streaming, and model-swappability for free. Switching from GPT to Claude (Phase 5 contradiction agent) is a one-line change.
-
-  
-
-## Prompts — Typed Builder Functions, Never Raw Strings
-
-  
-
-Every system prompt lives in a `prompts/` file inside its agent folder. It exports a typed function that accepts the context it needs and returns a `string`. No inline prompt assembly in pipeline or route files.
-
-  
+Every route must call `authenticate(req)` before touching any data. This verifies the Firebase ID token and enforces per-user rate limiting (Upstash Redis: 10 req/user/24h, 100 global/24h). The mobile app sends `Authorization: Bearer <idToken>` on every request.
 
 ```typescript
-
-// ❌ BAD — inline prompt in pipeline
-
-const systemPrompt = `You are a helpful assistant. Context: ${chunks.map(...).join("\n")}`;
-
-  
-
-// ✅ GOOD — dedicated prompt file
-
-// agents/rag/prompts/rag-assistant.ts
-
-export function buildRagSystemPrompt(chunks: SimilarityResult[]): string { ... }
-
-  
-
-// agents/rag/pipeline.ts
-
-import { buildRagSystemPrompt } from "./prompts/rag-assistant.js";
-
-const systemPrompt = buildRagSystemPrompt(chunks);
-
-```
-
-  
-
-Benefits: prompts are independently readable, diffable, and testable.
-
-  
-
-## LLM Client — Lazy Singleton Per Agent
-
-  
-
-Each agent module holds its own lazily-instantiated LLM client. Do not instantiate at module load time — this allows the module to be imported in tests or seeding without requiring API keys.
-
-  
-
-```typescript
-
-// ✅ GOOD — lazy singleton
-
-let _llm: ChatOpenAI | null = null;
-
-  
-
-function getLLM(): ChatOpenAI {
-
-  if (!_llm) {
-
-    const apiKey = process.env["OPENAI_API_KEY"];
-
-    if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
-
-    _llm = new ChatOpenAI({ model: "gpt-4o-mini", streaming: true, temperature: 0 });
-
-  }
-
-  return _llm;
-
+// ❌ BAD — skipping auth
+export async function POST(req: Request) {
+  const { conversationId } = await req.json();
+  // ... direct data access
 }
 
-```
-
-  
-
-## SSE Streaming Format
-
-  
-
-All streaming endpoints write `data:` lines in this shape. The client can discriminate on `type`:
-
-  
-
-```typescript
-
-{ type: "token";   content: string  }   // streamed token from LLM
-
-{ type: "sources"; sources: RagSource[] }  // sent once after stream ends
-
-{ type: "done"  }                        // terminal — client closes reader
-
-{ type: "error";  message: string   }   // sent on any thrown error before res.end()
-
-```
-
-  
-
-Required headers on any SSE response:
-
-```typescript
-
-res.setHeader("Content-Type", "text/event-stream");
-
-res.setHeader("Cache-Control", "no-cache");
-
-res.setHeader("Connection", "keep-alive");
-
-res.setHeader("X-Accel-Buffering", "no");
-
-res.flushHeaders();
-
-```
-
-  
-
-## Permission Scoping — Routes Resolve, Agents Consume
-
-  
-
-Routes are responsible for resolving `studentIds` from `req.user`. Agents and retrievers accept an already-resolved `studentIds: string[]` and must never derive permissions themselves.
-
-  
-
-```typescript
-
-// ❌ BAD — agent doing permission work
-
-async function retrieveRelevantChunks(query: string, userId: string) {
-
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-
-  const studentIds = user.rosterIds;
-
-  ...
-
+// ✅ GOOD
+export async function POST(req: Request) {
+  try {
+    await authenticate(req);
+  } catch (e) {
+    if (e instanceof Response) return e;
+    throw e;
+  }
+  // ... safe to proceed
 }
-
-  
-
-// ✅ GOOD — route resolves, agent consumes
-
-// route: const studentIds = await resolveStudentScope(req.user, studentId);
-
-// agent: await retrieveRelevantChunks(query, studentIds);
-
 ```
 
-  
+## Agent Pattern — Vercel AI SDK (Simple Flows)
 
-## Service Layer Return Values
-
-  
-
-Services return string literal sentinels instead of throwing for expected failure modes. Routes pattern-match on them.
-
-  
+Use the **Vercel AI SDK** (`ai` + `@ai-sdk/openai`) with `streamText` and `tool()` for the existing agent flows. This is the current implementation in `app/api/agent/route.ts`.
 
 ```typescript
+import { streamText, tool, stepCountIs } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
 
-// ✅ GOOD — predictable, no try/catch in routes for expected cases
+const agentTools = {
+  getConversationMessages: tool({
+    description: "...",
+    inputSchema: z.object({ conversationId: z.string(), limit: z.number().optional() }),
+    execute: async ({ conversationId, limit }) =>
+      getConversationMessages(conversationId, Math.min(limit ?? 50, 50)),
+  }),
+};
 
-return "not_found" as const;
+const result = streamText({
+  model: openai("gpt-4o-mini"),
+  tools: agentTools,
+  system: systemPrompt,
+  prompt: userQuery,
+  stopWhen: [stepCountIs(5)],
+});
 
-return "forbidden" as const;
+return result.toTextStreamResponse();
+```
 
-return "conflict" as const;
+## RAG Pipeline — LangGraph for Graph Logic
 
+For the RAG pipeline (PR #4–#8 in tasks-TDD.md), use **LangGraph** for any graph-structured orchestration (retrieve → enrich → embed → upsert; or query → retrieve → fallback → LLM). LangGraph produces clean, testable node functions with explicit state transitions.
+
+**Rule:**
+- Simple, linear agent flows (current agent) → **Vercel AI SDK** `streamText` + `tool()`
+- RAG graph orchestration (multi-step retrieval, index-on-first-use, fallback) → **LangGraph**
+
+The retrieval and embedding primitives (`embedText`, `retrieveMessages`, `indexConversationMessages`) live in `lib/` and are called by both the Vercel AI SDK tools and LangGraph nodes.
+
+```
+RAG Graph nodes (backend/lib/rag-graph/ or backend/lib/rag/nodes/):
+  checkIndexed.ts     ← Is this conversation indexed in Pinecone?
+  indexMessages.ts    ← Fetch Firestore → enrich → embed → upsert
+  retrieveMessages.ts ← Embed query → Pinecone query → top 10
+  fallbackRecent.ts   ← Fetch N most recent from Firestore, dedupe by messageId
+  buildContext.ts     ← Merge retrieved + fallback → LLM context string
+```
+
+## RAG Infrastructure
+
+One Pinecone index (`messages`), 512 dimensions, cosine similarity. All conversations share the index; filter by `conversationId` metadata at query time. Never use separate indexes or namespaces per conversation.
+
+**Short-message enrichment**: If a message has fewer than 10 words, prepend the previous message's text before embedding. Implemented in `lib/message-enrichment.ts`.
+
+**Fallback for recent messages**: After Pinecone retrieval, always append the N most recent messages from Firestore (deduped by `messageId`) so the agent sees messages not yet indexed.
+
+## Firebase Admin — Only Entry Point to Firestore
+
+All Firestore reads/writes in the backend go through `lib/firebase-admin.ts`. Never import the client-side `firebase` SDK here.
+
+```typescript
+// ❌ BAD — client SDK in backend
+import { getFirestore } from "firebase/firestore";
+
+// ✅ GOOD — Admin SDK
+import { db } from "@/lib/firebase-admin";
+const snap = await db.collection("conversations").doc(conversationId).collection("messages").get();
 ```

@@ -1,179 +1,153 @@
 ---
-
-description: React component structure conventions for mobileapp
-
-globs: webapp/src/**/*.tsx
-
+description: React Native component structure and state management conventions for mobile-app
+globs: mobile-app/src/**/*.js, mobile-app/src/**/*.jsx
 alwaysApply: false
-
 ---
 
-  
+# React Native Component Patterns
 
-# React Component Patterns
+## Screen Components Are Thin Orchestrators
 
-  
+Screens live in `src/screens/`. Their only jobs are: read from Zustand stores, derive minimal local state, and pass data down to presentational children. Significant JSX logic, large inline style blocks, and UI sub-components should not live inline inside a screen.
 
-## Page Components Are Thin Orchestrators
-
-  
-
-Pages live in `src/pages/`. Their only jobs are: fetch data via hooks, derive minimal local state, and pass everything down to presentational children. They must not contain significant JSX logic, styling blocks, or UI sub-components inline.
-
-  
-
-```tsx
-
-// ❌ BAD — page doing too much
-
-export function StudentsPage() {
-
-  const { data } = useStudents();
-
-  return (
-
-    <div>
-
-      <div className="flex items-center ...">
-
-        <input onChange={...} />
-
-        <select>...</select>
-
-      </div>
-
-      <table>
-
-        {data?.map(s => <tr><td>...</td></tr>)}
-
-      </table>
-
-    </div>
-
-  );
-
+```javascript
+// ❌ BAD — screen doing too much inline
+export default function HomeScreen() {
+  const users = useFirebaseStore((s) => s.users);
+  return (
+    <View>
+      <View style={{ flexDirection: "row", padding: 12, ... }}>
+        <TextInput onChangeText={...} />
+      </View>
+      <FlatList data={users} renderItem={({ item }) => (
+        <View style={{ ... }}>
+          <Text>{item.displayName}</Text>
+          <Text>{item.username}</Text>
+        </View>
+      )} />
+    </View>
+  );
 }
 
-  
-
-// ✅ GOOD — page delegates to focused children
-
-export function StudentsPage() {
-
-  const { data, isLoading, isError } = useStudents();
-
-  const [filter, setFilter] = useState("");
-
-  return <StudentTable students={data} isLoading={isLoading} filter={filter} onFilterChange={setFilter} />;
-
+// ✅ GOOD — screen delegates to focused children
+export default function HomeScreen() {
+  const users = useFirebaseStore((s) => s.users);
+  const [filter, setFilter] = useState("");
+  return <UserList users={users} filter={filter} onFilterChange={setFilter} />;
 }
-
 ```
-
-  
 
 ## Sub-Components Do One Thing
 
-  
+UI components live in `src/components/`. Each component should have a single, named responsibility. Prefer many small focused components over one large one.
 
-UI components live in `src/components/` or co-located alongside the page file. Each component should have a single, named responsibility — not be a catch-all. Prefer many small focused components over one large one.
-
-  
-
-```tsx
-
+```javascript
 // ❌ BAD — catch-all component
-
-function StudentCard({ student, comms, onEdit, onDelete, showBadge }) { ... }
-
-  
+function ConversationCard({ conversation, user, onPress, onDelete, showBadge }) { ... }
 
 // ✅ GOOD — focused components composed together
-
-function StudentRow({ student }: { student: Student }) { ... }
-
-function StudentBadge({ grade }: { grade: string }) { ... }
-
-function StudentActions({ onEdit, onDelete }: StudentActionsProps) { ... }
-
+function ConversationRow({ conversation }) { ... }
+function UnreadBadge({ count }) { ... }
+function ConversationActions({ onDelete }) { ... }
 ```
-
-  
 
 ## Co-location Rule
 
-  
+If a sub-component is only used by one screen, it may live alongside that screen file in `src/screens/`. If it's used in two or more places, move it to `src/components/`.
 
-If a sub-component is only used by one page, it may live in a file alongside that page (e.g. `Students.tsx` + `StudentRow.tsx` in `src/pages/`). If it's used in two or more places, move it to `src/components/`.
+## State Management — 3-Store Zustand Architecture
 
-  
+This project uses three Zustand stores with strict separation of concerns. Never blur these boundaries.
 
-## Conventions
+| Store | File | What goes here |
+|---|---|---|
+| `useFirebaseStore` | `stores/firebaseStore.js` | All Firestore data: users, conversations, messages, currentUser. Updated only by Firestore `onSnapshot` listeners or store-owned subscriptions. |
+| `useLocalStore` | `stores/localStore.js` | UI-only state: drafts, `isSending`, `isLoadingConversation`. Never persisted to Firebase. |
+| `usePresenceStore` | `stores/presenceStore.js` | Realtime Database presence data: `isOnline`, `lastSeen`. Updated only by `onValue` listeners. |
 
-  
-
-### Data Fetching — Custom Hooks Per Resource
-
-  
-
-Each unique API resource gets its own custom hook that wraps TanStack Query. One hook per resource type, named after the resource.
-
-  
-
-```ts
-
-// ✅ GOOD — one hook per resource
-
-useStudents(); // GET /api/v1/students (list)
-
-useStudent(id); // GET /api/v1/students/:id (single)
-
-useCommunications(filter); // GET /api/v1/communications
-
-useDocuments(); // GET /api/v1/documents
-
+```javascript
+// ✅ GOOD — reading from the right store for the right concern
+const messages = useFirebaseStore((s) => s.messages[conversationId] || []);
+const inputText = useLocalStore((s) => s.drafts[conversationId] || "");
+const isOnline = usePresenceStore((s) => s.presenceData[userId]?.isOnline);
 ```
 
-  
+## Store-Owned Subscriptions
 
-Hooks live in `src/hooks/`. Page components call hooks; they never call `apiClient` directly.
+Firestore `onSnapshot` listeners that feed global state belong in the store (or in a util called once from `AppNavigator`), not in individual screens. Screens should read from the store; they should not start their own listeners for globally shared data (users, conversations).
 
-  
+```javascript
+// ❌ BAD — screen starts its own listener for shared data
+useEffect(() => {
+  const unsub = onSnapshot(collection(db, "users"), (snap) => {
+    setUsers(snap.docs.map((d) => ({ userId: d.id, ...d.data() })));
+  });
+  return unsub;
+}, []);
 
-### Helper Functions — Co-location vs. Shared Utils
-
-  
-
-We prefer WET over DRY here: one duplication is intentional and acceptable. The rule triggers at **three instances** — when a helper appears in a third file, extract it to `src/utils/` and import it everywhere.
-
-  
-
-```ts
-
-// ✅ GOOD — used in one file, lives there
-
-// inside Students.tsx
-
-function gradeColor(grade: string): string { ... }
-
-  
-
-// ✅ GOOD — duplicated in two files, leave it
-
-// Students.tsx has initials(), Dashboard.tsx has initials() — fine
-
-  
-
-// ❌ BAD — same helper in three or more files → extract
-
-// src/utils/display.ts
-
-export function initials(name: string): string { ... }
-
-export function formatDate(iso: string | null): string { ... }
-
+// ✅ GOOD — store owns the subscription; screen just reads
+// AppNavigator calls: useFirebaseStore.getState().subscribeToUsers()
+const users = useFirebaseStore((s) => s.users);
 ```
 
-  
+## Fetch Effects — Always Add Ignore + Cleanup
 
-The `src/utils/` directory already contains `roles.ts`. Add new util files per concern (e.g. `display.ts` for formatting, `dates.ts` for date helpers).
+Any one-off async fetch inside a `useEffect` must use an ignore boolean to guard state updates after unmount, and return a cleanup function.
+
+```javascript
+// ✅ GOOD
+useEffect(() => {
+  let ignore = false;
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const result = await fetchSomething(id);
+      if (!ignore) setData(result);
+    } catch (err) {
+      if (!ignore) console.error(err);
+    } finally {
+      if (!ignore) setLoading(false);
+    }
+  };
+  loadData();
+
+  return () => { ignore = true; };
+}, [id]);
+```
+
+For screens with both an initial load and a user-triggered refresh, define the async function outside the effect (accepting a `getIgnore` param) and use a dedicated `handleRefresh` handler — don't call the same effect for refreshes.
+
+## Communicating with the Backend Agent
+
+The agent endpoint lives at `POST /api/agent`. Send requests from `src/services/aiService.js` using `fetch` with `Authorization: Bearer <idToken>`. Never call the backend directly from a screen; go through the service layer.
+
+```javascript
+// src/services/aiService.js
+export const executeAgent = async (userQuery, conversationId, onChunk) => {
+  const idToken = await getIdToken();
+  const response = await fetch(`${BACKEND_URL}/api/agent`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({ userQuery, conversationId }),
+  });
+  // stream chunks via onChunk callback
+};
+```
+
+## Helper Functions — WET Until Three Instances
+
+One duplication is intentional and acceptable. The rule triggers at **three instances** — when the same helper appears in a third file, extract it to `src/utils/` and import it everywhere.
+
+```javascript
+// ✅ fine — used in two screens, leave it
+// HomeScreen.js has getInitials(), ChatScreen.js has getInitials() — ok
+
+// ❌ triggers extraction — same helper in 3+ files
+// src/utils/helpers.js
+export function getInitials(name) { ... }
+export function getAvatarColor(id) { ... }
+```

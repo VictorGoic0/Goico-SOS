@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix --fix-suggestions --fix-dangerously"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.53",
@@ -26,6 +27,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
+    "oxlint": "^1.57.0",
+    "oxlint-plugin-eslint": "^1.57.0",
+    "oxlint-tsgolint": "^0.18.1",
     "typescript": "^5"
   }
 }
