@@ -1,0 +1,179 @@
+---
+
+description: React component structure conventions for mobileapp
+
+globs: webapp/src/**/*.tsx
+
+alwaysApply: false
+
+---
+
+  
+
+# React Component Patterns
+
+  
+
+## Page Components Are Thin Orchestrators
+
+  
+
+Pages live in `src/pages/`. Their only jobs are: fetch data via hooks, derive minimal local state, and pass everything down to presentational children. They must not contain significant JSX logic, styling blocks, or UI sub-components inline.
+
+  
+
+```tsx
+
+// ❌ BAD — page doing too much
+
+export function StudentsPage() {
+
+  const { data } = useStudents();
+
+  return (
+
+    <div>
+
+      <div className="flex items-center ...">
+
+        <input onChange={...} />
+
+        <select>...</select>
+
+      </div>
+
+      <table>
+
+        {data?.map(s => <tr><td>...</td></tr>)}
+
+      </table>
+
+    </div>
+
+  );
+
+}
+
+  
+
+// ✅ GOOD — page delegates to focused children
+
+export function StudentsPage() {
+
+  const { data, isLoading, isError } = useStudents();
+
+  const [filter, setFilter] = useState("");
+
+  return <StudentTable students={data} isLoading={isLoading} filter={filter} onFilterChange={setFilter} />;
+
+}
+
+```
+
+  
+
+## Sub-Components Do One Thing
+
+  
+
+UI components live in `src/components/` or co-located alongside the page file. Each component should have a single, named responsibility — not be a catch-all. Prefer many small focused components over one large one.
+
+  
+
+```tsx
+
+// ❌ BAD — catch-all component
+
+function StudentCard({ student, comms, onEdit, onDelete, showBadge }) { ... }
+
+  
+
+// ✅ GOOD — focused components composed together
+
+function StudentRow({ student }: { student: Student }) { ... }
+
+function StudentBadge({ grade }: { grade: string }) { ... }
+
+function StudentActions({ onEdit, onDelete }: StudentActionsProps) { ... }
+
+```
+
+  
+
+## Co-location Rule
+
+  
+
+If a sub-component is only used by one page, it may live in a file alongside that page (e.g. `Students.tsx` + `StudentRow.tsx` in `src/pages/`). If it's used in two or more places, move it to `src/components/`.
+
+  
+
+## Conventions
+
+  
+
+### Data Fetching — Custom Hooks Per Resource
+
+  
+
+Each unique API resource gets its own custom hook that wraps TanStack Query. One hook per resource type, named after the resource.
+
+  
+
+```ts
+
+// ✅ GOOD — one hook per resource
+
+useStudents(); // GET /api/v1/students (list)
+
+useStudent(id); // GET /api/v1/students/:id (single)
+
+useCommunications(filter); // GET /api/v1/communications
+
+useDocuments(); // GET /api/v1/documents
+
+```
+
+  
+
+Hooks live in `src/hooks/`. Page components call hooks; they never call `apiClient` directly.
+
+  
+
+### Helper Functions — Co-location vs. Shared Utils
+
+  
+
+We prefer WET over DRY here: one duplication is intentional and acceptable. The rule triggers at **three instances** — when a helper appears in a third file, extract it to `src/utils/` and import it everywhere.
+
+  
+
+```ts
+
+// ✅ GOOD — used in one file, lives there
+
+// inside Students.tsx
+
+function gradeColor(grade: string): string { ... }
+
+  
+
+// ✅ GOOD — duplicated in two files, leave it
+
+// Students.tsx has initials(), Dashboard.tsx has initials() — fine
+
+  
+
+// ❌ BAD — same helper in three or more files → extract
+
+// src/utils/display.ts
+
+export function initials(name: string): string { ... }
+
+export function formatDate(iso: string | null): string { ... }
+
+```
+
+  
+
+The `src/utils/` directory already contains `roles.ts`. Add new util files per concern (e.g. `display.ts` for formatting, `dates.ts` for date helpers).

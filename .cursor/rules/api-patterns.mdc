@@ -1,0 +1,319 @@
+---
+description: Backend architecture and agent conventions for the OneVoice API
+globs: api/src/**/*.ts
+alwaysApply: true
+---
+
+  
+
+# API Patterns
+
+  
+
+## Folder Responsibilities
+
+  
+
+```
+
+api/src/
+
+  agents/          ← LLM orchestration. Anything that calls an LLM lives here.
+
+    <agent-name>/
+
+      prompts/     ← One file per prompt. Each file exports a typed builder function.
+
+      pipeline.ts  ← Orchestrates: retrieve → prompt → LLM → output
+
+      retriever.ts ← Retrieval step (embed query → similaritySearch)
+
+      index.ts     ← Barrel export for the agent
+
+  rag/             ← Pure data layer. No LLM calls. Ever.
+
+    embeddings.ts  ← chunkText, embedChunks, storeEmbeddings, ingestCommunication
+
+    index.ts
+
+  db/
+
+    client.ts      ← Prisma singleton
+
+    vector.ts      ← Raw pgvector SQL helpers (similaritySearch)
+
+  routes/          ← Thin Express routers. Validate input, resolve permissions, call services/agents.
+
+  services/        ← Business logic over Prisma. No LLM. No direct SQL.
+
+  middleware/      ← auth, attachUser, requireRole, validateBody
+
+  pii/             ← PII scrubbing. No LLM. Pure string transforms.
+
+  utils/           ← Shared non-domain helpers (serialize, etc.)
+
+```
+
+  
+
+**Hard rule:** `rag/` never imports from `agents/`. `agents/` may import from `rag/` and `db/`. Routes never import directly from `agents/` internals — they go through the agent's `index.ts` barrel.
+
+  
+
+## Agent Structure
+
+  
+
+Every agent lives in `src/agents/<name>/`. The pattern is:
+
+  
+
+```
+
+agents/
+
+  rag/
+
+    prompts/
+
+      rag-assistant.ts
+
+    retriever.ts
+
+    pipeline.ts
+
+    index.ts
+
+  contradiction/          ← Phase 5
+
+    prompts/
+
+      detect-contradiction.ts
+
+    nodes/
+
+      ingestNewComm.ts
+
+      retrieveHistory.ts
+
+      detectContradiction.ts
+
+      applyFix.ts
+
+      persist.ts
+
+    graph.ts
+
+    state.ts
+
+    index.ts
+
+```
+
+  
+
+## LLM Calls — Always Via LangChain
+
+  
+
+All LLM calls must go through `@langchain/openai` (or `@langchain/anthropic` when we switch to Claude), **never** the raw `openai` SDK. The `openai` package is reserved for `text-embedding-3-small` only.
+
+  
+
+```typescript
+
+// ❌ BAD — raw OpenAI SDK for chat
+
+import OpenAI from "openai";
+
+const openai = new OpenAI();
+
+const res = await openai.chat.completions.create({ ... });
+
+  
+
+// ✅ GOOD — LangChain wrapper
+
+import { ChatOpenAI } from "@langchain/openai";
+
+import { SystemMessage, HumanMessage } from "@langchain/core/messages";
+
+const llm = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 });
+
+const stream = await llm.stream([new SystemMessage(prompt), new HumanMessage(query)]);
+
+```
+
+  
+
+LangChain's wrappers give us LangSmith tracing, streaming, and model-swappability for free. Switching from GPT to Claude (Phase 5 contradiction agent) is a one-line change.
+
+  
+
+## Prompts — Typed Builder Functions, Never Raw Strings
+
+  
+
+Every system prompt lives in a `prompts/` file inside its agent folder. It exports a typed function that accepts the context it needs and returns a `string`. No inline prompt assembly in pipeline or route files.
+
+  
+
+```typescript
+
+// ❌ BAD — inline prompt in pipeline
+
+const systemPrompt = `You are a helpful assistant. Context: ${chunks.map(...).join("\n")}`;
+
+  
+
+// ✅ GOOD — dedicated prompt file
+
+// agents/rag/prompts/rag-assistant.ts
+
+export function buildRagSystemPrompt(chunks: SimilarityResult[]): string { ... }
+
+  
+
+// agents/rag/pipeline.ts
+
+import { buildRagSystemPrompt } from "./prompts/rag-assistant.js";
+
+const systemPrompt = buildRagSystemPrompt(chunks);
+
+```
+
+  
+
+Benefits: prompts are independently readable, diffable, and testable.
+
+  
+
+## LLM Client — Lazy Singleton Per Agent
+
+  
+
+Each agent module holds its own lazily-instantiated LLM client. Do not instantiate at module load time — this allows the module to be imported in tests or seeding without requiring API keys.
+
+  
+
+```typescript
+
+// ✅ GOOD — lazy singleton
+
+let _llm: ChatOpenAI | null = null;
+
+  
+
+function getLLM(): ChatOpenAI {
+
+  if (!_llm) {
+
+    const apiKey = process.env["OPENAI_API_KEY"];
+
+    if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
+
+    _llm = new ChatOpenAI({ model: "gpt-4o-mini", streaming: true, temperature: 0 });
+
+  }
+
+  return _llm;
+
+}
+
+```
+
+  
+
+## SSE Streaming Format
+
+  
+
+All streaming endpoints write `data:` lines in this shape. The client can discriminate on `type`:
+
+  
+
+```typescript
+
+{ type: "token";   content: string  }   // streamed token from LLM
+
+{ type: "sources"; sources: RagSource[] }  // sent once after stream ends
+
+{ type: "done"  }                        // terminal — client closes reader
+
+{ type: "error";  message: string   }   // sent on any thrown error before res.end()
+
+```
+
+  
+
+Required headers on any SSE response:
+
+```typescript
+
+res.setHeader("Content-Type", "text/event-stream");
+
+res.setHeader("Cache-Control", "no-cache");
+
+res.setHeader("Connection", "keep-alive");
+
+res.setHeader("X-Accel-Buffering", "no");
+
+res.flushHeaders();
+
+```
+
+  
+
+## Permission Scoping — Routes Resolve, Agents Consume
+
+  
+
+Routes are responsible for resolving `studentIds` from `req.user`. Agents and retrievers accept an already-resolved `studentIds: string[]` and must never derive permissions themselves.
+
+  
+
+```typescript
+
+// ❌ BAD — agent doing permission work
+
+async function retrieveRelevantChunks(query: string, userId: string) {
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  const studentIds = user.rosterIds;
+
+  ...
+
+}
+
+  
+
+// ✅ GOOD — route resolves, agent consumes
+
+// route: const studentIds = await resolveStudentScope(req.user, studentId);
+
+// agent: await retrieveRelevantChunks(query, studentIds);
+
+```
+
+  
+
+## Service Layer Return Values
+
+  
+
+Services return string literal sentinels instead of throwing for expected failure modes. Routes pattern-match on them.
+
+  
+
+```typescript
+
+// ✅ GOOD — predictable, no try/catch in routes for expected cases
+
+return "not_found" as const;
+
+return "forbidden" as const;
+
+return "conflict" as const;
+
+```
