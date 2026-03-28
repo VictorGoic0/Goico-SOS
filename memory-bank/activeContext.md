@@ -108,6 +108,7 @@ The project has completed core messaging (PRs #1–#11), AI backend and features
 **From docs/tasks-TDD.md (RAG pipeline):**
 
 - ✅ PR #1–#8 TDD: Backfill-if-empty, incremental index-message, topK 5, docs
+- ✅ All **Test Before Merge** items in `docs/tasks-TDD.md` marked done (manual / integration validation, including RAG search)
 
 **Completed Features:**
 

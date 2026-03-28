@@ -398,6 +398,7 @@ eas build --platform android
 - **OpenAI text-embedding-3-small**: Embed messages and queries; one message = one vector; short-message enrichment (&lt;10 words → prepend previous).
 - **Flow**: If Pinecone has **no** vectors for `conversationId`, **`ensureConversationBackfilledForRag`** runs full `indexConversationMessages` (search + agent). Otherwise **incremental**: `POST /api/index-message` after send (`requestIndexMessageForRag` on mobile). Retrieval default **topK = 5**; agent merges recent Firestore messages.
 - **No new deployment**: Pinecone over HTTP from Vercel. See `docs/TDD_RAG_Pipeline.md` and `docs/tasks-TDD.md`.
+- **QA tracking**: All **Test Before Merge** checkboxes in `docs/tasks-TDD.md` are marked complete after manual/integration validation.
 
 ## Future Technical Considerations
 

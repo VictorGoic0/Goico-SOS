@@ -219,10 +219,10 @@ This is the “write path” of the RAG pipeline. Once this works, the index can
 
 **Test Before Merge:**
 
-- [ ] Run `indexConversationMessages` for a test conversation that has messages in Firestore
-- [ ] Verify in Pinecone console (or via describeIndexStats) that vector count increased
-- [ ] Query index by metadata filter `conversationId` and confirm stored metadata matches Firestore
-- [ ] Short messages in test data show enriched text in embedding input (optional: check one vector’s metadata or logs)
+- [x] Run `indexConversationMessages` for a test conversation that has messages in Firestore
+- [x] Verify in Pinecone console (or via describeIndexStats) that vector count increased
+- [x] Query index by metadata filter `conversationId` and confirm stored metadata matches Firestore
+- [x] Short messages in test data show enriched text in embedding input (optional: check one vector’s metadata or logs)
 
 ---
 
@@ -262,10 +262,10 @@ Both the search endpoint and the agent will use this single retrieval function. 
 
 **Test Before Merge:**
 
-- [ ] For a conversation that was indexed in PR #4, call `retrieveMessages(conversationId, "some query")` and get up to 5 results with correct metadata
-- [ ] Query with nonsense/conversation with no vectors returns []
-- [ ] Results are ordered by timestamp (if you added sort)
-- [ ] Metadata includes `text`, `senderUsername`, `messageId`, `timestamp` for display/agent use
+- [x] For a conversation that was indexed in PR #4, call `retrieveMessages(conversationId, "some query")` and get up to 5 results with correct metadata
+- [x] Query with nonsense/conversation with no vectors returns []
+- [x] Results are ordered by timestamp (if you added sort)
+- [x] Metadata includes `text`, `senderUsername`, `messageId`, `timestamp` for display/agent use
 
 ---
 
@@ -314,9 +314,9 @@ Users can find messages by meaning (e.g. “budget concerns” matching “we’
 
 **Test Before Merge:**
 
-- [ ] Search with a query that matches some message by meaning returns that message in top 5
-- [ ] Search in a conversation with no indexed messages returns [] (or triggers indexing then returns results if you implemented that)
-- [ ] Response shape matches what the client expects (manual or integration test)
+- [x] Search with a query that matches some message by meaning returns that message in top 5
+- [x] Search in a conversation with no indexed messages returns [] (or triggers indexing then returns results if you implemented that)
+- [x] Response shape matches what the client expects (manual or integration test)
 
 ---
 
@@ -357,10 +357,10 @@ The agent can reason over the most relevant parts of the conversation instead of
 
 **Test Before Merge:**
 
-- [ ] Agent request that triggers retrieval tool returns an answer that uses retrieved message content
-- [ ] Multiple retrieval tool calls in one turn work (if your agent framework supports it)
-- [ ] Fallback: in a conversation with no or few vectors, agent still receives recent Firestore messages and can answer about them
-- [ ] No regression on agent behavior when retrieval is not used
+- [x] Agent request that triggers retrieval tool returns an answer that uses retrieved message content
+- [x] Multiple retrieval tool calls in one turn work (if your agent framework supports it)
+- [x] Fallback: in a conversation with no or few vectors, agent still receives recent Firestore messages and can answer about them
+- [x] No regression on agent behavior when retrieval is not used
 
 ---
 
@@ -396,9 +396,9 @@ Without a clear trigger, some conversations may never be indexed and search/agen
 
 **Test Before Merge:**
 
-- [ ] Legacy conversation (no vectors): first search or agent retrieval backfills; later searches hit Pinecone.
-- [ ] New message after backfill: incremental endpoint updates index (manual or integration check).
-- [ ] No breaking changes to search or agent API contracts
+- [x] Legacy conversation (no vectors): first search or agent retrieval backfills; later searches hit Pinecone.
+- [x] New message after backfill: incremental endpoint updates index (manual or integration check).
+- [x] No breaking changes to search or agent API contracts
 
 ---
 
