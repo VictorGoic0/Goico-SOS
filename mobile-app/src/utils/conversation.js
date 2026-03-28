@@ -292,7 +292,7 @@ export const uploadGroupPhoto = async (conversationId, imageUri) => {
     );
 
     // Upload image
-    await uploadBytes(storageRef, blob);
+    await uploadBytes(storageRef, blob, { cacheControl: "public, max-age=31536000" });
 
     // Get download URL
     const downloadURL = await getDownloadURL(storageRef);
