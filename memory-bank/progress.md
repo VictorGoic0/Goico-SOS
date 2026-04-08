@@ -14,7 +14,7 @@
 - ✅ **Foundation & Core**: PRs #1–#11 (setup, auth, profiles, messaging, groups, push, read receipts)
 - ✅ **AI Backend & Features**: PRs #13–#16 (Vercel, summarization, action items, search, priority, decision tracking, multi-step agent)
 - ✅ **Polish (completed)**: PR #17 Dark Mode (theme system, Appearance, all screens themed), PR #18 — expo-image, push-on-PC behavior, Android deployment
-- ✅ **Backend Auth & Rate Limiter**: Firebase token verification, Upstash Redis (10/user/24h, 100 global/24h), all API routes protected, mobile sends Bearer token, CORS — implemented and tested
+- ✅ **Backend Auth & Rate Limiter**: Firebase token verification, Upstash Redis (30/user/24h, 1000 global/24h), all API routes protected, mobile sends Bearer token, CORS — implemented and tested
 - ⏳ **Polish (remaining)**: PR #17 Message Reactions, PR #19 (error handling, health check, read receipt settings, docs, optional items)
 - ✅ **RAG Pipeline** (`docs/tasks-TDD.md`): PRs #1–#8 — full backfill when no Pinecone vectors for a conversation, `POST /api/index-message` + mobile fire-and-forget after send, default retrieval topK **5**, README/TDD updated; every **Test Before Merge** row in that file is checked off after validation.
 
@@ -249,7 +249,7 @@
 
 - ✅ `backend/lib/auth.ts`: `verifyToken(req)`, `checkRateLimit(uid)`, `authenticate(req)`
 - ✅ Firebase Admin verifies ID token from `Authorization: Bearer` header
-- ✅ Upstash Redis rate limits: 10 requests/user/24h, 100 global/24h (prefixes `rate:user:sos`, `rate:global:sos`)
+- ✅ Upstash Redis rate limits: 30 requests/user/24h, 1000 global/24h (prefixes `rate:user:sos`, `rate:global:sos`)
 - ✅ All 7 API routes (agent, summarize, search, extract-actions, decisions, priority, send-notification) call `authenticate(req)` at top
 - ✅ Mobile: aiService and notifications send `Authorization: Bearer <idToken>` via `getAuthHeader()`
 - ✅ CORS in next.config.ts (Authorization in allowed headers, optional CORS_ORIGIN)

@@ -30,7 +30,7 @@ The project has completed core messaging (PRs #1–#11), AI backend and features
 ### Recently Completed: **Backend Auth & Rate Limiter**
 
 - ✅ **Auth**: `verifyToken(req)` in `backend/lib/auth.ts` — extracts Bearer token, verifies with Firebase Admin, returns decoded user (uid, email). All 7 API routes (agent, summarize, search, extract-actions, decisions, priority, send-notification) call `authenticate(req)` at top.
-- ✅ **Rate limiter**: `checkRateLimit(uid)` — Upstash Redis (HTTP), fixed window: 10 requests/user/24h, 100 global/24h; prefixes `rate:user:sos`, `rate:global:sos`. 429 response includes `{ error, detail, retryAfter }`.
+- ✅ **Rate limiter**: `checkRateLimit(uid)` — Upstash Redis (HTTP), fixed window: 30 requests/user/24h, 1000 global/24h; prefixes `rate:user:sos`, `rate:global:sos`. 429 response includes `{ error, detail, retryAfter }`.
 - ✅ **Mobile**: `getAuthHeader()` in aiService and notifications — sends `Authorization: Bearer <idToken>` on every backend request; token from `auth.currentUser?.getIdToken()` (auto-refresh).
 - ✅ **CORS**: `next.config.ts` — headers for `/api/:path*`, `Authorization` in allowed headers, origin from `CORS_ORIGIN` env.
 - ✅ **Doc**: `docs/auth-rate-limiter.md` (or `docs/TDD-auth-rate-limiter.md`) — Phase 1 (auth) and Phase 2 (rate limiter) implemented and tested.
@@ -116,7 +116,7 @@ The project has completed core messaging (PRs #1–#11), AI backend and features
 - ✅ PRs #13–#16: AI backend (Vercel), summarization, action items, search, priority, decision tracking, multi-step agent
 - ✅ PR #17 Dark Mode: ThemeContext, themeColors, Appearance (Light/System/Dark), all screens and nav themed
 - ✅ PR #18: AI polish completed (expo-image, push-on-PC doc, Android deployment)
-- ✅ Backend Auth & Rate Limiter: Firebase token verification, Upstash Redis rate limits (10/user/24h, 100 global/24h), mobile sends Bearer token, CORS configured
+- ✅ Backend Auth & Rate Limiter: Firebase token verification, Upstash Redis rate limits (30/user/24h, 1000 global/24h), mobile sends Bearer token, CORS configured
 
 **Documentation layout:** `docs/tasks-1.md` (PRs #1–#12), `docs/tasks-2.md` (PRs #13–#16), `docs/tasks-3.md` (PRs #17–#19), `docs/tasks-TDD.md` (RAG, 8 PRs). See `docs/PRD.md`, `docs/TDD_RAG_Pipeline.md`.
 
@@ -127,7 +127,7 @@ The project has completed core messaging (PRs #1–#11), AI backend and features
 **Implementation:** No Next.js middleware (Edge can't run firebase-admin). Shared helpers in `backend/lib/auth.ts` called at the top of each route:
 
 - **verifyToken(req)** — reads `Authorization: Bearer <token>`, verifies with Firebase Admin `auth.verifyIdToken()`, returns `DecodedIdToken` or throws 401.
-- **checkRateLimit(uid)** — Upstash Redis via `@upstash/ratelimit` + `@upstash/redis`; fixed window 10/user/24h and 100 global/24h (prefixes `rate:user:sos`, `rate:global:sos`). Checks global first, then per-user. On limit exceeded throws 429 with JSON `{ error: "RateLimitExceeded", detail, retryAfter }`.
+- **checkRateLimit(uid)** — Upstash Redis via `@upstash/ratelimit` + `@upstash/redis`; fixed window 30/user/24h and 1000 global/24h (prefixes `rate:user:sos`, `rate:global:sos`). Checks global first, then per-user. On limit exceeded throws 429 with JSON `{ error: "RateLimitExceeded", detail, retryAfter }`.
 - **authenticate(req)** — calls `verifyToken` then `checkRateLimit(user.uid)`, returns decoded user.
 
 **Routes:** All 7 protected routes use `authenticate(req)` (agent, summarize, search, extract-actions, decisions, priority, send-notification). Test route remains unauthenticated.

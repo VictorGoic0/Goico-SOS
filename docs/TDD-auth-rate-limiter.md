@@ -112,8 +112,8 @@ Uses `@upstash/redis` and `@upstash/ratelimit`. Environment variables: `UPSTASH_
 
 ### Strategy: Fixed window, per-user + global
 
-- **Per-user:** 10 requests / 24h (identifier = `uid`), prefix `rate:user:sos`
-- **Global:** 100 requests / 24h (identifier = `"app"`), prefix `rate:global:sos`
+- **Per-user:** 30 requests / 24h (identifier = `uid`), prefix `rate:user:sos`
+- **Global:** 1000 requests / 24h (identifier = `"app"`), prefix `rate:global:sos`
 - Order: check global first, then per-user (global is cheaper to fail fast)
 
 ### `checkRateLimit` signature
@@ -123,7 +123,7 @@ Uses `@upstash/redis` and `@upstash/ratelimit`. Environment variables: `UPSTASH_
 export async function checkRateLimit(uid: string): Promise<void>
 ```
 
-- Uses Upstash Ratelimit `fixedWindow(10, '24 h')` for user and `fixedWindow(100, '24 h')` for global
+- Uses Upstash Ratelimit `fixedWindow(30, '24 h')` for user and `fixedWindow(1000, '24 h')` for global
 - If limit exceeded, throws `Response` with status 429 and JSON body: `{ error: "RateLimitExceeded", detail: string, retryAfter: number }` (retryAfter in seconds)
 - Returns `void` on success
 
@@ -171,7 +171,7 @@ export async function POST(req: Request) {
 |----------|-------------|---------------|
 | Missing `Authorization` header | 401 | `Unauthorized` |
 | Invalid or expired token | 401 | `Unauthorized` |
-| Rate limit exceeded (user) | 429 | `{ "error": "RateLimitExceeded", "detail": "You have reached your daily request limit (10/day).", "retryAfter": number }` |
-| Rate limit exceeded (global) | 429 | `{ "error": "RateLimitExceeded", "detail": "App daily request limit reached (100/day).", "retryAfter": number }` |
+| Rate limit exceeded (user) | 429 | `{ "error": "RateLimitExceeded", "detail": "You have reached your daily request limit (30/day).", "retryAfter": number }` |
+| Rate limit exceeded (global) | 429 | `{ "error": "RateLimitExceeded", "detail": "App daily request limit reached (1000/day).", "retryAfter": number }` |
 
 The mobile app should handle 401 by triggering re-authentication, and 429 by showing the `detail` message and optionally using `retryAfter` for a countdown or disable duration.

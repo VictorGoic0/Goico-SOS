@@ -5,15 +5,20 @@ import { auth } from './firebase-admin';
 
 const redis = Redis.fromEnv();
 
+/** Per Firebase uid, fixed 24h window. */
+const RATE_LIMIT_USER_PER_DAY = 30;
+/** Shared cap across all users, fixed 24h window. */
+const RATE_LIMIT_GLOBAL_PER_DAY = 1000;
+
 const userLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(10, '24 h'),
+  limiter: Ratelimit.fixedWindow(RATE_LIMIT_USER_PER_DAY, '24 h'),
   prefix: 'rate:user:sos',
 });
 
 const globalLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(100, '24 h'),
+  limiter: Ratelimit.fixedWindow(RATE_LIMIT_GLOBAL_PER_DAY, '24 h'),
   prefix: 'rate:global:sos',
 });
 
@@ -47,7 +52,7 @@ export async function verifyToken(req: Request): Promise<admin.auth.DecodedIdTok
 }
 
 /**
- * Checks per-user and global rate limits (10/user/24h, 100 global/24h).
+ * Checks per-user and global rate limits (30/user/24h, 1000 global/24h).
  * Order: global first, then per-user.
  *
  * @throws Response with status 429 and JSON body { error, detail, retryAfter } if either limit exceeded
@@ -58,7 +63,7 @@ export async function checkRateLimit(uid: string): Promise<void> {
     throw new Response(
       JSON.stringify({
         error: 'RateLimitExceeded',
-        detail: 'App daily request limit reached (100/day).',
+        detail: `App daily request limit reached (${RATE_LIMIT_GLOBAL_PER_DAY}/day).`,
         retryAfter: retryAfterSeconds(globalRes.reset),
       }),
       { status: 429, headers: { 'Content-Type': 'application/json' } }
@@ -70,7 +75,7 @@ export async function checkRateLimit(uid: string): Promise<void> {
     throw new Response(
       JSON.stringify({
         error: 'RateLimitExceeded',
-        detail: 'You have reached your daily request limit (10/day).',
+        detail: `You have reached your daily request limit (${RATE_LIMIT_USER_PER_DAY}/day).`,
         retryAfter: retryAfterSeconds(userRes.reset),
       }),
       { status: 429, headers: { 'Content-Type': 'application/json' } }

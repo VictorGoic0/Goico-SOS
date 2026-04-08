@@ -68,7 +68,7 @@ export async function POST(req: Request) {
 
 ## Authentication — Always Via authenticate()
 
-Every route must call `authenticate(req)` before touching any data. This verifies the Firebase ID token and enforces per-user rate limiting (Upstash Redis: 10 req/user/24h, 100 global/24h). The mobile app sends `Authorization: Bearer <idToken>` on every request.
+Every route must call `authenticate(req)` before touching any data. This verifies the Firebase ID token and enforces per-user rate limiting (Upstash Redis: 30 req/user/24h, 1000 global/24h). The mobile app sends `Authorization: Bearer <idToken>` on every request.
 
 ```typescript
 // ❌ BAD — skipping auth
