@@ -2,8 +2,12 @@ import type admin from 'firebase-admin';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { auth } from './firebase-admin';
+import { config } from './config';
 
-const redis = Redis.fromEnv();
+const redis = new Redis({
+  url: config.UPSTASH_REDIS_REST_URL,
+  token: config.UPSTASH_REDIS_REST_TOKEN,
+});
 
 /** Per Firebase uid, fixed 24h window. */
 const RATE_LIMIT_USER_PER_DAY = 30;

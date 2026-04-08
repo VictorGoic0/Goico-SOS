@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
+import { config } from "./lib/config";
 
 const nextConfig: NextConfig = {
   async headers() {
-    const origin = process.env.CORS_ORIGIN ?? "*";
+    const origin = config.CORS_ORIGIN ?? "*";
     return [
       {
         source: "/api/:path*",

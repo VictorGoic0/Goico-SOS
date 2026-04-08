@@ -1,5 +1,5 @@
 import { streamText, tool, stepCountIs } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { openai } from '@/lib/openai-provider';
 import { z } from 'zod';
 import { buildAgentRetrievalContext } from '@/lib/agent-retrieval-context';
 import { searchMessages, groupBy, formatReport, getConversationMessages } from '@/lib/agent-tools';

@@ -1,22 +1,14 @@
 import { Pinecone } from "@pinecone-database/pinecone";
+import { config } from "./config";
 
-const apiKey = process.env.PINECONE_API_KEY;
-const indexName = process.env.PINECONE_INDEX_NAME;
-
-if (!apiKey || !indexName) {
-  throw new Error(
-    "Missing Pinecone env: set PINECONE_API_KEY and PINECONE_INDEX_NAME (e.g. in .env.local)"
-  );
-}
-
-const pinecone = new Pinecone({ apiKey });
+const pinecone = new Pinecone({ apiKey: config.PINECONE_API_KEY });
 
 /**
  * Returns the Pinecone index used for message vectors (RAG pipeline).
  * Index name from env PINECONE_INDEX_NAME; dimensions 512, metric cosine per TDD.
  */
 export function getMessagesIndex() {
-  return pinecone.index({ name: indexName });
+  return pinecone.index({ name: config.PINECONE_INDEX_NAME });
 }
 
 /**

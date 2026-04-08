@@ -245,6 +245,12 @@
 - Priority factors: urgency indicators, deadlines, blockers, escalations
 - Priority stored in message document (prevents re-analysis)
 
+### Backend typed env & Oxlint ✅
+
+- ✅ `backend/lib/config.ts` — Zod `config`; `eslint-js/no-process-env` enforces no other `process.env` usage
+- ✅ `backend/lib/openai-provider.ts` — shared OpenAI provider from `config.OPENAI_API_KEY`
+- ✅ Firebase Admin, Pinecone, CORS headers, Upstash Redis, and all AI routes use `config` / `openai` provider
+
 ### Backend Auth & Rate Limiter ✅ (Complete)
 
 - ✅ `backend/lib/auth.ts`: `verifyToken(req)`, `checkRateLimit(uid)`, `authenticate(req)`

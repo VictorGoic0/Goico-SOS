@@ -1,12 +1,21 @@
 {
-  "plugins": ["unicorn", "typescript"],
+  "plugins": ["unicorn", "typescript", "node"],
   "jsPlugins": ["oxlint-plugin-eslint"],
   "options": {
     "typeAware": true,
     "typeCheck": true
   },
+  "overrides": [
+    {
+      "files": ["lib/config.ts"],
+      "rules": {
+        "node/no-process-env": "off"
+      }
+    }
+  ],
   "rules": {
     "no-unused-vars": "error",
+    "node/no-process-env": "error",
     "eslint-js/id-length": [
       "error",
       {

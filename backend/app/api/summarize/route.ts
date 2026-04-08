@@ -1,5 +1,5 @@
 import { generateText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { openai } from '@/lib/openai-provider';
 import { NextResponse } from 'next/server';
 import { getMessagesFromFirebase } from '@/lib/firebase-admin';
 import { authenticate } from '@/lib/auth';

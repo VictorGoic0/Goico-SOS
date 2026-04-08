@@ -136,6 +136,13 @@ The project has completed core messaging (PRs #1–#11), AI backend and features
 
 **Config:** CORS in `backend/next.config.ts`; env vars: Firebase Admin (existing), `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, optional `CORS_ORIGIN`. Rate limiter tested and working.
 
+### Backend typed env (`lib/config.ts`)
+
+- **`backend/lib/config.ts`**: Zod-validated `config` (single `process.env` parse). Required: Firebase Admin, `OPENAI_API_KEY`, Upstash Redis, Pinecone; optional `CORS_ORIGIN`.
+- **`backend/lib/openai-provider.ts`**: `createOpenAI({ apiKey: config.OPENAI_API_KEY })` — AI routes and `embeddings.ts` import `openai` from here so the SDK does not read env implicitly.
+- **Oxlint**: `eslint-js/no-process-env` error; only `config.ts` uses `process.env` (with inline disable on that line).
+- **Consumers**: `firebase-admin.ts`, `pinecone.ts`, `next.config.ts`, `auth.ts` (explicit `Redis` URL/token), embeddings + agent/summarize/extract-actions/decisions/priority routes.
+
 ### PR #15: Smart Search & Priority Detection (Completed)
 
 **Hybrid Search Implementation:**

@@ -1,5 +1,5 @@
 import { generateObject } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { openai } from "@/lib/openai-provider";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authenticate } from "@/lib/auth";
