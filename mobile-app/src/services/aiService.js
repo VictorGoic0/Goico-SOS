@@ -2,6 +2,31 @@ import { auth } from "../config/firebase";
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
+/**
+ * Fire-and-forget: upsert one message into Pinecone (or full backfill if the
+ * conversation has no vectors yet). Does not block send; errors are logged only.
+ */
+export function requestIndexMessageForRag(conversationId, messageId) {
+  if (!API_URL || !conversationId || !messageId) {
+    return;
+  }
+  void (async () => {
+    try {
+      const headers = await getAuthHeader();
+      const response = await fetch(`${API_URL}/api/index-message`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId, messageId }),
+      });
+      if (!response.ok) {
+        console.warn("RAG index-message failed:", response.status);
+      }
+    } catch (err) {
+      console.warn("RAG index-message error:", err);
+    }
+  })();
+}
+
 async function getAuthHeader() {
   const token = await auth.currentUser?.getIdToken();
   if (!token) throw new Error("Not authenticated");

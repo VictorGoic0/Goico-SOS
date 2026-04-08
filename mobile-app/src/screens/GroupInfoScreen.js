@@ -36,7 +36,7 @@ export default function GroupInfoScreen({ route, navigation }) {
   const [groupPhoto, setGroupPhoto] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   // Pick group photo
   const pickGroupPhoto = async () => {
@@ -137,7 +137,7 @@ export default function GroupInfoScreen({ route, navigation }) {
 
   // Get participants info
   const participants = (conversation?.participants || [])
-    .map((userId) => users.find((u) => u.userId === userId))
+    .map((userId) => users.find((user) => user.userId === userId))
     .filter(Boolean);
 
   const styles = useMemo(

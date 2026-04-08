@@ -1,0 +1,159 @@
+---
+description: Backend architecture conventions for the Next.js Vercel backend
+globs: backend/**/*.ts
+alwaysApply: false
+---
+
+# Backend Patterns
+
+## Folder Responsibilities
+
+```
+backend/
+  app/api/          ← Next.js App Router route handlers. One folder per endpoint.
+    agent/          ← AI agent: streamText + tool calls via Vercel AI SDK
+    index-message/  ← POST: incremental upsert or full backfill (no vectors for conversationId)
+    search/         ← POST: ensureConversationBackfilledForRag + retrieveSearchHits
+    summarize/      ← Conversation summarization
+    extract-actions/← Action item extraction
+    decisions/      ← Decision extraction
+    send-notification/
+  lib/
+    auth.ts         ← verifyToken(), checkRateLimit(), authenticate()
+    firebase-admin.ts ← Firebase Admin singleton (db, auth)
+    pinecone.ts     ← Pinecone client singleton + getMessagesIndex()
+    embeddings.ts   ← embedText(), embedTexts() via text-embedding-3-small
+    rag-types.ts    ← MessageVectorMetadata and shared RAG interfaces
+    agent-tools.ts  ← Tool implementations called by the agent route
+    agent-retrieval-context.ts ← buildAgentRetrievalContext: retrieveMessages + recent Firestore merge
+    message-enrichment.ts  ← Short-message enrichment, buildEnrichedTextsForIndex
+    firestore-messages.ts  ← getMessagesForConversation(), getMessagesFromFirebase()
+    index-messages.ts      ← indexConversationMessages() — embed + Pinecone upsert
+    retrieve-messages.ts   ← retrieveMessages() — Pinecone query path
+    retrieve-messages-utils.ts ← parse Pinecone metadata → MessageVectorMetadata; chronological sort
+```
+
+**Hard rules:**
+- Route handlers in `app/api/` are thin: parse input, authenticate, call lib functions, return response. No business logic inline.
+- `lib/` files are pure functions or singletons — no `Request`/`Response` imports.
+- Firebase Admin (`lib/firebase-admin.ts`) is the only Firestore access point. Never use the client-side `firebase` SDK in the backend.
+
+## Route Handler Pattern
+
+All routes use the Next.js App Router `export async function POST(req: Request)` convention. Authentication is required on every route via `authenticate(req)` from `lib/auth.ts`.
+
+```typescript
+// ✅ GOOD — thin route handler
+export async function POST(req: Request) {
+  try {
+    await authenticate(req);
+  } catch (e) {
+    if (e instanceof Response) return e;
+    throw e;
+  }
+
+  const { conversationId, query } = await req.json();
+
+  if (!conversationId || !query) {
+    return new Response(
+      JSON.stringify({ error: "conversationId and query are required" }),
+      { status: 400 }
+    );
+  }
+
+  const results = await retrieveMessages(conversationId, query);
+  return new Response(JSON.stringify(results), { status: 200 });
+}
+```
+
+## Authentication — Always Via authenticate()
+
+Every route must call `authenticate(req)` before touching any data. This verifies the Firebase ID token and enforces per-user rate limiting (Upstash Redis: 10 req/user/24h, 100 global/24h). The mobile app sends `Authorization: Bearer <idToken>` on every request.
+
+```typescript
+// ❌ BAD — skipping auth
+export async function POST(req: Request) {
+  const { conversationId } = await req.json();
+  // ... direct data access
+}
+
+// ✅ GOOD
+export async function POST(req: Request) {
+  try {
+    await authenticate(req);
+  } catch (e) {
+    if (e instanceof Response) return e;
+    throw e;
+  }
+  // ... safe to proceed
+}
+```
+
+## Agent Pattern — Vercel AI SDK (Simple Flows)
+
+Use the **Vercel AI SDK** (`ai` + `@ai-sdk/openai`) with `streamText` and `tool()` for the existing agent flows. This is the current implementation in `app/api/agent/route.ts`.
+
+```typescript
+import { streamText, tool, stepCountIs } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
+
+const agentTools = {
+  getConversationMessages: tool({
+    description: "...",
+    inputSchema: z.object({ conversationId: z.string(), limit: z.number().optional() }),
+    execute: async ({ conversationId, limit }) =>
+      getConversationMessages(conversationId, Math.min(limit ?? 50, 50)),
+  }),
+};
+
+const result = streamText({
+  model: openai("gpt-4o-mini"),
+  tools: agentTools,
+  system: systemPrompt,
+  prompt: userQuery,
+  stopWhen: [stepCountIs(5)],
+});
+
+return result.toTextStreamResponse();
+```
+
+## RAG Pipeline — LangGraph for Graph Logic
+
+For the RAG pipeline (PR #4–#8 in tasks-TDD.md), use **LangGraph** for any graph-structured orchestration (retrieve → enrich → embed → upsert; or query → retrieve → fallback → LLM). LangGraph produces clean, testable node functions with explicit state transitions.
+
+**Rule:**
+- Simple, linear agent flows (current agent) → **Vercel AI SDK** `streamText` + `tool()`
+- RAG graph orchestration (multi-step retrieval, index-on-first-use, fallback) → **LangGraph**
+
+The retrieval and embedding primitives (`embedText`, `retrieveMessages`, `indexConversationMessages`) live in `lib/` and are called by both the Vercel AI SDK tools and LangGraph nodes.
+
+```
+RAG Graph nodes (backend/lib/rag-graph/ or backend/lib/rag/nodes/):
+  checkIndexed.ts     ← Is this conversation indexed in Pinecone?
+  indexMessages.ts    ← Fetch Firestore → enrich → embed → upsert
+  retrieveMessages.ts ← Embed query → Pinecone query → top 5 (DEFAULT_TOP_K)
+  fallbackRecent.ts   ← Fetch N most recent from Firestore, dedupe by messageId
+  buildContext.ts     ← Merge retrieved + fallback → LLM context string
+```
+
+## RAG Infrastructure
+
+One Pinecone index (`messages`), 512 dimensions, cosine similarity. All conversations share the index; filter by `conversationId` metadata at query time. Never use separate indexes or namespaces per conversation.
+
+**Short-message enrichment**: If a message has fewer than 10 words, prepend the previous message's text before embedding. Implemented in `lib/message-enrichment.ts`.
+
+**Fallback for recent messages**: After Pinecone retrieval, always append the N most recent messages from Firestore (deduped by `messageId`) so the agent sees messages not yet indexed.
+
+## Firebase Admin — Only Entry Point to Firestore
+
+All Firestore reads/writes in the backend go through `lib/firebase-admin.ts`. Never import the client-side `firebase` SDK here.
+
+```typescript
+// ❌ BAD — client SDK in backend
+import { getFirestore } from "firebase/firestore";
+
+// ✅ GOOD — Admin SDK
+import { db } from "@/lib/firebase-admin";
+const snap = await db.collection("conversations").doc(conversationId).collection("messages").get();
+```

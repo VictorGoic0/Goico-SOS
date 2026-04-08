@@ -1,3 +1,4 @@
+import { requestIndexMessageForRag } from "../services/aiService";
 import {
   addDoc,
   arrayRemove,
@@ -163,6 +164,8 @@ export const sendMessage = async (
       text
     ).catch((err) => console.error("Push notification failed:", err));
 
+    requestIndexMessageForRag(conversationId, docRef.id);
+
     return {
       messageId: docRef.id,
       ...messageData,
@@ -181,12 +184,12 @@ export const sendMessage = async (
 export const getUserConversations = async (userId) => {
   try {
     const conversationsRef = collection(db, "conversations");
-    const q = query(
+    const conversationsQuery = query(
       conversationsRef,
       where("participants", "array-contains", userId)
     );
 
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(conversationsQuery);
 
     const conversations = querySnapshot.docs.map((doc) => ({
       conversationId: doc.id,
@@ -244,13 +247,13 @@ export const listenToConversations = (userId) => {
   }
 
   const conversationsRef = collection(db, "conversations");
-  const q = query(
+  const conversationsQuery = query(
     conversationsRef,
     where("participants", "array-contains", userId)
   );
 
   const unsubscribe = onSnapshot(
-    q,
+    conversationsQuery,
     (snapshot) => {
       // Store full conversation data in global store
       const conversationsData = snapshot.docs.map((doc) => ({
@@ -289,7 +292,7 @@ export const uploadGroupPhoto = async (conversationId, imageUri) => {
     );
 
     // Upload image
-    await uploadBytes(storageRef, blob);
+    await uploadBytes(storageRef, blob, { cacheControl: "public, max-age=31536000" });
 
     // Get download URL
     const downloadURL = await getDownloadURL(storageRef);

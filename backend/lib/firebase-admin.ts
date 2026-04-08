@@ -28,39 +28,12 @@ export interface FirebaseMessage {
   imageURL?: string | null;
 }
 
-/**
- * Helper function to fetch messages from a conversation
- * @param conversationId - The ID of the conversation
- * @param limit - Maximum number of messages to fetch (default: 50)
- * @returns Array of messages with their data
- */
-export async function getMessagesFromFirebase(
-  conversationId: string,
-  limit: number = 50
-): Promise<FirebaseMessage[]> {
-  try {
-    const messagesRef = db
-      .collection("conversations")
-      .doc(conversationId)
-      .collection("messages")
-      .orderBy("timestamp", "desc")
-      .limit(limit);
+export {
+  getMessagesForConversation,
+  getMessagesFromFirebase,
+} from "./firestore-messages";
 
-    const snapshot = await messagesRef.get();
-
-    if (snapshot.empty) {
-      return [];
-    }
-
-    // Map documents to message objects
-    const messages = snapshot.docs.map((doc) => ({
-      messageId: doc.id,
-      ...doc.data(),
-    }));
-
-    return messages as FirebaseMessage[];
-  } catch (error) {
-    console.error("Error fetching messages from Firebase:", error);
-    throw new Error("Failed to fetch messages from database");
-  }
-}
+export type {
+  ConversationMessageRecord,
+  GetMessagesOptions,
+} from "./firestore-messages";

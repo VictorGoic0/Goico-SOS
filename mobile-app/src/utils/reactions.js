@@ -32,7 +32,7 @@ export async function addReaction(conversationId, messageId, userId, emoji) {
   if (snapshot.exists()) {
     const reactions = snapshot.data().reactions || [];
     const alreadyReacted = reactions.some(
-      (r) => r.userId === userId && r.emoji === emoji
+      (reaction) => reaction.userId === userId && reaction.emoji === emoji
     );
     if (alreadyReacted) return;
   }
@@ -75,7 +75,7 @@ export async function removeReaction(
   const data = snapshot.data();
   const reactions = data.reactions || [];
   const toRemove = reactions.find(
-    (r) => r.userId === userId && r.emoji === emoji
+    (reaction) => reaction.userId === userId && reaction.emoji === emoji
   );
   if (!toRemove) return;
 

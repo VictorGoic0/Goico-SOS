@@ -39,13 +39,11 @@ export default function CreateGroupScreen({ navigation }) {
 
   // Toggle user selection
   const toggleUserSelection = (userId) => {
-    setSelectedUsers((prev) => {
-      if (prev.includes(userId)) {
-        return prev.filter((id) => id !== userId);
-      } else {
-        return [...prev, userId];
-      }
-    });
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
   };
 
   // Pick group photo (Task 27)

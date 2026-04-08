@@ -1,13 +1,13 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **Core + AI + Dark Mode + Backend Auth & Rate Limiter + Polish (Partial) Done; Message Reactions, PR #19, RAG Next**
+## Current Status: **Core + AI + Dark Mode + Backend Auth & Rate Limiter + RAG TDD Complete; Message Reactions, PR #19 Next**
 
 ### Task Files (docs/)
 
 - **tasks-1.md** — PRs #1–#12 (core app; many done)
 - **tasks-2.md** — PRs #13–#16 (AI backend & features; done)
 - **tasks-3.md** — PRs #17–#19 (dark mode, polish completed/remaining)
-- **tasks-TDD.md** — RAG pipeline, 8 PRs (planned)
+- **tasks-TDD.md** — RAG pipeline, 8 PRs (**done**)
 
 ### Overall Progress
 
@@ -16,7 +16,7 @@
 - ✅ **Polish (completed)**: PR #17 Dark Mode (theme system, Appearance, all screens themed), PR #18 — expo-image, push-on-PC behavior, Android deployment
 - ✅ **Backend Auth & Rate Limiter**: Firebase token verification, Upstash Redis (10/user/24h, 100 global/24h), all API routes protected, mobile sends Bearer token, CORS — implemented and tested
 - ⏳ **Polish (remaining)**: PR #17 Message Reactions, PR #19 (error handling, health check, read receipt settings, docs, optional items)
-- ⏳ **RAG Pipeline**: 0% (tasks-TDD.md — Pinecone, embeddings, indexing, retrieval, search/agent RAG)
+- ✅ **RAG Pipeline** (`docs/tasks-TDD.md`): PRs #1–#8 — full backfill when no Pinecone vectors for a conversation, `POST /api/index-message` + mobile fire-and-forget after send, default retrieval topK **5**, README/TDD updated; every **Test Before Merge** row in that file is checked off after validation.
 
 ## What Works (Completed)
 
@@ -375,9 +375,10 @@
 
 ### Phase 9: RAG Pipeline (docs/tasks-TDD.md)
 
-**Status**: Not started (8 PRs)
+**Status**: Complete — PRs #1–#8
 
-- Pinecone setup & index; embedding service & metadata; message enrichment & indexing; retrieval; search endpoint RAG; agent retrieval tool; indexing triggers & docs. See `docs/TDD_RAG_Pipeline.md` and `docs/tasks-TDD.md`.
+- Pinecone + embeddings + enrichment + `indexConversationMessages` + retrieval (`DEFAULT_TOP_K = 5`) + RAG search + agent `retrieveRelevantMessages` / `buildAgentRetrievalContext`.
+- PR #8: `ensureConversationBackfilledForRag` before search and agent retrieval; `POST /api/index-message` + `processIndexMessageAfterSend`; mobile `requestIndexMessageForRag` after `sendMessage`. Docs: `TDD_RAG_Pipeline.md`, `tasks-TDD.md`, `backend/README.md`.
 
 ### Phase 8: Final Polish (Day 7)
 
@@ -438,10 +439,9 @@
 1. **PR #17 Message Reactions**: reactions utils, MessageReactions, ReactionPicker, Firestore schema (Dark Mode done).
 2. **PR #19**: Remaining polish — backend error handler, health check, README, deploy; mobile error handling, skeletons, read receipt settings; optional push profile photos; test-all-AI checklist.
 
-### From docs/tasks-TDD.md (after polish)
+### From docs/tasks-TDD.md
 
-3. **RAG PR #1**: Pinecone account, index `messages` (1536 dims, cosine), backend env and client.
-4. **RAG PRs #2–#8**: Embeddings, metadata, enrichment & indexing, retrieval, search endpoint RAG, agent retrieval tool, indexing triggers & docs.
+3. ✅ **RAG PRs #1–#8**: Complete (see Phase 9 above).
 
 ## Success Metrics Tracking
 

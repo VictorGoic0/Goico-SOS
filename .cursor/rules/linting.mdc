@@ -1,0 +1,66 @@
+---
+description: Linting standards and auto-fix workflow for all JS, JSX, TS, and TSX files
+globs: **/*.js, **/*.jsx, **/*.ts, **/*.tsx
+alwaysApply: false
+---
+
+# Linting Workflow
+
+After any substantive edit to a `.js`, `.jsx`, `.ts`, or `.tsx` file:
+
+1. Run `npm run lint:fix` in the relevant project directory (`mobile-app/` or `backend/`) — runs `oxlint --fix --fix-suggestions --fix-dangerously` to auto-fix what it can
+2. Use `ReadLints` on edited files to catch anything the linter can't auto-fix
+3. Fix remaining errors manually
+4. Never leave a task marked complete with outstanding lint errors
+
+# No Conditional Spread
+
+Never use `...(condition && { key: value })` to build objects conditionally. It is hard to read and obscures intent.
+
+```javascript
+// ❌ BAD
+await updateDoc(conversationRef, {
+  ...(data.groupName !== undefined && { groupName: data.groupName }),
+  ...(data.groupImageURL !== undefined && { groupImageURL: data.groupImageURL }),
+});
+
+// ✅ GOOD
+const updates = {};
+if (data.groupName !== undefined) updates.groupName = data.groupName;
+if (data.groupImageURL !== undefined) updates.groupImageURL = data.groupImageURL;
+await updateDoc(conversationRef, updates);
+```
+
+# Type Imports (TypeScript files only)
+
+Always use `import type` for type-only imports. Enforced by `@typescript-eslint/consistent-type-imports`.
+
+```typescript
+// ❌ BAD
+import { MessageVectorMetadata } from "@/lib/rag-types";
+
+// ✅ GOOD
+import type { MessageVectorMetadata } from "@/lib/rag-types";
+```
+
+# No Inline `any` Casts Against Firebase Admin Results
+
+Firebase Admin SDK query results are typed as `any`. Do not leave them untyped in production code — define an interface or use `as` narrowing explicitly.
+
+```typescript
+// ❌ BAD — message is silently any
+const messages = snapshot.docs.map((doc: any) => ({ messageId: doc.id, ...doc.data() }));
+
+// ✅ GOOD — shape is explicit
+interface FirestoreMessage {
+  messageId: string;
+  senderId: string;
+  senderUsername: string;
+  text: string;
+  timestamp: FirebaseFirestore.Timestamp;
+}
+const messages: FirestoreMessage[] = snapshot.docs.map((doc) => ({
+  messageId: doc.id,
+  ...(doc.data() as Omit<FirestoreMessage, "messageId">),
+}));
+```

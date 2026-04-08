@@ -1,0 +1,19 @@
+{
+  "plugins": ["unicorn", "react", "react-hooks"],
+  "jsPlugins": ["oxlint-plugin-eslint"],
+  "rules": {
+    "no-unused-vars": "error",
+    "eslint-js/id-length": [
+      "error",
+      {
+        "min": 2,
+        "exceptions": ["i", "e"]
+      }
+    ],
+    "unicorn/no-useless-spread": "error",
+    "unicorn/prefer-ternary": "warn",
+    "react/jsx-no-target-blank": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
+  }
+}

@@ -1,6 +1,7 @@
 import { streamText, tool, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
+import { buildAgentRetrievalContext } from '@/lib/agent-retrieval-context';
 import { searchMessages, groupBy, formatReport, getConversationMessages } from '@/lib/agent-tools';
 import { authenticate } from '@/lib/auth';
 
@@ -14,6 +15,18 @@ const agentTools = {
     }),
     execute: async ({ conversationId, limit }) => {
       return await getConversationMessages(conversationId, Math.min(limit ?? 50, 50));
+    },
+  }),
+
+  retrieveRelevantMessages: tool({
+    description:
+      'Semantic retrieval: finds up to 5 messages most relevant to a natural-language query (vector search over indexed messages), plus merges in the most recent messages from the database that may not be indexed yet. Use when the user asks about specific topics, themes, people, or decisions that may appear anywhere in the thread—not only in the last few dozen messages. Pass the same conversationId as in the prompt. You can call this multiple times with different queries in one turn.',
+    inputSchema: z.object({
+      conversationId: z.string().describe('The conversation ID (must match the active chat)'),
+      query: z.string().describe('What to search for in meaning (e.g. "budget and deadlines", "what Sarah agreed to")'),
+    }),
+    execute: async ({ conversationId, query }) => {
+      return await buildAgentRetrievalContext(conversationId, query);
     },
   }),
 
@@ -94,7 +107,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const systemPrompt = `You are an AI assistant helping remote teams analyze their conversations. You have access to tools that let you fetch messages, search, extract insights, and generate reports.
+    const systemPrompt = `You are an AI assistant helping remote teams analyze their conversations. You have access to tools that let you fetch messages, run semantic retrieval (vector search), search by date/keyword, extract insights, and generate reports.
 
 RESPONSE FRAMEWORK:
 1. Understand the request - Identify what information the user needs
@@ -103,13 +116,14 @@ RESPONSE FRAMEWORK:
 4. Provide clear response - Deliver natural, conversational answers (not raw tool output)
 
 GUIDELINES:
-- Always call getConversationMessages first for summarization, analysis, or general queries
-- Use searchMessages only when the user specifies a date range or keyword
-- For vague requests, start broad with getConversationMessages rather than making assumptions
+- For broad summaries or "what happened recently", call getConversationMessages first (up to 50 messages in chronological order)
+- For questions about specific topics, themes, people, or decisions that might appear anywhere in the thread, use retrieveRelevantMessages with a clear natural-language query. You may call it multiple times with different queries in one turn
+- retrieveRelevantMessages merges semantic hits with the latest messages from the database so very new messages are not missed even if not yet in the vector index
+- Use searchMessages only when the user specifies a date range or keyword filter (not for general semantic meaning)
 - Chain tools together - use output from one tool as input to another
 - When no relevant data is found, acknowledge it and suggest alternative approaches
 - Keep responses concise and actionable
-- If the conversation has fewer than 50 messages, you'll get all of them
+- If the conversation has fewer than 50 messages, you'll get all of them from getConversationMessages
 - Interpret tool results in context of the user's original question
 - After calling tools, ALWAYS generate a final text response - never leave the response empty
 
@@ -122,7 +136,14 @@ Approach:
 2. Read through messages and identify key themes
 3. Respond with natural summary highlighting main topics and outcomes
 
-Example 2 - Complex Multi-Step Query:
+Example 2 - Topic-specific:
+User: "What did we decide about the launch date?"
+Approach:
+1. Call retrieveRelevantMessages(conversationId, "launch date decisions and agreements")
+2. Optionally call getConversationMessages if you need more surrounding context
+3. Answer from the retrieved lines
+
+Example 3 - Complex Multi-Step Query:
 User: "Show me action items grouped by person"
 Approach:
 1. Call getConversationMessages(conversationId, 50)
@@ -136,7 +157,7 @@ Approach:
       tools: agentTools,
       system: systemPrompt,
       prompt: `Conversation ID: ${conversationId}\n\nUser request: ${userQuery}`,
-      stopWhen: [stepCountIs(5)],
+      stopWhen: [stepCountIs(10)],
     });
 
     return result.toTextStreamResponse();

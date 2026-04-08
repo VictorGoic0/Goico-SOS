@@ -90,6 +90,10 @@ export default function CompactInput({
     [colors]
   );
 
+  const handleSubmit = () => {
+    if (canSubmit && onSubmit) onSubmit();
+  };
+
   return (
     <View style={[styles.container, style]}>
       <TextInput
@@ -101,6 +105,9 @@ export default function CompactInput({
         multiline={multiline}
         maxLength={maxLength}
         autoFocus={autoFocus}
+        returnKeyType="send"
+        onSubmitEditing={handleSubmit}
+        blurOnSubmit={false}
         style={[styles.input, inputStyle]}
         {...props}
       />
@@ -110,7 +117,7 @@ export default function CompactInput({
           !canSubmit && styles.submitButtonDisabled,
           buttonStyle,
         ]}
-        onPress={onSubmit}
+        onPress={handleSubmit}
         disabled={!canSubmit}
         activeOpacity={0.7}
       >

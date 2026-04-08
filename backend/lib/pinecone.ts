@@ -13,7 +13,7 @@ const pinecone = new Pinecone({ apiKey });
 
 /**
  * Returns the Pinecone index used for message vectors (RAG pipeline).
- * Index name from env PINECONE_INDEX_NAME; dimensions 1536, metric cosine per TDD.
+ * Index name from env PINECONE_INDEX_NAME; dimensions 512, metric cosine per TDD.
  */
 export function getMessagesIndex() {
   return pinecone.index({ name: indexName });

@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     // Create prompt
     const conversationText = messages
       .reverse() // Chronological order
-      .map(m => `${m.senderUsername}: ${m.text}`)
+      .map(message => `${message.senderUsername}: ${message.text}`)
       .join('\n');
 
     const prompt = `Summarize this conversation thread in 2-3 bullet points. Focus on key topics, decisions, and action items:

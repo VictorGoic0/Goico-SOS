@@ -151,11 +151,11 @@ export default function ChatScreen({ route, navigation }) {
       conversationId,
       "messages"
     );
-    const q = query(messagesRef, orderBy("timestamp", "asc"));
+    const messagesQuery = query(messagesRef, orderBy("timestamp", "asc"));
 
     // includeMetadataChanges: true enables tracking of local writes
     const unsubscribe = onSnapshot(
-      q,
+      messagesQuery,
       { includeMetadataChanges: true },
       (snapshot) => {
         const messagesList = snapshot.docs.map((doc) => {
@@ -741,16 +741,19 @@ export default function ChatScreen({ route, navigation }) {
       ),
     });
   }, [
-    navigation,
-    otherUser,
-    isOnline,
-    conversationMessages.length,
-    isDeleting,
-    isGroup,
-    styles,
-    conversation,
-    conversationId,
-  ]);
+	navigation,
+	otherUser,
+	isOnline,
+	conversationMessages.length,
+	isDeleting,
+	isGroup,
+	styles,
+	conversation,
+	conversationId,
+	colors.statusAvailable,
+	colors.textDisabled,
+	showSearchBar
+]);
 
   // Handle send message
   const handleSend = async () => {
