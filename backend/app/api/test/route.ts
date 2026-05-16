@@ -16,9 +16,9 @@ export async function GET() {
  * Test POST endpoint
  * Echoes back the data sent to it
  */
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
+    const body = await request.json();
 
     return NextResponse.json({
       message: "Received your data!",

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { firebaseAdmin } from "@/lib/firebase/firebase-admin";
-import { authenticate } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
     try {
-      await authenticate(req);
+      await auth.authenticate(request);
     } catch (e) {
       if (e instanceof Response) return e;
       throw e;
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       senderId,
       senderUsername,
       messageText,
-    } = await req.json();
+    } = await request.json();
 
     const conversation = await firebaseAdmin.getConversation(conversationId)
 

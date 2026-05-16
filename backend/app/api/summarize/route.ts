@@ -3,18 +3,18 @@ import { openai } from '@/lib/openai-provider';
 import { NextResponse } from 'next/server';
 import type { FirebaseMessage } from '@/lib/firebase/firebase-admin';
 import { firebaseAdmin } from '@/lib/firebase/firebase-admin';
-import { authenticate } from '@/lib/auth';
+import { auth } from '@/lib/auth/auth';
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
     try {
-      await authenticate(req);
+      await auth.authenticate(request);
     } catch (e) {
       if (e instanceof Response) return e;
       throw e;
     }
 
-    const { conversationId, messageCount = 50 } = await req.json();
+    const { conversationId, messageCount = 50 } = await request.json();
 
     // Validate input
     if (!conversationId) {

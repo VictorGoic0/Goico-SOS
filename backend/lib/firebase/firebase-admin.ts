@@ -34,17 +34,10 @@ export interface MessageQueryOptions {
 
 class FirebaseAdmin {
   private db: admin.firestore.Firestore;
-  private auth: admin.auth.Auth;
 
   constructor(adminInstance: typeof admin) {
     this.db = adminInstance.firestore();
-    this.auth = adminInstance.auth();
   }
-
-  async verifyAndDecodeToken(token: string): Promise<admin.auth.DecodedIdToken> {
-    return this.auth.verifyIdToken(token);
-  }
-
   async getUser(userId: string) {
     const user = (await this.db.collection("users").doc(userId).get()).data()
     return user

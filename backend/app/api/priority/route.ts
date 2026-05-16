@@ -2,7 +2,7 @@ import { generateObject } from "ai";
 import { openai } from "@/lib/openai-provider";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { authenticate } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 
 // Define priority detection schema
 const PrioritySchema = z.object({
@@ -11,16 +11,16 @@ const PrioritySchema = z.object({
   urgencyScore: z.number().min(0).max(10),
 });
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
     try {
-      await authenticate(req);
+      await auth.authenticate(request);
     } catch (e) {
       if (e instanceof Response) return e;
       throw e;
     }
 
-    const { messageText } = await req.json();
+    const { messageText } = await request.json();
 
     // Validate input
     if (!messageText) {

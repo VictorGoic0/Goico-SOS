@@ -3,7 +3,7 @@ import { openai } from '@/lib/openai-provider';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { firebaseAdmin } from '@/lib/firebase/firebase-admin';
-import { authenticate } from '@/lib/auth';
+import { auth } from '@/lib/auth/auth';
 
 // Define Zod schema for action items
 const ActionItemSchema = z.object({
@@ -29,16 +29,16 @@ interface Message {
   imageURL?: string;
 }
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
     try {
-      await authenticate(req);
+      await auth.authenticate(request);
     } catch (e) {
       if (e instanceof Response) return e;
       throw e;
     }
 
-    const { conversationId, messageCount = 100 } = await req.json();
+    const { conversationId, messageCount = 100 } = await request.json();
 
     // Validate input
     if (!conversationId) {

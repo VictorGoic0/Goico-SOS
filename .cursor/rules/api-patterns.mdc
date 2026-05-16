@@ -40,19 +40,19 @@ backend/
 
 ## Route Handler Pattern
 
-All routes use the Next.js App Router `export async function POST(req: Request)` convention. Authentication is required on every route via `authenticate(req)` from `lib/auth.ts`.
+All routes use the Next.js App Router `export async function POST(request: Request)` convention. Authentication is required on every route via `auth.authenticate(request)` from `lib/auth/auth.ts`.
 
 ```typescript
 // ✅ GOOD — thin route handler
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    await authenticate(req);
+    await auth.authenticate(request);
   } catch (e) {
     if (e instanceof Response) return e;
     throw e;
   }
 
-  const { conversationId, query } = await req.json();
+  const { conversationId, query } = await request.json();
 
   if (!conversationId || !query) {
     return new Response(
@@ -68,19 +68,19 @@ export async function POST(req: Request) {
 
 ## Authentication — Always Via authenticate()
 
-Every route must call `authenticate(req)` before touching any data. This verifies the Firebase ID token and enforces per-user rate limiting (Upstash Redis: 30 req/user/24h, 1000 global/24h). The mobile app sends `Authorization: Bearer <idToken>` on every request.
+Every route must call `auth.authenticate(request)` before touching any data. This verifies the Firebase ID token and enforces per-user rate limiting (Upstash Redis: 30 req/user/24h, 1000 global/24h). The mobile app sends `Authorization: Bearer <idToken>` on every request.
 
 ```typescript
 // ❌ BAD — skipping auth
-export async function POST(req: Request) {
-  const { conversationId } = await req.json();
+export async function POST(request: Request) {
+  const { conversationId } = await request.json();
   // ... direct data access
 }
 
 // ✅ GOOD
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    await authenticate(req);
+    await auth.authenticate(request);
   } catch (e) {
     if (e instanceof Response) return e;
     throw e;

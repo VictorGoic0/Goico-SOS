@@ -3,7 +3,7 @@ import { openai } from '@/lib/openai-provider';
 import { z } from 'zod';
 import { ragPipeline } from '@/lib/rag/pipeline';
 import { searchMessages, groupBy, formatReport, getConversationMessages } from '@/lib/agent-tools';
-import { authenticate } from '@/lib/auth';
+import { auth } from '@/lib/auth/auth';
 
 // Define tools the agent can use
 const agentTools = {
@@ -89,16 +89,16 @@ const agentTools = {
   }),
 };
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
     try {
-      await authenticate(req);
+      await auth.authenticate(request);
     } catch (e) {
       if (e instanceof Response) return e;
       throw e;
     }
 
-    const { userQuery, conversationId } = await req.json();
+    const { userQuery, conversationId } = await request.json();
 
     if (!userQuery || !conversationId) {
       return new Response(

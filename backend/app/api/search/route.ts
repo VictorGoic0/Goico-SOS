@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-import { authenticate } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 import { ragPipeline } from "@/lib/rag/pipeline";
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
     try {
-      await authenticate(req);
+      await auth.authenticate(request);
     } catch (error) {
       if (error instanceof Response) return error;
       throw error;
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const { conversationId, query } = body as {
       conversationId?: string;
       query?: string;
