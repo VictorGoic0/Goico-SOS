@@ -1,7 +1,7 @@
 import { embed } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
-import { getMessagesFromFirebase, FirebaseMessage } from "@/lib/firebase-admin";
+import { firebaseAdmin, FirebaseMessage } from "@/lib/firebase-admin";
 
 // Search configuration
 const SIMILARITY_THRESHOLD = 0.4; // Adjust this to tune search precision vs recall
@@ -42,10 +42,8 @@ export async function POST(req: Request) {
     }
 
     // Fetch messages from Firebase
-    const messages: FirebaseMessage[] = await getMessagesFromFirebase(
-      conversationId,
-      messageCount
-    );
+    const messages: FirebaseMessage[] =
+      await firebaseAdmin.getMessagesFromFirebase(conversationId, messageCount);
 
     if (messages.length === 0) {
       return NextResponse.json({ 

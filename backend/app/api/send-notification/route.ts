@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firebase-admin";
+import { firebaseAdmin } from "@/lib/firebase-admin";
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     } = await req.json();
 
     // Get conversation to find recipients
-    const conversationRef = db
+    const conversationRef = firebaseAdmin.db
       .collection("conversations")
       .doc(conversationId);
     const conversation = await conversationRef.get();
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const recipients = participants.filter((id: string) => id !== senderId);
 
     // Get sender's user data for display name and profile photo
-    const senderDoc = await db.collection("users").doc(senderId).get();
+    const senderDoc = await firebaseAdmin.db.collection("users").doc(senderId).get();
     const senderData = senderDoc.data();
     const senderDisplayName = senderData?.displayName || senderUsername;
     const senderImageURL = senderData?.imageURL || null;
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     // Get push tokens for recipients
     const pushTokens: string[] = [];
     for (const recipientId of recipients) {
-      const userDoc = await db.collection("users").doc(recipientId).get();
+      const userDoc = await firebaseAdmin.db.collection("users").doc(recipientId).get();
       const pushToken = userDoc.data()?.pushToken;
       if (pushToken) {
         pushTokens.push(pushToken);

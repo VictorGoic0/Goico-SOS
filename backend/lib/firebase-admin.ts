@@ -1,6 +1,6 @@
 import admin from "firebase-admin";
+import { QuerySnapshot } from "firebase-admin/firestore";
 
-// Initialize Firebase Admin SDK (singleton pattern)
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -10,12 +10,6 @@ if (!admin.apps.length) {
     }),
   });
 }
-
-// Export Firestore and Auth instances
-export const db = admin.firestore();
-export const auth = admin.auth();
-
-// Define message interface
 export interface FirebaseMessage {
   messageId: string;
   senderId: string;
@@ -28,39 +22,108 @@ export interface FirebaseMessage {
   imageURL?: string | null;
 }
 
-/**
- * Helper function to fetch messages from a conversation
- * @param conversationId - The ID of the conversation
- * @param limit - Maximum number of messages to fetch (default: 50)
- * @returns Array of messages with their data
- */
-export async function getMessagesFromFirebase(
-  conversationId: string,
-  limit: number = 50
-): Promise<FirebaseMessage[]> {
-  try {
-    const messagesRef = db
-      .collection("conversations")
-      .doc(conversationId)
-      .collection("messages")
-      .orderBy("timestamp", "desc")
-      .limit(limit);
+class FirebaseAdmin {
+  private db: admin.firestore.Firestore;
+  private auth: admin.auth.Auth;
 
-    const snapshot = await messagesRef.get();
+  constructor(adminInstance: typeof admin) {
+    this.db = adminInstance.firestore();
+    this.auth = adminInstance.auth();
+  }
 
-    if (snapshot.empty) {
-      return [];
+    /**
+   * Helper function to fetch messages from a conversation
+   * @param conversationId - The ID of the conversation
+   * @param limit - Maximum number of messages to fetch (default: 50)
+   * @returns Array of messages with their data
+   */
+  async getMessagesFromFirebase(
+    conversationId: string,
+    limit: number = 50
+  ): Promise<FirebaseMessage[]> {
+    try {
+      const snapshot = await this.getConversationSnapshot(conversationId, limit)
+
+      if (this.isEmpty(snapshot)) {
+        return [];
+      }
+
+      const messages = this.snapshotToMessages(snapshot);
+      return messages as FirebaseMessage[];
+    } catch (error) {
+      console.error("Error fetching messages from Firebase:", error);
+      throw new Error("Failed to fetch messages from database");
+    }
+  }
+
+  async getConversationSnapshot(conversationId: string, limit: number = 50): Promise<QuerySnapshot> {
+    const messagesRef = this.db
+        .collection("conversations")
+        .doc(conversationId)
+        .collection("messages")
+        .orderBy("timestamp", "desc")
+        .limit(limit);
+
+      const snapshot = await messagesRef.get();
+      return snapshot;
+  }
+
+  isEmpty(snapshot: QuerySnapshot) {
+    return snapshot.empty;
+  }
+
+  snapshotToMessages(snapshot: QuerySnapshot): FirebaseMessage[] {
+    const messages = snapshot.docs.map((doc) => ({
+        messageId: doc.id,
+        ...doc.data(),
+      }));
+    return messages as FirebaseMessage[];
+  }
+
+  async searchMessages(
+    conversationId: string,
+    filters: {
+      startDate?: string;
+      endDate?: string;
+      keyword?: string;
+    }
+  ) {
+    let query: any = this.buildQuery(conversationId, filters)
+
+    const snapshot = await query.get();
+    let messages = this.snapshotToMessages(snapshot);
+
+    if (filters.keyword) {
+      return this.filterByKeyword(messages, filters.keyword)
     }
 
-    // Map documents to message objects
-    const messages = snapshot.docs.map((doc) => ({
-      messageId: doc.id,
-      ...doc.data(),
-    }));
+    return messages;
+  }
 
-    return messages as FirebaseMessage[];
-  } catch (error) {
-    console.error("Error fetching messages from Firebase:", error);
-    throw new Error("Failed to fetch messages from database");
+  buildQuery(conversationId, filters) {
+    let query: any = this.db
+      .collection("conversations")
+      .doc(conversationId)
+      .collection("messages");
+
+    if (filters.startDate) {
+      query = query.where("timestamp", ">=", new Date(filters.startDate));
+    }
+
+    if (filters.endDate) {
+      query = query.where("timestamp", "<=", new Date(filters.endDate));
+    }
+
+    return query;
+  }
+
+  filterByKeyword(messages: FirebaseMessage[], keyword: string) {
+    return messages.filter((message: FirebaseMessage) =>
+        message.text.toLowerCase().includes(keyword!.toLowerCase())
+      );
   }
 }
+
+/** Shared instance for API routes and server utilities (initialized module-side). */
+export const firebaseAdmin = new FirebaseAdmin(admin);
+

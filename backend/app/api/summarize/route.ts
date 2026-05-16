@@ -1,18 +1,7 @@
 import { generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { NextResponse } from 'next/server';
-import { getMessagesFromFirebase } from '@/lib/firebase-admin';
-
-// Type for message data from Firestore
-interface Message {
-  messageId: string;
-  senderId: string;
-  senderUsername: string;
-  text: string;
-  timestamp: unknown;
-  status?: string;
-  imageURL?: string;
-}
+import { firebaseAdmin, FirebaseMessage } from '@/lib/firebase-admin';
 
 export async function POST(req: Request) {
   try {
@@ -27,7 +16,10 @@ export async function POST(req: Request) {
     }
 
     // Fetch messages from Firebase (server-side)
-    const messages = await getMessagesFromFirebase(conversationId, messageCount) as Message[];
+    const messages = (await firebaseAdmin.getMessagesFromFirebase(
+      conversationId,
+      messageCount
+    )) as FirebaseMessage[];
 
     if (messages.length === 0) {
       return NextResponse.json(

@@ -1,4 +1,4 @@
-import { db } from "./firebase-admin";
+import { firebaseAdmin } from "./firebase-admin";
 
 export async function searchMessages(
   conversationId: string,
@@ -8,32 +8,7 @@ export async function searchMessages(
     keyword?: string;
   }
 ) {
-  let query: any = db
-    .collection("conversations")
-    .doc(conversationId)
-    .collection("messages");
-
-  if (filters.startDate) {
-    query = query.where("timestamp", ">=", new Date(filters.startDate));
-  }
-
-  if (filters.endDate) {
-    query = query.where("timestamp", "<=", new Date(filters.endDate));
-  }
-
-  const snapshot = await query.get();
-  let messages = snapshot.docs.map((doc: any) => ({
-    messageId: doc.id,
-    ...doc.data(),
-  }));
-
-  if (filters.keyword) {
-    messages = messages.filter((message: any) =>
-      message.text.toLowerCase().includes(filters.keyword!.toLowerCase())
-    );
-  }
-
-  return messages;
+  return firebaseAdmin.searchMessages(conversationId, filters)
 }
 
 export function groupBy(array: any[], key: string) {
@@ -67,21 +42,6 @@ export async function getConversationMessages(
   conversationId: string,
   limit: number = 50
 ) {
-  const snapshot = await db
-    .collection("conversations")
-    .doc(conversationId)
-    .collection("messages")
-    .orderBy("timestamp", "desc")
-    .limit(limit)
-    .get();
-
-  const messages = snapshot.docs
-    .map((doc: any) => ({
-      messageId: doc.id,
-      ...doc.data(),
-    }))
-    .reverse();
-
-  return messages;
+  return firebaseAdmin.getMessagesFromFirebase(conversationId, limit);
 }
 

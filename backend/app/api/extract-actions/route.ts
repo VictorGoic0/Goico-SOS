@@ -2,7 +2,7 @@ import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getMessagesFromFirebase } from '@/lib/firebase-admin';
+import { firebaseAdmin } from '@/lib/firebase-admin';
 
 // Define Zod schema for action items
 const ActionItemSchema = z.object({
@@ -41,7 +41,10 @@ export async function POST(req: Request) {
     }
 
     // Fetch messages from Firebase
-    const messages = await getMessagesFromFirebase(conversationId, messageCount) as Message[];
+    const messages = (await firebaseAdmin.getMessagesFromFirebase(
+      conversationId,
+      messageCount
+    )) as Message[];
 
     if (messages.length === 0) {
       return NextResponse.json({ actionItems: [] });
