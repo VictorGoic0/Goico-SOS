@@ -317,7 +317,23 @@ MainStack:
   - ActionItemsScreen, DecisionsScreen, etc.
 ```
 
-**Backend (Vercel):** Next.js API routes under `backend/app/api/` for summarize, extract-actions, search, priority, agent, send-notification. All protected by **auth + rate limiting**: no Edge middleware (firebase-admin is Node-only); shared helpers in `backend/lib/auth.ts` — `verifyToken(req)` (Firebase Admin), `checkRateLimit(uid)` (Upstash Redis: 30/user/24h, 1000 global/24h), `authenticate(req)` = verify then limit. Mobile sends `Authorization: Bearer <idToken>` on every request. See `docs/auth-rate-limiter.md`. **Planned:** RAG with Pinecone (see docs/tasks-TDD.md).
+**Backend (Vercel):** Next.js API routes under `backend/app/api/` for summarize, extract-actions, search, priority, agent, send-notification, index-message. All protected by **auth + rate limiting**: no Edge middleware (firebase-admin is Node-only); shared helpers in `backend/lib/auth.ts` — `verifyToken(req)` (uses `firebaseAdmin.verifyAndDecodeToken`), `checkRateLimit(uid)` (Upstash Redis: 30/user/24h, 1000 global/24h), `authenticate(req)` = verify then limit. Mobile sends `Authorization: Bearer <idToken>` on every request.
+
+**Backend lib structure (domain-oriented):**
+```
+backend/lib/
+  firebase/firebase-admin.ts  ← FirebaseAdmin class (private db/auth; buildQuery, getMessagesWithQuery, etc.)
+  pinecone/pinecone.ts        ← PineconeClient class (query, upsert, describeIndexStats)
+  rag/
+    consts.ts                 ← EMBEDDING_DIMENSIONS, DEFAULT_TOP_K, INDEX_BATCH_SIZE, etc.
+    types.ts                  ← MessageVectorMetadata, SearchHit, IndexConversationResult, etc.
+    pipeline.ts               ← RagPipeline (composes PineconeClient; buildAgentRetrievalContext, processAfterSend, ensureBackfilled, retrieveMessages, retrieveSearchHits)
+  auth.ts                     ← verifyToken, checkRateLimit, authenticate
+  firestore-messages.ts       ← ConversationMessageRecord helpers (uses firebaseAdmin methods only)
+  retrieve-messages-utils.ts  ← parsePineconeMetadata, sortByTimestamp, normalizeSimilarity
+  message-enrichment.ts       ← enrichMessageText, buildEnrichedTextsForIndex
+  agent-tools.ts              ← agent tool wrappers (searchMessages, getConversationMessages, etc.)
+```
 
 ## State Management Patterns
 

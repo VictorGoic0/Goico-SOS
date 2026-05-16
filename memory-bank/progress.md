@@ -15,6 +15,7 @@
 - ✅ **AI Backend & Features**: PRs #13–#16 (Vercel, summarization, action items, search, priority, decision tracking, multi-step agent)
 - ✅ **Polish (completed)**: PR #17 Dark Mode (theme system, Appearance, all screens themed), PR #18 — expo-image, push-on-PC behavior, Android deployment
 - ✅ **Backend Auth & Rate Limiter**: Firebase token verification, Upstash Redis (30/user/24h, 1000 global/24h), all API routes protected, mobile sends Bearer token, CORS — implemented and tested
+- ✅ **Backend Architecture Refactor**: Domain-oriented service classes (`FirebaseAdmin`, `PineconeClient`, `RagPipeline`); all SDK details encapsulated; stepdown method ordering; `api-readability.mdc` rule added
 - ⏳ **Polish (remaining)**: PR #17 Message Reactions, PR #19 (error handling, health check, read receipt settings, docs, optional items)
 - ✅ **RAG Pipeline** (`docs/tasks-TDD.md`): PRs #1–#8 — full backfill when no Pinecone vectors for a conversation, `POST /api/index-message` + mobile fire-and-forget after send, default retrieval topK **5**, README/TDD updated; every **Test Before Merge** row in that file is checked off after validation.
 

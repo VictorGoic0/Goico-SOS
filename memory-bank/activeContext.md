@@ -2,11 +2,40 @@
 
 ## Current Work Focus
 
-### Project Status: **AI + Dark Mode + Backend Auth & Rate Limiter Complete; RAG TDD PR #1–#8 Done; Message Reactions, PR #19 Next**
+### Project Status: **AI + Dark Mode + Backend Auth & Rate Limiter Complete; RAG TDD PR #1–#8 Done; Backend Architecture Refactor Complete; Message Reactions, PR #19 Next**
 
-The project has completed core messaging (PRs #1–#11), AI backend and features (PRs #13–#16: Vercel, summarization, action items, search, priority, decision tracking, multi-step agent), polish in PR #18 (expo-image, push-on-PC, Android), **PR #17 Dark Mode** (theme system, ThemeContext, Appearance selector, theme applied to all screens), and **Backend Auth & Rate Limiter** (Firebase ID token verification, Upstash Redis rate limiting, CORS). **RAG (tasks-TDD.md)**: PRs #1–#8 complete — **`ensureConversationBackfilledForRag`** (full backfill when Pinecone has no vectors for `conversationId`), **`POST /api/index-message`** + mobile **`requestIndexMessageForRag`** for incremental upserts, retrieval default **topK = 5**. Task lists: **tasks-1.md**, **tasks-2.md**, **tasks-3.md**, **tasks-TDD.md**.
+The project has completed core messaging (PRs #1–#11), AI backend and features (PRs #13–#16), polish in PR #18, **PR #17 Dark Mode**, **Backend Auth & Rate Limiter**, and **RAG (tasks-TDD.md PRs #1–#8)**. Most recently: a major **backend architecture refactor** encapsulating all external SDK access behind domain classes.
 
 **Current Architecture**: React Native (mobile-app/) → Vercel serverless (backend/) → OpenAI (GPT-4o-mini, text-embedding-3-small) + Firebase (Firestore, Realtime DB, Storage) + Pinecone (RAG index `messages`, 512 dims). All AI/RAG routes protected by `authenticate()`. **Next**: PR #19 polish / PR #17 reactions (see tasks-3.md).
+
+## Recent Changes
+
+### Backend Architecture Refactor (Completed this session)
+
+Major restructuring of `backend/lib/` into domain-oriented folders with encapsulated service classes. All external SDK details (Firestore, Pinecone, OpenAI embeddings) are now hidden behind class interfaces. No caller accesses `db`, `auth`, or Pinecone index directly.
+
+**New folder structure:**
+```
+backend/lib/
+  firebase/
+    firebase-admin.ts     ← FirebaseAdmin class + firebaseAdmin singleton
+  pinecone/
+    pinecone.ts           ← PineconeClient class + pineconeClient singleton
+  rag/
+    consts.ts             ← RAG constants (EMBEDDING_DIMENSIONS, DEFAULT_TOP_K, etc.)
+    types.ts              ← All RAG types incl. MessageVectorMetadata, SearchHit, etc.
+    pipeline.ts           ← RagPipeline class (composes PineconeClient) + ragPipeline singleton
+```
+
+**Key changes:**
+- `FirebaseAdmin` class: `private db`, `private auth`; public methods: `verifyAndDecodeToken`, `getUser`, `getConversation`, `getMessagesFromFirebase`, `getConversationSnapshot`, `searchMessages`, `getMessagesWithQuery`, `getConversationMessageSnapshot`. `buildQuery` expanded to support `where`, `orderBy`, `limit` in addition to `startDate`/`endDate`.
+- `PineconeClient` class: wraps Pinecone index with `query`, `upsert`, `describeIndexStats`.
+- `RagPipeline` class: composes `PineconeClient` (not inherits); encapsulates all embedding (OpenAI), indexing, and retrieval. Public: `buildAgentRetrievalContext`, `processAfterSend`, `ensureBackfilled`, `retrieveMessages`, `retrieveSearchHits`.
+- `MessageVectorMetadata` moved from `lib/rag-types.ts` into `lib/rag/types.ts`.
+- `auth.ts` now uses `firebaseAdmin.verifyAndDecodeToken` instead of importing bare `auth`.
+- Dead files deleted: `lib/rag-pipeline.ts`, `lib/pinecone.ts`, `lib/rag-types.ts`, `lib/embeddings.ts`, `lib/agent-retrieval-context.ts`, `lib/retrieve-messages.ts`, `lib/index-messages.ts`.
+
+**New cursor rule added:** `.cursor/rules/api-readability.mdc` — encapsulation standards + stepdown method ordering rule (highest abstraction first, then stepdown within tiers; never group by public/private).
 
 ### Completed PRs
 

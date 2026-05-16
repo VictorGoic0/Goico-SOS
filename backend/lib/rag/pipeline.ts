@@ -22,6 +22,7 @@ import {
 } from "../retrieve-messages-utils";
 import { pineconeClient } from "../pinecone/pinecone";
 import type { PineconeClient } from "../pinecone/pinecone";
+import type { RecordMetadata, ScoredPineconeRecord } from "@pinecone-database/pinecone";
 import {
   AGENT_RECENT_FIRESTORE_LIMIT,
   DEFAULT_TOP_K,
@@ -50,23 +51,39 @@ class RagPipeline {
 
   async buildAgentRetrievalContext(conversationId: string, query: string): Promise<string> {
     await this.ensureBackfilled(conversationId);
+
     const [semanticHits, recentFromDb] = await Promise.all([
       this.retrieveMessages(conversationId, query, DEFAULT_TOP_K),
       firebaseAdmin.getMessagesFromFirebase(conversationId, AGENT_RECENT_FIRESTORE_LIMIT),
     ]);
 
-    const byId = new Map<string, UnifiedLine>();
-    for (const meta of semanticHits) byId.set(meta.messageId, this.toUnifiedFromPinecone(meta));
-    for (const fb of recentFromDb) {
-      if (!byId.has(fb.messageId)) byId.set(fb.messageId, this.toUnifiedFromFirestore(fb));
-    }
+    const unified = this.mergeIntoUnifiedLines(semanticHits, recentFromDb);
 
-    if (byId.size === 0) return "No messages available for this conversation.";
+    if (unified.size === 0) return "No messages available for this conversation.";
 
-    return [...byId.values()]
+    return [...unified.values()]
       .sort((a, b) => a.timestamp - b.timestamp)
       .map((r) => `[${new Date(r.timestamp).toISOString()}] ${r.senderUsername}: ${r.text}`)
       .join("\n");
+  }
+
+  private mergeIntoUnifiedLines(
+    semanticHits: MessageVectorMetadata[],
+    recentFromDb: FirebaseMessage[]
+  ): Map<string, UnifiedLine> {
+    const byId = new Map<string, UnifiedLine>();
+
+    for (const meta of semanticHits) {
+      byId.set(meta.messageId, this.toUnifiedFromPinecone(meta));
+    }
+
+    for (const fb of recentFromDb) {
+      if (!byId.has(fb.messageId)) {
+        byId.set(fb.messageId, this.toUnifiedFromFirestore(fb));
+      }
+    }
+
+    return byId;
   }
 
   async processAfterSend(
@@ -74,16 +91,19 @@ class RagPipeline {
     messageId: string
   ): Promise<IndexConversationResult & { mode: IndexMessageMode }> {
     const hasVectors = await this.conversationIsIndexed(conversationId);
+
     if (!hasVectors) {
       const result = await this.indexConversation(conversationId);
       return { ...result, mode: "full" };
     }
+
     const result = await this.indexSingleMessage(conversationId, messageId);
     return { ...result, mode: "incremental" };
   }
 
   async ensureBackfilled(conversationId: string): Promise<void> {
     const hasVectors = await this.conversationIsIndexed(conversationId);
+
     if (!hasVectors) {
       await this.indexConversation(conversationId);
     }
@@ -91,12 +111,14 @@ class RagPipeline {
 
   private async conversationIsIndexed(conversationId: string): Promise<boolean> {
     const vector = await this.embedText(".");
+
     const response = await this.pinecone.query({
       vector,
       topK: 1,
       includeMetadata: false,
       filter: { conversationId: { $eq: conversationId } },
     });
+
     return (response.matches?.length ?? 0) > 0;
   }
 
@@ -112,30 +134,44 @@ class RagPipeline {
       const batch = messages.slice(start, start + INDEX_BATCH_SIZE);
       const texts = enrichedTexts.slice(start, start + INDEX_BATCH_SIZE);
 
-      let vectors: number[][];
-      try {
-        vectors = await this.embedTexts(texts);
-      } catch {
-        failed.push(...batch.map((m) => m.messageId));
-        continue;
-      }
+      const result = await this.indexBatch(batch, texts);
 
-      if (vectors.length !== batch.length) {
-        failed.push(...batch.map((m) => m.messageId));
-        continue;
-      }
-
-      try {
-        await this.pinecone.upsert(
-          batch.map((m, i) => ({ id: m.messageId, values: vectors[i], metadata: this.toMetadataRecord(m) }))
-        );
-        indexed += batch.length;
-      } catch {
-        failed.push(...batch.map((m) => m.messageId));
-      }
+      indexed += result.indexed;
+      failed.push(...result.failed);
     }
 
     return failed.length > 0 ? { indexed, failed } : { indexed };
+  }
+
+  private async indexBatch(
+    batch: ConversationMessageRecord[],
+    texts: string[]
+  ): Promise<{ indexed: number; failed: string[] }> {
+    const messageIds = batch.map((m) => m.messageId);
+
+    let vectors: number[][];
+    try {
+      vectors = await this.embedTexts(texts);
+    } catch {
+      return { indexed: 0, failed: messageIds };
+    }
+
+    if (vectors.length !== batch.length) {
+      return { indexed: 0, failed: messageIds };
+    }
+
+    try {
+      await this.pinecone.upsert(
+        batch.map((m, i) => ({
+          id: m.messageId,
+          values: vectors[i],
+          metadata: this.toMetadataRecord(m),
+        }))
+      );
+      return { indexed: batch.length, failed: [] };
+    } catch {
+      return { indexed: 0, failed: messageIds };
+    }
   }
 
   private async indexSingleMessage(
@@ -145,16 +181,11 @@ class RagPipeline {
     const message = await getConversationMessageRecordById(conversationId, messageId);
     if (message === null || message.text.trim().length === 0) return { indexed: 0 };
 
-    const previous = await getPreviousMessageForEnrichment(conversationId, message);
-    const enriched = enrichMessageText(
-      { text: message.text },
-      previous !== null ? { text: previous.text } : null
-    );
-    const toEmbed = enriched.trim() === "" ? " " : enriched;
+    const enrichedText = await this.buildEnrichedTextForMessage(conversationId, message);
 
     let vectors: number[][];
     try {
-      vectors = await this.embedTexts([toEmbed]);
+      vectors = await this.embedTexts([enrichedText]);
     } catch {
       return { indexed: 0, failed: [messageId] };
     }
@@ -169,6 +200,19 @@ class RagPipeline {
     } catch {
       return { indexed: 0, failed: [messageId] };
     }
+  }
+
+  private async buildEnrichedTextForMessage(
+    conversationId: string,
+    message: ConversationMessageRecord
+  ): Promise<string> {
+    const previous = await getPreviousMessageForEnrichment(conversationId, message);
+    const enriched = enrichMessageText(
+      { text: message.text },
+      previous !== null ? { text: previous.text } : null
+    );
+
+    return enriched.trim() === "" ? " " : enriched;
   }
 
   private toMetadataRecord(message: ConversationMessageRecord): Record<string, unknown> {
@@ -189,6 +233,7 @@ class RagPipeline {
   ): Promise<MessageVectorMetadata[]> {
     const rows = await this.queryVectors(conversationId, queryText, topK);
     if (rows.length === 0) return [];
+
     return sortVectorMetadataByTimestampAsc(rows.map((r) => r.metadata));
   }
 
@@ -198,6 +243,7 @@ class RagPipeline {
     topK: number = DEFAULT_TOP_K
   ): Promise<SearchHit[]> {
     const rows = await this.queryVectors(conversationId, queryText, topK);
+
     return rows.map((r) => ({ ...r.metadata, similarity: normalizeSimilarityScore(r.score) }));
   }
 
@@ -216,22 +262,31 @@ class RagPipeline {
       filter: { conversationId: { $eq: conversationId } },
     });
 
+    return this.parseQueryMatches(response.matches ?? [], conversationId);
+  }
+
+  private parseQueryMatches(
+    matches: ScoredPineconeRecord<RecordMetadata>[],
+    conversationId: string
+  ): ScoredMetadataRow[] {
     const rows: ScoredMetadataRow[] = [];
-    for (const match of response.matches ?? []) {
+
+    for (const match of matches) {
       const recordId = typeof match.id === "string" ? match.id : "";
-      const metadata = parsePineconeMetadataToVectorMetadata(
-        match.metadata,
-        recordId,
-        conversationId
-      );
+      const metadata = parsePineconeMetadataToVectorMetadata(match.metadata, recordId, conversationId);
+
       if (metadata === null) continue;
+
       rows.push({ metadata, score: typeof match.score === "number" ? match.score : 0 });
     }
+
     return rows;
   }
 
   private clampTopK(topK: number): number {
-    if (!Number.isFinite(topK) || topK < 1) return DEFAULT_TOP_K;
+    if (!Number.isFinite(topK) || topK < 1) {
+      return DEFAULT_TOP_K;
+    }
     return Math.min(Math.floor(topK), MAX_TOP_K);
   }
 
@@ -255,11 +310,13 @@ class RagPipeline {
 
   private async embedTexts(texts: string[]): Promise<number[][]> {
     if (texts.length === 0) return [];
+
     const { embeddings } = await embedMany({
       model: this.embeddingModel(),
       values: texts,
       providerOptions: { openai: { dimensions: EMBEDDING_DIMENSIONS } },
     });
+
     return embeddings as number[][];
   }
 
@@ -269,6 +326,7 @@ class RagPipeline {
       value: text,
       providerOptions: { openai: { dimensions: EMBEDDING_DIMENSIONS } },
     });
+
     return embedding as number[];
   }
 

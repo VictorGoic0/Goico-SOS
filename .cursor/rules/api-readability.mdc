@@ -71,6 +71,40 @@ class RagPipeline {
 }
 ```
 
+## Whitespace — Breathing Room Rule
+
+Add a blank line between every distinct logical step inside a method body. A "step" is any conceptual unit of work: a fetch, a guard clause, a transformation, a side effect, a return. This is not about line count — it's about signaling intent boundaries to the reader.
+
+```ts
+// ✅ GOOD — each logical step is visually separated
+private async conversationIsIndexed(conversationId: string): Promise<boolean> {
+  const vector = await this.embedText(".");
+
+  const response = await this.pinecone.query({
+    vector,
+    topK: 1,
+    includeMetadata: false,
+    filter: { conversationId: { $eq: conversationId } },
+  });
+
+  return (response.matches?.length ?? 0) > 0;
+}
+
+// ❌ BAD — dense, no visual separation between steps
+private async conversationIsIndexed(conversationId: string): Promise<boolean> {
+  const vector = await this.embedText(".");
+  const response = await this.pinecone.query({
+    vector,
+    topK: 1,
+    includeMetadata: false,
+    filter: { conversationId: { $eq: conversationId } },
+  });
+  return (response.matches?.length ?? 0) > 0;
+}
+```
+
+**Between methods:** always one blank line between method definitions inside a class. Never zero, never two.
+
 ## Anti-Patterns
 
 - **God classes** — Never put unrelated domains in one class.
@@ -95,17 +129,23 @@ class FirebaseAdmin {
 
   // Independent leaf operations — no shared helpers, order among themselves doesn't matter
   async getUser(userId: string) { ... }
+
   async getConversation(conversationId: string) { ... }
 
   // Orchestrator — calls snapshot, isEmpty, snapshotToMessages
   async getMessagesFromFirebase(conversationId: string, limit = 50): Promise<FirebaseMessage[]> { ... }
+
   async getConversationSnapshot(conversationId: string, limit = 50): Promise<QuerySnapshot> { ... }
+
   isEmpty(snapshot: QuerySnapshot) { ... }
+
   snapshotToMessages(snapshot: QuerySnapshot): FirebaseMessage[] { ... }
 
   // Orchestrator — calls buildQuery, snapshotToMessages, filterByKeyword
   async searchMessages(conversationId: string, filters: MessageFilters) { ... }
+
   private buildQuery(conversationId: string, filters: MessageFilters) { ... }
+
   filterByKeyword(messages: FirebaseMessage[], keyword: string) { ... }
 }
 
@@ -123,11 +163,15 @@ class UserService {
   }
 
   async getUserProfile(userId: string): Promise<UserProfile> { ... }
+
   async updateProfile(userId: string, updates: Partial<UserProfileUpdate>) { ... }
+
   async findUsersByUsername(searchTerm: string, limit = 10): Promise<UserSummary[]> { ... }
+
   async isUsernameAvailable(username: string): Promise<boolean> { ... }
 
   private toUserProfile(doc: DocumentSnapshot): UserProfile { ... }
+
   private toUserSummary(doc: DocumentSnapshot): UserSummary { ... }
 }
 
@@ -145,11 +189,15 @@ class PaymentService {
   }
 
   async createCheckoutSession(userId: string, plan: SubscriptionPlan): Promise<CheckoutSession> { ... }
+
   async handleWebhook(event: Stripe.Event) { ... }
 
   private async getOrCreateStripeCustomer(userId: string): Promise<string> { ... }
+
   private buildLineItems(plan: SubscriptionPlan) { ... }
+
   private toCheckoutSession(session: Stripe.Checkout.Session): CheckoutSession { ... }
+
   private async fulfillSubscription(session: Stripe.Checkout.Session) { ... }
 }
 
