@@ -58,7 +58,7 @@ class FirebaseAdmin {
     return conversation;
   }
 
-  async getMessagesFromFirebase(
+  async getMessagesFromConversation(
     conversationId: string,
     limit: number = 50
   ): Promise<FirebaseMessage[]> {

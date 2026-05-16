@@ -59,6 +59,6 @@ export async function getConversationMessages(
   conversationId: string,
   limit: number = 50
 ) {
-  return firebaseAdmin.getMessagesFromFirebase(conversationId, limit);
+  return firebaseAdmin.getMessagesFromConversation(conversationId, limit);
 }
 

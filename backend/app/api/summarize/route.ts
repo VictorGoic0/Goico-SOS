@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     }
 
     // Fetch messages from Firebase (server-side)
-    const messages = (await firebaseAdmin.getMessagesFromFirebase(
+    const messages = (await firebaseAdmin.getMessagesFromConversation(
       conversationId,
       messageCount
     )) as FirebaseMessage[];

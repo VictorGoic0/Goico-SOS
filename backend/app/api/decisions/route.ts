@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const messages = await firebaseAdmin.getMessagesFromFirebase(
+    const messages = await firebaseAdmin.getMessagesFromConversation(
       conversationId,
       messageCount
     );

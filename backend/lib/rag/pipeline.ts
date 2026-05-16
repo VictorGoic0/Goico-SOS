@@ -54,7 +54,7 @@ class RagPipeline {
 
     const [semanticHits, recentFromDb] = await Promise.all([
       this.retrieveMessages(conversationId, query, DEFAULT_TOP_K),
-      firebaseAdmin.getMessagesFromFirebase(conversationId, AGENT_RECENT_FIRESTORE_LIMIT),
+      firebaseAdmin.getMessagesFromConversation(conversationId, AGENT_RECENT_FIRESTORE_LIMIT),
     ]);
 
     const unified = this.mergeIntoUnifiedLines(semanticHits, recentFromDb);
