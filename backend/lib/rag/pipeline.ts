@@ -5,8 +5,8 @@
  */
 
 import { embed, embedMany } from "ai";
-import type { FirebaseMessage } from "../firebase-admin";
-import { firebaseAdmin } from "../firebase-admin";
+import type { FirebaseMessage } from "../firebase/firebase-admin";
+import { firebaseAdmin } from "../firebase/firebase-admin";
 import type { ConversationMessageRecord } from "../firestore-messages";
 import {
   getConversationMessageRecordById,

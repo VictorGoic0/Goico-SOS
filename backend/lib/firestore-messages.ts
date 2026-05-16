@@ -9,10 +9,10 @@
 
 import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { Timestamp } from "firebase-admin/firestore";
-import type { FirebaseMessage } from "./firebase-admin";
+import { firebaseAdmin, type FirebaseMessage } from "./firebase/firebase-admin";
 
 /** Message row for RAG indexing and metadata (timestamps as Unix ms). */
-export interface ConversationMessageRecord {
+export type ConversationMessageRecord = {
   messageId: string;
   conversationId: string;
   senderId: string;
@@ -22,7 +22,7 @@ export interface ConversationMessageRecord {
   timestamp: number;
 }
 
-export interface GetMessagesOptions {
+export type GetMessagesOptions = {
   limit?: number;
   orderBy?: "asc" | "desc";
 }
@@ -130,19 +130,10 @@ export async function getConversationMessageRecordById(
   conversationId: string,
   messageId: string
 ): Promise<ConversationMessageRecord | null> {
-  const snap = await db
-    .collection("conversations")
-    .doc(conversationId)
-    .collection("messages")
-    .doc(messageId)
-    .get();
-
-  if (!snap.exists) {
-    return null;
-  }
+  const snapshot = await firebaseAdmin.getConversationMessageSnapshot(conversationId, messageId)
 
   return mapDocToConversationMessage(
-    snap as QueryDocumentSnapshot,
+    snapshot as QueryDocumentSnapshot,
     conversationId
   );
 }
@@ -156,7 +147,9 @@ export async function getPreviousMessageForEnrichment(
   target: ConversationMessageRecord
 ): Promise<ConversationMessageRecord | null> {
   if (target.timestamp > 0) {
-    const snap = await db
+    // last 1 to refactor
+    // we need queryBuilder to be more robust for this?
+    const snapshot = await db
       .collection("conversations")
       .doc(conversationId)
       .collection("messages")
@@ -165,11 +158,11 @@ export async function getPreviousMessageForEnrichment(
       .limit(1)
       .get();
 
-    if (snap.empty) {
+    if (snapshot.empty) {
       return null;
     }
 
-    return mapDocToConversationMessage(snap.docs[0], conversationId);
+    return mapDocToConversationMessage(snapshot.docs[0], conversationId);
   }
 
   const ordered = await getMessagesForConversation(conversationId, {
@@ -187,17 +180,8 @@ export async function getMessagesForConversation(
   conversationId: string,
   options?: GetMessagesOptions
 ): Promise<ConversationMessageRecord[]> {
-  const limit = options?.limit ?? DEFAULT_FETCH_LIMIT;
-  const direction = options?.orderBy ?? "asc";
-
   try {
-    const snapshot = await db
-      .collection("conversations")
-      .doc(conversationId)
-      .collection("messages")
-      .orderBy("timestamp", direction)
-      .limit(limit)
-      .get();
+    const snapshot = await firebaseAdmin.getConversationSnapshot(conversationId, DEFAULT_FETCH_LIMIT)
 
     if (snapshot.empty) {
       return [];
@@ -208,34 +192,6 @@ export async function getMessagesForConversation(
     );
   } catch (error) {
     console.error("Error fetching messages for conversation:", error);
-    throw new Error("Failed to fetch messages from database");
-  }
-}
-
-/**
- * Latest N messages (newest first in query), same shape as before refactor.
- * Used by summarize, search, extract-actions, etc.
- */
-export async function getMessagesFromFirebase(
-  conversationId: string,
-  limit: number = 50
-): Promise<FirebaseMessage[]> {
-  try {
-    const snapshot = await db
-      .collection("conversations")
-      .doc(conversationId)
-      .collection("messages")
-      .orderBy("timestamp", "desc")
-      .limit(limit)
-      .get();
-
-    if (snapshot.empty) {
-      return [];
-    }
-
-    return snapshot.docs.map((doc) => mapDocToFirebaseMessage(doc));
-  } catch (error) {
-    console.error("Error fetching messages from Firebase:", error);
     throw new Error("Failed to fetch messages from database");
   }
 }

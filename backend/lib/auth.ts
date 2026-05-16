@@ -1,7 +1,7 @@
 import type admin from 'firebase-admin';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import { firebaseAdmin } from './firebase-admin';
+import { firebaseAdmin } from './firebase/firebase-admin';
 import { config } from './config';
 
 const redis = new Redis({

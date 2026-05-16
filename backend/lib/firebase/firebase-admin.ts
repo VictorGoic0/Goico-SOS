@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { config } from "./config";
+import { config } from "../config";
 import { QuerySnapshot } from "firebase-admin/firestore";
 
 if (!admin.apps.length) {
@@ -112,18 +112,18 @@ class FirebaseAdmin {
     return messages;
   }
 
-  private buildQuery(conversationId, filters) {
+  private buildQuery(conversationId, options) {
     let query: any = this.db
       .collection("conversations")
       .doc(conversationId)
       .collection("messages");
 
-    if (filters.startDate) {
-      query = query.where("timestamp", ">=", new Date(filters.startDate));
+    if (options.startDate) {
+      query = query.where("timestamp", ">=", new Date(options.startDate));
     }
 
-    if (filters.endDate) {
-      query = query.where("timestamp", "<=", new Date(filters.endDate));
+    if (options.endDate) {
+      query = query.where("timestamp", "<=", new Date(options.endDate));
     }
 
     return query;
@@ -133,6 +133,20 @@ class FirebaseAdmin {
     return messages.filter((message: FirebaseMessage) =>
         message.text.toLowerCase().includes(keyword!.toLowerCase())
       );
+  }
+
+  async getConversationMessageSnapshot(conversationId: string, messageId: string) {
+    const snapshot = await this.db
+      .collection("conversations")
+      .doc(conversationId)
+      .collection("messages")
+      .doc(messageId)
+      .get();
+
+    if (!snapshot.exists) {
+      return null;
+    }
+    return snapshot;
   }
 }
 

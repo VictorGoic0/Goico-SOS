@@ -22,6 +22,55 @@ alwaysApply: false
 - **Private SDK instances** — Constructor-injected for testability; export a shared singleton for convenience.
 - **Self-documenting** — Method names should read like business operations, not SDK calls.
 
+## Method Ordering — Stepdown Rule
+
+Order methods so the class reads top-to-bottom from highest to lowest abstraction. Two rules, in strict priority order:
+
+1. **Highest abstraction first (non-negotiable)** — The method that orchestrates the most goes at the top. Methods that call many other methods come before the methods they call. Never let a low-level helper appear above the high-level method that uses it.
+2. **Stepdown within a tier** — Once methods are in the right abstraction tier, order siblings so each method is followed by the methods it calls.
+
+Never group by `public`/`private`. Access modifiers are irrelevant to reading order. A private helper called by the topmost method belongs near the top, not at the bottom.
+
+```ts
+// ✅ GOOD — highest abstraction first, stepdown within tiers
+class RagPipeline {
+  async buildAgentRetrievalContext(...) { // highest — orchestrates everything
+    await this.ensureBackfilled(...);
+    await this.retrieveMessages(...);
+    this.toUnifiedLine(...);
+  }
+
+  async ensureBackfilled(...) {           // called by top method
+    await this.conversationIsIndexed(...);
+    await this.indexConversation(...);
+  }
+
+  private async conversationIsIndexed(...) { ... } // called by ensureBackfilled
+  private async indexConversation(...) { ... }      // called by ensureBackfilled
+
+  async retrieveMessages(...) { ... }              // called by buildAgentRetrievalContext
+  private async queryVectors(...) { ... }          // called by retrieveMessages
+  private clampTopK(...) { ... }                   // called by queryVectors
+
+  private toUnifiedLine(...) { ... }               // called by buildAgentRetrievalContext
+  private async embedText(...) { ... }             // lowest — pure primitive
+}
+
+// ❌ BAD — grouped by public/private, forces reader to jump back up constantly
+class RagPipeline {
+  async buildAgentRetrievalContext(...) { ... }
+  async ensureBackfilled(...) { ... }
+  async retrieveMessages(...) { ... }
+
+  private async conversationIsIndexed(...) { ... }
+  private async indexConversation(...) { ... }
+  private async queryVectors(...) { ... }
+  private clampTopK(...) { ... }
+  private toUnifiedLine(...) { ... }
+  private async embedText(...) { ... }
+}
+```
+
 ## Anti-Patterns
 
 - **God classes** — Never put unrelated domains in one class.
@@ -35,24 +84,29 @@ alwaysApply: false
 
 ### Firebase — Messaging Domain
 
+`getMessagesFromFirebase` and `searchMessages` are the highest abstraction — they orchestrate lower-level helpers. `getUser` and `getConversation` are independent leaf operations.
+
 ```ts
 class FirebaseAdmin {
   private db: admin.firestore.Firestore;
   private auth: admin.auth.Auth;
 
-  constructor(adminInstance: typeof admin) {
-    this.db = adminInstance.firestore();
-    this.auth = adminInstance.auth();
-  }
+  constructor(adminInstance: typeof admin) { ... }
 
+  // Independent leaf operations — no shared helpers, order among themselves doesn't matter
   async getUser(userId: string) { ... }
   async getConversation(conversationId: string) { ... }
-  async getMessagesFromFirebase(conversationId: string, limit = 50): Promise<FirebaseMessage[]> { ... }
-  async searchMessages(conversationId: string, filters: MessageFilters) { ... }
 
-  private buildQuery(...) { ... }
-  private snapshotToMessages(...) { ... }
-  private filterByKeyword(...) { ... }
+  // Orchestrator — calls snapshot, isEmpty, snapshotToMessages
+  async getMessagesFromFirebase(conversationId: string, limit = 50): Promise<FirebaseMessage[]> { ... }
+  async getConversationSnapshot(conversationId: string, limit = 50): Promise<QuerySnapshot> { ... }
+  isEmpty(snapshot: QuerySnapshot) { ... }
+  snapshotToMessages(snapshot: QuerySnapshot): FirebaseMessage[] { ... }
+
+  // Orchestrator — calls buildQuery, snapshotToMessages, filterByKeyword
+  async searchMessages(conversationId: string, filters: MessageFilters) { ... }
+  private buildQuery(conversationId: string, filters: MessageFilters) { ... }
+  filterByKeyword(messages: FirebaseMessage[], keyword: string) { ... }
 }
 
 export const firebaseAdmin = new FirebaseAdmin(admin);
@@ -61,7 +115,7 @@ export const firebaseAdmin = new FirebaseAdmin(admin);
 ### Firestore — User Domain (Separate Class)
 
 ```ts
-class Users {
+class UserService {
   private db: admin.firestore.Firestore;
 
   constructor(db: admin.firestore.Firestore) {

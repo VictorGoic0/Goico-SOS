@@ -1,4 +1,4 @@
-import { firebaseAdmin } from "./firebase-admin";
+import { firebaseAdmin } from "./firebase/firebase-admin";
 
 export async function searchMessages(
   conversationId: string,
