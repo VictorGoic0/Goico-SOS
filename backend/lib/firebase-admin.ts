@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { DocumentData, QuerySnapshot } from "firebase-admin/firestore";
+import { QuerySnapshot } from "firebase-admin/firestore";
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -95,10 +95,10 @@ class FirebaseAdmin {
       keyword?: string;
     }
   ) {
-    let query: any = this.buildQuery(conversationId, filters)
+    const query: any = this.buildQuery(conversationId, filters)
 
     const snapshot = await query.get();
-    let messages = this.snapshotToMessages(snapshot);
+    const messages = this.snapshotToMessages(snapshot);
 
     if (filters.keyword) {
       return this.filterByKeyword(messages, filters.keyword)
@@ -107,7 +107,7 @@ class FirebaseAdmin {
     return messages;
   }
 
-  buildQuery(conversationId, filters) {
+  private buildQuery(conversationId, filters) {
     let query: any = this.db
       .collection("conversations")
       .doc(conversationId)
