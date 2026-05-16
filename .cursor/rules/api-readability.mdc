@@ -1,0 +1,103 @@
+---
+description: API readability and encapsulation standards for backend/service code interacting with external SDKs (Firebase, databases, payment providers, etc.)
+globs: backend/**/*.ts
+alwaysApply: false
+---
+
+# API Readability & Encapsulation
+
+## Core Process
+
+1. Analyze current usage before refactoring.
+2. Extract meaningful operations into intention-revealing methods.
+3. Create a focused service class named after its domain responsibility.
+4. Aggressively encapsulate SDK details, collection paths, and data transformations.
+5. Refactor all callers and remove direct SDK usage from routes/utilities.
+6. Delete redundant comments — good names make them unnecessary.
+
+## Architecture Principles
+
+- **SRP** — Each class has one cohesive reason to change.
+- **Domain-oriented** — Group by business domain (messaging, users, payments), not by technology.
+- **Private SDK instances** — Constructor-injected for testability; export a shared singleton for convenience.
+- **Self-documenting** — Method names should read like business operations, not SDK calls.
+
+## Anti-Patterns
+
+- **God classes** — Never put unrelated domains in one class.
+- Leaking SDK types, Firestore collection paths, or raw query objects to callers.
+- Direct SDK calls scattered across routes or utility files.
+- Generic names like `Utils`, `Helper`, `Manager`, `Service` without domain specificity.
+
+---
+
+## Examples
+
+### Firebase — Messaging Domain
+
+```ts
+class FirebaseAdmin {
+  private db: admin.firestore.Firestore;
+  private auth: admin.auth.Auth;
+
+  constructor(adminInstance: typeof admin) {
+    this.db = adminInstance.firestore();
+    this.auth = adminInstance.auth();
+  }
+
+  async getUser(userId: string) { ... }
+  async getConversation(conversationId: string) { ... }
+  async getMessagesFromFirebase(conversationId: string, limit = 50): Promise<FirebaseMessage[]> { ... }
+  async searchMessages(conversationId: string, filters: MessageFilters) { ... }
+
+  private buildQuery(...) { ... }
+  private snapshotToMessages(...) { ... }
+  private filterByKeyword(...) { ... }
+}
+
+export const firebaseAdmin = new FirebaseAdmin(admin);
+```
+
+### Firestore — User Domain (Separate Class)
+
+```ts
+class Users {
+  private db: admin.firestore.Firestore;
+
+  constructor(db: admin.firestore.Firestore) {
+    this.db = db;
+  }
+
+  async getUserProfile(userId: string): Promise<UserProfile> { ... }
+  async updateProfile(userId: string, updates: Partial<UserProfileUpdate>) { ... }
+  async findUsersByUsername(searchTerm: string, limit = 10): Promise<UserSummary[]> { ... }
+  async isUsernameAvailable(username: string): Promise<boolean> { ... }
+
+  private toUserProfile(doc: DocumentSnapshot): UserProfile { ... }
+  private toUserSummary(doc: DocumentSnapshot): UserSummary { ... }
+}
+
+export const userService = new UserService(admin.firestore());
+```
+
+### External API — Payments Domain
+
+```ts
+class PaymentService {
+  private stripe: Stripe;
+
+  constructor(stripeClient: Stripe) {
+    this.stripe = stripeClient;
+  }
+
+  async createCheckoutSession(userId: string, plan: SubscriptionPlan): Promise<CheckoutSession> { ... }
+  async handleWebhook(event: Stripe.Event) { ... }
+
+  private async getOrCreateStripeCustomer(userId: string): Promise<string> { ... }
+  private buildLineItems(plan: SubscriptionPlan) { ... }
+  private toCheckoutSession(session: Stripe.Checkout.Session): CheckoutSession { ... }
+  private async fulfillSubscription(session: Stripe.Checkout.Session) { ... }
+}
+
+export const paymentService = new PaymentService(stripe);
+```
