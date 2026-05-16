@@ -62,8 +62,8 @@ class RagPipeline {
     if (unified.size === 0) return "No messages available for this conversation.";
 
     return [...unified.values()]
-      .sort((a, b) => a.timestamp - b.timestamp)
-      .map((r) => `[${new Date(r.timestamp).toISOString()}] ${r.senderUsername}: ${r.text}`)
+      .sort((left, right) => left.timestamp - right.timestamp)
+      .map((line) => `[${new Date(line.timestamp).toISOString()}] ${line.senderUsername}: ${line.text}`)
       .join("\n");
   }
 
@@ -147,7 +147,7 @@ class RagPipeline {
     batch: ConversationMessageRecord[],
     texts: string[]
   ): Promise<{ indexed: number; failed: string[] }> {
-    const messageIds = batch.map((m) => m.messageId);
+    const messageIds = batch.map((message) => message.messageId);
 
     let vectors: number[][];
     try {
@@ -162,10 +162,10 @@ class RagPipeline {
 
     try {
       await this.pinecone.upsert(
-        batch.map((m, i) => ({
-          id: m.messageId,
-          values: vectors[i],
-          metadata: this.toMetadataRecord(m),
+        batch.map((message, index) => ({
+          id: message.messageId,
+          values: vectors[index],
+          metadata: this.toMetadataRecord(message),
         }))
       );
       return { indexed: batch.length, failed: [] };
@@ -234,7 +234,7 @@ class RagPipeline {
     const rows = await this.queryVectors(conversationId, queryText, topK);
     if (rows.length === 0) return [];
 
-    return sortVectorMetadataByTimestampAsc(rows.map((r) => r.metadata));
+    return sortVectorMetadataByTimestampAsc(rows.map((row) => row.metadata));
   }
 
   async retrieveSearchHits(
@@ -244,7 +244,7 @@ class RagPipeline {
   ): Promise<SearchHit[]> {
     const rows = await this.queryVectors(conversationId, queryText, topK);
 
-    return rows.map((r) => ({ ...r.metadata, similarity: normalizeSimilarityScore(r.score) }));
+    return rows.map((row) => ({ ...row.metadata, similarity: normalizeSimilarityScore(row.score) }));
   }
 
   private async queryVectors(

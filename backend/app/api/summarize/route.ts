@@ -1,7 +1,8 @@
 import { generateText } from 'ai';
 import { openai } from '@/lib/openai-provider';
 import { NextResponse } from 'next/server';
-import { firebaseAdmin, FirebaseMessage } from '@/lib/firebase/firebase-admin';
+import type { FirebaseMessage } from '@/lib/firebase/firebase-admin';
+import { firebaseAdmin } from '@/lib/firebase/firebase-admin';
 import { authenticate } from '@/lib/auth';
 
 export async function POST(req: Request) {

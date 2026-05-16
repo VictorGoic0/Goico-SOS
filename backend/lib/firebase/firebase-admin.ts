@@ -1,6 +1,6 @@
 import admin from "firebase-admin";
 import { config } from "../config";
-import { QuerySnapshot } from "firebase-admin/firestore";
+import type { QuerySnapshot } from "firebase-admin/firestore";
 import type { Query } from "firebase-admin/firestore";
 
 if (!admin.apps.length) {

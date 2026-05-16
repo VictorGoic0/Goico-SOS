@@ -174,7 +174,7 @@ export async function getPreviousMessageForEnrichment(
 
 export async function getMessagesForConversation(
   conversationId: string,
-  options?: GetMessagesOptions
+  _options?: GetMessagesOptions
 ): Promise<ConversationMessageRecord[]> {
   try {
     const snapshot = await firebaseAdmin.getConversationSnapshot(conversationId, DEFAULT_FETCH_LIMIT)
