@@ -29,7 +29,7 @@ const usePresenceStore = create((set, get) => ({
   setConnectionStatus: (connected) =>
     set((state) => {
       // If we're reconnecting (was disconnected, now connected)
-      const wasDisconnected = !state.isConnected && connected;
+      
 
       return {
         isConnected: connected,

@@ -1,8 +1,9 @@
 import { generateObject } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { openai } from '@/lib/openai-provider';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { firebaseAdmin } from '@/lib/firebase-admin';
+import { authenticate } from '@/lib/auth';
 
 const DecisionSchema = z.object({
   decisions: z.array(
@@ -18,6 +19,13 @@ const DecisionSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    try {
+      await authenticate(req);
+    } catch (e) {
+      if (e instanceof Response) return e;
+      throw e;
+    }
+
     const { conversationId, messageCount = 100 } = await req.json();
 
     if (!conversationId) {

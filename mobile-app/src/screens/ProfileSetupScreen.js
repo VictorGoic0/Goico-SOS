@@ -16,7 +16,7 @@ import Input from "../components/Input";
 import { colors, spacing, typography } from "../styles/tokens";
 import { createUserProfile } from "../utils/profile";
 
-export default function ProfileSetupScreen({ navigation }) {
+export default function ProfileSetupScreen({ navigation: _navigation }) {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");

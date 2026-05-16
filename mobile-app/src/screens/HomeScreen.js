@@ -1,5 +1,4 @@
-import { collection, onSnapshot } from "firebase/firestore";
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useLayoutEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,27 +11,162 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import UserListItem from "../components/UserListItem";
-import { db } from "../config/firebase";
+import { useTheme } from "../contexts/ThemeContext";
 import useFirebaseStore from "../stores/firebaseStore";
-import { colors, spacing, typography } from "../styles/tokens";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import { deleteConversation, getConversationId } from "../utils/conversation";
 import { formatTimestamp, getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function HomeScreen({ navigation }) {
+  const { colors } = useTheme();
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const users = useFirebaseStore((state) => state.users);
-  const setUsers = useFirebaseStore((state) => state.setUsers);
+  const usersLoading = useFirebaseStore((state) => state.usersLoading);
+  const refreshUsers = useFirebaseStore((state) => state.refreshUsers);
   const conversationsMap = useFirebaseStore((state) => state.conversationsMap);
   const conversations = useFirebaseStore((state) => state.conversations);
   const usersMap = useFirebaseStore((state) => state.usersMap);
 
-  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deletingConversationId, setDeletingConversationId] = useState(null);
 
   // Get group conversations
   const groupConversations = conversations.filter(
-    (conv) => conv.isGroup === true
+    (conv) => conv.isGroup === true,
+  );
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background },
+        loadingContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        },
+        loadingText: {
+          marginTop: spacing[4],
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+        },
+        headerContainer: {
+          padding: spacing[4],
+          backgroundColor: colors.headerBackground,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        headerTitle: {
+          fontSize: typography.fontSize["2xl"],
+          fontWeight: typography.fontWeight.bold,
+          color: colors.text,
+          marginBottom: spacing[1],
+        },
+        headerSubtitle: {
+          fontSize: typography.fontSize.sm,
+          color: colors.textSecondary,
+        },
+        emptyList: { flexGrow: 1 },
+        emptyContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: spacing[8],
+        },
+        emptyText: {
+          fontSize: typography.fontSize.xl,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text,
+          marginBottom: spacing[2],
+          textAlign: "center",
+        },
+        emptySubtext: {
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+          textAlign: "center",
+        },
+        actionButtons: {
+          position: "absolute",
+          bottom: spacing[6],
+          right: spacing[6],
+          flexDirection: "column",
+        },
+        createGroupButton: {
+          backgroundColor: tokenColors.primary.base,
+          paddingVertical: spacing[3],
+          paddingHorizontal: spacing[6],
+          borderRadius: 24,
+          marginBottom: spacing[3],
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5,
+        },
+        createGroupText: {
+          color: tokenColors.neutral.white,
+          fontSize: typography.fontSize.sm,
+          fontWeight: typography.fontWeight.semibold,
+        },
+        headerProfileButton: { marginRight: spacing[4] },
+        headerProfileImage: { width: 36, height: 36, borderRadius: 18 },
+        headerProfilePlaceholder: {
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        headerProfileInitials: {
+          fontSize: typography.fontSize.sm,
+          fontWeight: typography.fontWeight.semibold,
+          color: tokenColors.neutral.white,
+        },
+        groupItem: {
+          flexDirection: "row",
+          alignItems: "center",
+          padding: spacing[4],
+          backgroundColor: colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        groupAvatarContainer: { marginRight: spacing[3] },
+        groupAvatar: {
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: colors.skeleton,
+        },
+        groupAvatarPlaceholder: {
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        groupAvatarIcon: { fontSize: 28 },
+        groupInfo: { flex: 1, justifyContent: "center" },
+        groupHeaderRow: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: spacing[1],
+        },
+        groupName: {
+          fontSize: typography.fontSize.base,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text,
+          flex: 1,
+        },
+        timestamp: {
+          fontSize: typography.fontSize.xs,
+          color: colors.textSecondary,
+          marginLeft: spacing[2],
+        },
+        lastMessagePreview: {
+          fontSize: typography.fontSize.sm,
+          color: colors.textSecondary,
+        },
+        deletingIndicator: { marginLeft: spacing[2] },
+      }),
+    [colors],
   );
 
   // Configure header with profile icon
@@ -68,38 +202,12 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, currentUser]);
-
-  // Fetch all users from Firestore
-  useEffect(() => {
-    const usersRef = collection(db, "users");
-
-    const unsubscribe = onSnapshot(
-      usersRef,
-      (snapshot) => {
-        const usersData = snapshot.docs.map((doc) => ({
-          userId: doc.id,
-          ...doc.data(),
-        }));
-
-        setUsers(usersData);
-        setIsLoading(false);
-        setIsRefreshing(false);
-      },
-      (error) => {
-        console.error("Error fetching users:", error);
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    );
-
-    // Cleanup listener on unmount
-    return () => unsubscribe();
-  }, [setUsers]);
+  }, [navigation, currentUser, styles]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    // The onSnapshot listener will automatically refresh
+    refreshUsers()
+      .finally(() => setIsRefreshing(false));
   };
 
   const handleUserPress = (user) => {
@@ -149,7 +257,7 @@ export default function HomeScreen({ navigation }) {
           style: "destructive",
           onPress: () => handleDeleteConversation(conversationId, user),
         },
-      ]
+      ],
     );
   };
 
@@ -170,10 +278,10 @@ export default function HomeScreen({ navigation }) {
             handleDeleteConversation(
               conversation.conversationId,
               null,
-              conversation.groupName
+              conversation.groupName,
             ),
         },
-      ]
+      ],
     );
   };
 
@@ -197,7 +305,7 @@ export default function HomeScreen({ navigation }) {
       Alert.alert(
         "Delete failed",
         "Unable to delete conversation. Please try again.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
     } finally {
       setDeletingConversationId(null);
@@ -319,7 +427,7 @@ export default function HomeScreen({ navigation }) {
         {isDeleting && (
           <ActivityIndicator
             size="small"
-            color={colors.primary.base}
+            color={tokenColors.primary.base}
             style={styles.deletingIndicator}
           />
         )}
@@ -327,13 +435,10 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
-  const renderItem = ({ item }) => {
-    if (item.type === "group") {
-      return renderGroupConversation({ item });
-    } else {
-      return renderUser({ item });
-    }
-  };
+  const renderItem = ({ item }) =>
+    item.type === "group"
+      ? renderGroupConversation({ item })
+      : renderUser({ item });
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
@@ -346,7 +451,7 @@ export default function HomeScreen({ navigation }) {
 
   const renderHeader = () => {
     const otherUsersCount = users.filter(
-      (user) => user.userId !== currentUser.uid
+      (user) => user.userId !== currentUser.uid,
     ).length;
 
     return (
@@ -363,10 +468,10 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
-  if (isLoading) {
+  if (usersLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary.base} />
+        <ActivityIndicator size="large" color={tokenColors.primary.base} />
         <Text style={styles.loadingText}>Loading users...</Text>
       </View>
     );
@@ -386,8 +491,8 @@ export default function HomeScreen({ navigation }) {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={[colors.primary.base]}
-            tintColor={colors.primary.base}
+            colors={[tokenColors.primary.base]}
+            tintColor={tokenColors.primary.base}
           />
         }
         contentContainerStyle={
@@ -408,155 +513,3 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.default,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.background.default,
-  },
-  loadingText: {
-    marginTop: spacing[4],
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-  },
-  headerContainer: {
-    padding: spacing[4],
-    backgroundColor: colors.background.paper,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  headerTitle: {
-    fontSize: typography.fontSize["2xl"],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
-    marginBottom: spacing[1],
-  },
-  headerSubtitle: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-  },
-  emptyList: {
-    flexGrow: 1,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: spacing[8],
-  },
-  emptyText: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-    marginBottom: spacing[2],
-    textAlign: "center",
-  },
-  emptySubtext: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-    textAlign: "center",
-  },
-  actionButtons: {
-    position: "absolute",
-    bottom: spacing[6],
-    right: spacing[6],
-    flexDirection: "column",
-  },
-  createGroupButton: {
-    backgroundColor: colors.primary.base,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[6],
-    borderRadius: 24,
-    marginBottom: spacing[3],
-    ...{
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
-  },
-  createGroupText: {
-    color: colors.neutral.white,
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-  },
-  headerProfileButton: {
-    marginRight: spacing[4],
-  },
-  headerProfileImage: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-  },
-  headerProfilePlaceholder: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerProfileInitials: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.white,
-  },
-  groupItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing[4],
-    backgroundColor: colors.background.paper,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  groupAvatarContainer: {
-    marginRight: spacing[3],
-  },
-  groupAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.neutral.lighter,
-  },
-  groupAvatarPlaceholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  groupAvatarIcon: {
-    fontSize: 28,
-  },
-  groupInfo: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  groupHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: spacing[1],
-  },
-  groupName: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-    flex: 1,
-  },
-  timestamp: {
-    fontSize: typography.fontSize.xs,
-    color: colors.text.tertiary,
-    marginLeft: spacing[2],
-  },
-  lastMessagePreview: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-  },
-  deletingIndicator: {
-    marginLeft: spacing[2],
-  },
-});

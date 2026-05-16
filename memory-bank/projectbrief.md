@@ -8,7 +8,7 @@ A real-time messaging app built with React Native and Expo, enabling users to ch
 
 **7-day sprint** with checkpoints at Day 2, Day 5, and Day 7
 
-**Total PRs**: 17 (Core messaging: PRs #1-11, AI features: PRs #12-17)
+**Total PRs**: Core + AI + Polish in three task files (tasks-1, tasks-2, tasks-3); RAG pipeline in tasks-TDD (8 PRs). See `docs/` for full breakdown.
 
 ## Core Requirements
 
@@ -84,26 +84,12 @@ A real-time messaging app built with React Native and Expo, enabling users to ch
 
 #### Checkpoint 3 (Day 6-7 - Sunday)
 
-✅ **AI Features Implementation (PRs #12-17)**
+✅ **AI Features & Polish (see docs/tasks-1.md, tasks-2.md, tasks-3.md)**
 
-- **PR #12**: AI Foundation & Basic Features Setup
-  - Thread Summarization
-  - Action Item Extraction
-- **PR #13**: Smart Search & Priority Detection
-  - Semantic Search using OpenAI embeddings
-  - Automatic Priority Detection for messages
-- **PR #14**: Decision Tracking & Multi-Step Agent
-  - Decision extraction from conversations
-  - Advanced multi-step AI agent for complex workflows
-- **PR #15**: Typing Indicators & Connection Status
-  - Real-time typing indicators
-  - Connection status indicators
-- **PR #16**: Dark Mode & Message Reactions
-  - Dark mode theme system
-  - Message reactions with emojis
-- **PR #17**: AI Features Polish & Integration
-  - Rate limiting and performance optimization
-  - Production readiness
+- **tasks-1**: PR #12 — Typing indicators & connection status
+- **tasks-2**: PRs #13–#16 — Vercel backend, summarization & action items, search & priority, decision tracking & multi-step agent
+- **tasks-3**: PR #17 — Dark mode & message reactions; PR #18 — Polish completed (expo-image, Android, push doc); PR #19 — Polish remaining (error handling, health check, read receipts, docs)
+- **Planned — tasks-TDD.md**: RAG pipeline (8 PRs) — Pinecone, embeddings, indexing, retrieval, semantic search endpoint, agent retrieval tool
 
 ✅ **Polish & UX**
 
@@ -167,8 +153,9 @@ A real-time messaging app built with React Native and Expo, enabling users to ch
 ### AI Integration
 
 - **AI SDK**: Vercel AI SDK
-- **AI Provider**: OpenAI (GPT-4)
-- **Features**: Chat assistant, conversation summaries
+- **AI Provider**: OpenAI (GPT-4, text-embedding-3-small)
+- **Backend**: Next.js on Vercel (serverless API for AI, push, search)
+- **Features**: Summarization, action items, semantic search, priority detection, agent; **Planned**: RAG with Pinecone (semantic search + agent context per TDD_RAG_Pipeline.md)
 
 ### Push Notifications
 

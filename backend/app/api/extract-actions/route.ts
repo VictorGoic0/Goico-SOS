@@ -1,8 +1,9 @@
 import { generateObject } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { openai } from '@/lib/openai-provider';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { firebaseAdmin } from '@/lib/firebase-admin';
+import { authenticate } from '@/lib/auth';
 
 // Define Zod schema for action items
 const ActionItemSchema = z.object({
@@ -30,6 +31,13 @@ interface Message {
 
 export async function POST(req: Request) {
   try {
+    try {
+      await authenticate(req);
+    } catch (e) {
+      if (e instanceof Response) return e;
+      throw e;
+    }
+
     const { conversationId, messageCount = 100 } = await req.json();
 
     // Validate input
@@ -53,7 +61,7 @@ export async function POST(req: Request) {
     // Format conversation text
     const conversationText = messages
       .reverse()
-      .map(m => `${m.senderUsername}: ${m.text}`)
+      .map(message => `${message.senderUsername}: ${message.text}`)
       .join('\n');
 
     const prompt = `Extract all action items from this conversation. Format as a list with:

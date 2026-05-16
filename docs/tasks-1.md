@@ -325,7 +325,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Auth Screens:**
 
-- [ ] File: `src/screens/SignupScreen.js`
+- [x] File: `src/screens/SignupScreen.js`
 
   - Email TextInput
   - Password TextInput (with secure entry)
@@ -335,7 +335,7 @@ Since you've never used React Native, this PR focuses on getting your developmen
   - Error message display (Text component)
   - Use basic React Native styling
 
-- [ ] File: `src/screens/LoginScreen.js`
+- [x] File: `src/screens/LoginScreen.js`
   - Email TextInput
   - Password TextInput (with secure entry)
   - "Log In" Button
@@ -345,26 +345,26 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Implement Auth Functions:**
 
-- [ ] File: `src/utils/auth.js`
-- [ ] Function: `signUpUser(email, password)`
+- [x] File: `src/utils/auth.js`
+- [x] Function: `signUpUser(email, password)`
   - Use `createUserWithEmailAndPassword` from Firebase Auth
   - Return user object or throw error
-- [ ] Function: `signInUser(email, password)`
+- [x] Function: `signInUser(email, password)`
   - Use `signInWithEmailAndPassword` from Firebase Auth
   - Return user object or throw error
-- [ ] Function: `signOutUser()`
+- [x] Function: `signOutUser()`
   - Use `signOut` from Firebase Auth
   - Clear Firebase store: `useFirebaseStore.getState().setCurrentUser(null)`
 
 **Connect Auth to UI:**
 
-- [ ] In `SignupScreen.js`:
+- [x] In `SignupScreen.js`:
   - Add state for email, password, confirmPassword, error
   - Validate passwords match
   - Call `signUpUser` on button press
   - On success: Navigate to ProfileSetupScreen (create next PR)
   - On error: Display error message
-- [ ] In `LoginScreen.js`:
+- [x] In `LoginScreen.js`:
   - Add state for email, password, error
   - Call `signInUser` on button press
   - On success: Navigate to Home screen
@@ -372,20 +372,20 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Setup Navigation:**
 
-- [ ] File: `src/navigation/AppNavigator.js`
-- [ ] Import `NavigationContainer`, `createNativeStackNavigator`
-- [ ] Create stack navigator with two stacks:
+- [x] File: `src/navigation/AppNavigator.js`
+- [x] Import `NavigationContainer`, `createNativeStackNavigator`
+- [x] Create stack navigator with two stacks:
   - Auth Stack: SignupScreen, LoginScreen
   - Main Stack: (empty for now, will add Home screen later)
-- [ ] Conditionally render based on `currentUser` from firebaseStore
-- [ ] If no currentUser → show Auth Stack
-- [ ] If currentUser exists → show Main Stack
+- [x] Conditionally render based on `currentUser` from firebaseStore
+- [x] If no currentUser → show Auth Stack
+- [x] If currentUser exists → show Main Stack
 
 **Auth State Listener:**
 
-- [ ] In `App.js`:
-- [ ] Import `onAuthStateChanged` from Firebase Auth
-- [ ] Set up listener in useEffect:
+- [x] In `App.js`:
+- [x] Import `onAuthStateChanged` from Firebase Auth
+- [x] Set up listener in useEffect:
   ```javascript
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -401,17 +401,17 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Update App.js:**
 
-- [ ] Replace default App content with `<AppNavigator />`
-- [ ] Wrap with any necessary providers (if needed)
+- [x] Replace default App content with `<AppNavigator />`
+- [x] Wrap with any necessary providers (if needed)
 
 **Test Authentication Flow:**
 
-- [ ] Sign up with new email/password
-- [ ] Verify account created in Firebase console (Authentication section)
-- [ ] Log out
-- [ ] Log in with same credentials
-- [ ] Test validation (password mismatch, invalid email, etc.)
-- [ ] Test error messages display correctly
+- [x] Sign up with new email/password
+- [x] Verify account created in Firebase console (Authentication section)
+- [x] Log out
+- [x] Log in with same credentials
+- [x] Test validation (password mismatch, invalid email, etc.)
+- [x] Test error messages display correctly
 
 **Files Created:**
 
@@ -427,13 +427,13 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Before Merge:**
 
-- [ ] Can sign up with new account
-- [ ] Account appears in Firebase console
-- [ ] Can log in with credentials
-- [ ] Can log out
-- [ ] Navigation switches between Auth and Main stacks
-- [ ] Error messages display correctly
-- [ ] App persists auth state (reload app while logged in stays logged in)
+- [x] Can sign up with new account
+- [x] Account appears in Firebase console
+- [x] Can log in with credentials
+- [x] Can log out
+- [x] Navigation switches between Auth and Main stacks
+- [x] Error messages display correctly
+- [x] App persists auth state (reload app while logged in stays logged in)
 
 ---
 
@@ -445,8 +445,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Profile Setup Screen:**
 
-- [ ] File: `src/screens/ProfileSetupScreen.js`
-- [ ] UI Components:
+- [x] File: `src/screens/ProfileSetupScreen.js`
+- [x] UI Components:
   - Header: "Complete Your Profile"
   - Username TextInput (lowercase, no spaces, unique)
   - Display Name TextInput (can have spaces)
@@ -458,16 +458,16 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Install Image Picker:**
 
-- [ ] Install expo-image-picker:
+- [x] Install expo-image-picker:
   ```bash
   npx expo install expo-image-picker
   ```
 
 **Implement Image Upload:**
 
-- [ ] In `ProfileSetupScreen.js`:
-- [ ] Import `* as ImagePicker from 'expo-image-picker'`
-- [ ] Function: `pickImage()`
+- [x] In `ProfileSetupScreen.js`:
+- [x] Import `* as ImagePicker from 'expo-image-picker'`
+- [x] Function: `pickImage()`
   - Request permissions: `ImagePicker.requestMediaLibraryPermissionsAsync()`
   - Launch image picker: `ImagePicker.launchImageLibraryAsync()`
   - Options: `allowsEditing: true`, `aspect: [1, 1]`, `quality: 0.8`
@@ -475,33 +475,33 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create User Profile Functions:**
 
-- [ ] File: `src/utils/userProfile.js`
-- [ ] Function: `createUserProfile(userId, profileData)`
+- [x] File: `src/utils/userProfile.js`
+- [x] Function: `createUserProfile(userId, profileData)`
 
   - Takes: userId, username, displayName, bio, status, imageURL (optional)
   - Creates document in Firestore: `/users/{userId}`
   - Include fields: userId, username, displayName, email, imageURL, bio, status, createdAt, lastEdit
   - Return created user object
 
-- [ ] Function: `uploadProfilePhoto(userId, imageUri)`
+- [x] Function: `uploadProfilePhoto(userId, imageUri)`
 
   - Convert image URI to blob
   - Upload to Firebase Storage: `profile_photos/${userId}/${Date.now()}.jpg`
   - Get download URL
   - Return imageURL
 
-- [ ] Function: `checkUsernameAvailability(username)`
+- [x] Function: `checkUsernameAvailability(username)`
   - Query Firestore users collection where username === input
   - Return true if available, false if taken
 
 **Connect Profile Setup to Signup:**
 
-- [ ] In `SignupScreen.js`:
+- [x] In `SignupScreen.js`:
 
   - After successful `signUpUser`, navigate to `ProfileSetupScreen`
   - Pass userId via navigation params
 
-- [ ] In `ProfileSetupScreen.js`:
+- [x] In `ProfileSetupScreen.js`:
   - Get userId from navigation params or Firebase auth
   - On "Continue" button:
     - Validate username (no spaces, lowercase, not empty)
@@ -513,18 +513,18 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Realtime Database Presence on Profile Creation:**
 
-- [ ] File: `src/utils/presence.js`
-- [ ] Function: `initializePresence(userId)`
+- [x] File: `src/utils/presence.js`
+- [x] Function: `initializePresence(userId)`
 
   - Write to Realtime Database: `/presence/{userId}`
   - Set: `{ isOnline: true, lastSeen: serverTimestamp() }`
   - Setup onDisconnect: `{ isOnline: false, lastSeen: serverTimestamp() }`
 
-- [ ] Call `initializePresence` after profile creation in `ProfileSetupScreen.js`
+- [x] Call `initializePresence` after profile creation in `ProfileSetupScreen.js`
 
 **Add Loading States:**
 
-- [ ] In `ProfileSetupScreen.js`:
+- [x] In `ProfileSetupScreen.js`:
   - Show loading indicator while uploading photo
   - Show loading indicator while creating profile
   - Disable "Continue" button while processing
@@ -542,15 +542,15 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Before Merge:**
 
-- [ ] Sign up new account → lands on ProfileSetupScreen
-- [ ] Can enter username, displayName, bio
-- [ ] Can select profile photo from device
-- [ ] Photo uploads to Firebase Storage (check in Firebase console)
-- [ ] User document created in Firestore (check in Firebase console)
-- [ ] Presence entry created in Realtime Database (check in Firebase console)
-- [ ] After setup, navigates to Home screen
-- [ ] Username validation works (no spaces, not empty)
-- [ ] Can skip photo and bio (optional fields)
+- [x] Sign up new account → lands on ProfileSetupScreen
+- [x] Can enter username, displayName, bio
+- [x] Can select profile photo from device
+- [x] Photo uploads to Firebase Storage (check in Firebase console)
+- [x] User document created in Firestore (check in Firebase console)
+- [x] Presence entry created in Realtime Database (check in Firebase console)
+- [x] After setup, navigates to Home screen
+- [x] Username validation works (no spaces, not empty)
+- [x] Can skip photo and bio (optional fields)
 
 ---
 
@@ -562,8 +562,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Home Screen (User List):**
 
-- [ ] File: `src/screens/HomeScreen.js`
-- [ ] UI Components:
+- [x] File: `src/screens/HomeScreen.js`
+- [x] UI Components:
   - Header with app title
   - Current user profile icon (top-right, tap to view profile)
   - Sign out icon (top-right)
@@ -576,16 +576,16 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Fetch Users from Firestore:**
 
-- [ ] In `HomeScreen.js`, useEffect on mount:
-- [ ] Query Firestore `/users` collection
-- [ ] Use `getDocs` to fetch all users
-- [ ] Store in Firebase store: `useFirebaseStore.getState().setUsers(users)`
-- [ ] Filter out current user from display
+- [x] In `HomeScreen.js`, useEffect on mount:
+- [x] Query Firestore `/users` collection
+- [x] Use `getDocs` to fetch all users
+- [x] Store in Firebase store: `useFirebaseStore.getState().setUsers(users)`
+- [x] Filter out current user from display
 
 **Listen to Presence from Realtime Database:**
 
-- [ ] In `src/utils/presence.js`:
-- [ ] Function: `listenToAllPresence()`
+- [x] In `src/utils/presence.js`:
+- [x] Function: `listenToAllPresence()`
 
   - Use `onValue` listener on `/presence`
   - On data change, update Presence store:
@@ -594,28 +594,28 @@ Since you've never used React Native, this PR focuses on getting your developmen
     ```
   - Return unsubscribe function
 
-- [ ] In `HomeScreen.js`, useEffect on mount:
+- [x] In `HomeScreen.js`, useEffect on mount:
   - Call `listenToAllPresence()`
   - Return cleanup function to unsubscribe
 
 **Update Presence on App State:**
 
-- [ ] Install app state listener:
+- [x] Install app state listener:
   ```bash
   # Already included in React Native
   ```
-- [ ] In `App.js` or `HomeScreen.js`:
-- [ ] Import `AppState` from 'react-native'
-- [ ] Set up AppState listener:
+- [x] In `App.js` or `HomeScreen.js`:
+- [x] Import `AppState` from 'react-native'
+- [x] Set up AppState listener:
   - When app goes to background → update presence (isOnline: false)
   - When app returns to foreground → update presence (isOnline: true)
   - Update lastSeen every 60 seconds while app is active
 
 **Create User List Item Component:**
 
-- [ ] File: `src/components/UserListItem.js`
-- [ ] Props: user, onPress
-- [ ] Display:
+- [x] File: `src/components/UserListItem.js`
+- [x] Props: user, onPress
+- [x] Display:
   - Profile photo (use Image component with imageURL)
   - Display name
   - Online indicator from Presence store
@@ -624,12 +624,12 @@ Since you've never used React Native, this PR focuses on getting your developmen
     const isOnline = presenceData?.isOnline || false;
     ```
   - If offline, show "Last seen X mins ago" (calculate from lastSeen timestamp)
-- [ ] OnPress: call onPress(user)
+- [x] OnPress: call onPress(user)
 
 **Format Last Seen Timestamp:**
 
-- [ ] In `src/utils/helpers.js`:
-- [ ] Function: `formatLastSeen(timestamp)`
+- [x] In `src/utils/helpers.js`:
+- [x] Function: `formatLastSeen(timestamp)`
   - If less than 1 minute: "Just now"
   - If less than 60 minutes: "X mins ago"
   - If less than 24 hours: "X hours ago"
@@ -637,28 +637,28 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Sort Users (Online First):**
 
-- [ ] In `HomeScreen.js`:
-- [ ] When rendering FlatList, sort users:
+- [x] In `HomeScreen.js`:
+- [x] When rendering FlatList, sort users:
   - Online users first
   - Then offline users by lastSeen (most recent first)
 
 **Add Sign Out Functionality:**
 
-- [ ] In `HomeScreen.js`:
-- [ ] Add sign out button to header
-- [ ] On press: call `signOutUser()` from auth utils
-- [ ] Update presence to offline before signing out
+- [x] In `HomeScreen.js`:
+- [x] Add sign out button to header
+- [x] On press: call `signOutUser()` from auth utils
+- [x] Update presence to offline before signing out
 
 **Add Navigation to AppNavigator:**
 
-- [ ] In `src/navigation/AppNavigator.js`:
-- [ ] Add HomeScreen to Main Stack
-- [ ] Add ChatScreen placeholder (will build in next PR)
+- [x] In `src/navigation/AppNavigator.js`:
+- [x] Add HomeScreen to Main Stack
+- [x] Add ChatScreen placeholder (will build in next PR)
 
 **Handle Profile Photo Placeholder:**
 
-- [ ] Create placeholder for users without photos
-- [ ] Use user's initials in colored circle (or generic avatar icon)
+- [x] Create placeholder for users without photos
+- [x] Use user's initials in colored circle (or generic avatar icon)
 
 **Files Created:**
 
@@ -674,15 +674,15 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Test Before Merge:**
 
-- [ ] Home screen shows list of all users (except current user)
-- [ ] Online users show green dot
-- [ ] Offline users show "Last seen..." with correct time
-- [ ] Users sorted correctly (online first)
-- [ ] Profile photos display correctly
-- [ ] Placeholder shows for users without photos
-- [ ] Open app on second device → first device shows as online
-- [ ] Close app on second device → first device shows as offline (within 1 min)
-- [ ] Sign out works and returns to login screen
+- [x] Home screen shows list of all users (except current user)
+- [x] Online users show green dot
+- [x] Offline users show "Last seen..." with correct time
+- [x] Users sorted correctly (online first)
+- [x] Profile photos display correctly
+- [x] Placeholder shows for users without photos
+- [x] Open app on second device → first device shows as online
+- [x] Close app on second device → first device shows as offline (within 1 min)
+- [x] Sign out works and returns to login screen
 
 ---
 
@@ -694,8 +694,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Chat Screen:**
 
-- [ ] File: `src/screens/ChatScreen.js`
-- [ ] UI Components:
+- [x] File: `src/screens/ChatScreen.js`
+- [x] UI Components:
   - Header:
     - Back button (navigate to Home)
     - Other user's photo, name, online status
@@ -706,9 +706,9 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Message Bubble Component:**
 
-- [ ] File: `src/components/MessageBubble.js`
-- [ ] Props: message, isCurrentUser
-- [ ] Display:
+- [x] File: `src/components/MessageBubble.js`
+- [x] Props: message, isCurrentUser
+- [x] Display:
   - Message text
   - Timestamp (below message)
   - Align right if current user, left if other user
@@ -717,8 +717,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Create Conversation on User Tap:**
 
-- [ ] In `HomeScreen.js`:
-- [ ] When user taps another user:
+- [x] In `HomeScreen.js`:
+- [x] When user taps another user:
   - Generate conversationId (deterministic for 1-on-1):
     ```javascript
     const conversationId = [currentUserId, otherUserId].sort().join("_");
@@ -742,9 +742,9 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Fetch Messages from Firestore:**
 
-- [ ] In `ChatScreen.js`:
-- [ ] Get conversationId from navigation params
-- [ ] useEffect on mount:
+- [x] In `ChatScreen.js`:
+- [x] Get conversationId from navigation params
+- [x] useEffect on mount:
   - Set up Firestore listener on `/conversations/{conversationId}/messages`
   - Order by timestamp (ascending)
   - Use `onSnapshot` for real-time updates
@@ -756,8 +756,8 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Display Messages:**
 
-- [ ] In `ChatScreen.js`:
-- [ ] Get messages from Firebase store:
+- [x] In `ChatScreen.js`:
+- [x] Get messages from Firebase store:
   ```javascript
   const messages = useFirebaseStore((s) => s.messages[conversationId] || []);
   ```
@@ -768,24 +768,24 @@ Since you've never used React Native, this PR focuses on getting your developmen
 
 **Display Header with Other User Info:**
 
-- [ ] In `ChatScreen.js`:
-- [ ] Get otherUser from navigation params
-- [ ] Display otherUser's photo, displayName
-- [ ] Get online status from Presence store:
+- [x] In `ChatScreen.js`:
+- [x] Get otherUser from navigation params
+- [x] Display otherUser's photo, displayName
+- [x] Get online status from Presence store:
   ```javascript
   const presenceData = usePresenceStore(
     (s) => s.presenceData[otherUser.userId]
   );
   const isOnline = presenceData?.isOnline || false;
   ```
-- [ ] Show "Online" or "Last seen X mins ago"
+- [x] Show "Online" or "Last seen X mins ago"
 
 **Create Placeholder Messages for Testing:**
 
-- [ ] Manually add 2-3 messages in Firebase console (Firestore)
-- [ ] Collection: `/conversations/{conversationId}/messages`
-- [ ] Add test messages with different senders
-- [ ] Verify they appear in ChatScreen
+- [x] Manually add 2-3 messages in Firebase console (Firestore)
+- [x] Collection: `/conversations/{conversationId}/messages`
+- [x] Add test messages with different senders
+- [x] Verify they appear in ChatScreen
 
 **Files Created:**
 
@@ -2851,158 +2851,3 @@ Typing indicators provide immediate feedback that someone is responding, improvi
 - [x] Banner hides when online
 - [x] Works offline/online transitions smoothly
 - [x] No memory leaks from listeners
-
----
-
-## PR #13: Dark Mode & Message Reactions
-
-**Goal**: Implement dark mode theme system and message reactions for enhanced user experience
-
-### Why This Matters
-
-Dark mode is a standard expectation for modern apps and provides better usability in low-light conditions. Message reactions add engagement and quick feedback without cluttering the chat.
-
-### Subtasks
-
-**Implement Dark Mode:**
-
-- [ ] File: `src/contexts/ThemeContext.js`
-- [ ] Create theme context with light/dark color palettes:
-
-  ```javascript
-  const lightTheme = {
-    background: "#FFFFFF",
-    text: "#000000",
-    messageBubble: "#F0F0F0",
-    userMessageBubble: "#007AFF",
-    border: "#E0E0E0",
-    statusAvailable: "#00D856",
-    statusBusy: "#FF3B30",
-    statusAway: "#FFCC00",
-  };
-
-  const darkTheme = {
-    background: "#000000",
-    text: "#FFFFFF",
-    messageBubble: "#1C1C1E",
-    userMessageBubble: "#0A84FF",
-    border: "#38383A",
-    statusAvailable: "#00FF00", // Brighter for dark mode
-    statusBusy: "#FF0000",
-    statusAway: "#FFD700",
-  };
-  ```
-
-- [ ] Add theme toggle to Profile screen
-- [ ] Save theme preference to Firestore user document
-- [ ] Load theme preference on app start
-- [ ] Apply theme to all screens
-
-**Update All Components for Dark Mode:**
-
-- [ ] File: `src/screens/ChatScreen.js`
-- [ ] File: `src/screens/HomeScreen.js`
-- [ ] File: `src/screens/ProfileScreen.js`
-- [ ] File: `src/components/MessageBubble.js`
-- [ ] File: `src/components/UserListItem.js`
-- [ ] All AI feature screens
-- [ ] Use theme colors instead of hardcoded colors
-
-**Implement Message Reactions:**
-
-- [ ] File: `src/utils/reactions.js`
-- [ ] Function: `addReaction(conversationId, messageId, userId, emoji)`
-
-  - Add reaction to message document in Firestore
-  - Use `arrayUnion` to add reaction object
-  - Structure: `{ userId, emoji, timestamp }`
-
-- [ ] Function: `removeReaction(conversationId, messageId, userId, emoji)`
-
-  - Remove specific reaction from message
-  - Use `arrayRemove` to remove reaction object
-
-- [ ] Function: `listenToReactions(conversationId, messageId, onReactionsUpdate)`
-  - Listen to message document changes
-  - Return reactions array
-  - Return unsubscribe function
-
-**Create Reaction UI:**
-
-- [ ] File: `src/components/MessageReactions.js`
-- [ ] Display reactions below message
-- [ ] Show emoji with count (👍 3)
-- [ ] Tap reaction to add/remove
-- [ ] Long-press to see who reacted
-- [ ] Available emojis: 👍 ❤️ 😂 🎉 😮 😢
-
-**Add Reaction Picker:**
-
-- [ ] File: `src/components/ReactionPicker.js`
-- [ ] Modal with emoji grid
-- [ ] Tap emoji to add reaction
-- [ ] Close on tap outside
-- [ ] Position near message
-
-**Update MessageBubble:**
-
-- [ ] File: `src/components/MessageBubble.js`
-- [ ] Add long-press handler to show reaction picker
-- [ ] Display MessageReactions component
-- [ ] Handle reaction tap events
-
-**Update Message Schema:**
-
-- [ ] File: `src/utils/conversation.js`
-- [ ] Add reactions field to message creation:
-  ```javascript
-  {
-    text: "...",
-    reactions: [
-      { userId: "user1", emoji: "👍", timestamp: serverTimestamp() },
-      { userId: "user2", emoji: "❤️", timestamp: serverTimestamp() }
-    ]
-  }
-  ```
-
-**Test Dark Mode:**
-
-- [ ] Toggle dark mode in Profile settings
-- [ ] Verify theme updates immediately across all screens
-- [ ] Check status colors are brighter in dark mode
-- [ ] Verify text contrast is readable (WCAG AA)
-- [ ] Test theme persistence (close app, reopen)
-- [ ] Test with all AI features
-
-**Test Message Reactions:**
-
-- [ ] Long-press message → reaction picker appears
-- [ ] Tap emoji → reaction added to message
-- [ ] Tap existing reaction → removes reaction
-- [ ] Multiple users can react to same message
-- [ ] Reactions sync in real-time across devices
-- [ ] Long-press reaction → shows who reacted
-
-**Files Created:**
-
-- `src/contexts/ThemeContext.js`
-- `src/components/MessageReactions.js`
-- `src/components/ReactionPicker.js`
-- `src/utils/reactions.js`
-
-**Files Modified:**
-
-- All screen components (dark mode support)
-- `src/components/MessageBubble.js` (reactions)
-- `src/screens/ProfileScreen.js` (theme toggle)
-- `src/utils/conversation.js` (reactions schema)
-
-**Test Before Merge:**
-
-- [ ] Dark mode works across all screens
-- [ ] Theme persistence works correctly
-- [ ] Text contrast meets accessibility standards
-- [ ] Message reactions work in real-time
-- [ ] Reaction picker appears on long-press
-- [ ] Multiple users can react simultaneously
-- [ ] Reactions display correctly in both themes

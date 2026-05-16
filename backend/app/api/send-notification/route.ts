@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import { firebaseAdmin } from "@/lib/firebase-admin";
+import { authenticate } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
+    try {
+      await authenticate(req);
+    } catch (e) {
+      if (e instanceof Response) return e;
+      throw e;
+    }
+
     const {
       conversationId,
       messageId,

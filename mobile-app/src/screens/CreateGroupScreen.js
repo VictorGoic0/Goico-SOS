@@ -1,6 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import { collection, onSnapshot } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,9 +15,9 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import Button from "../components/Button";
-import { db } from "../config/firebase";
+import { useTheme } from "../contexts/ThemeContext";
 import useFirebaseStore from "../stores/firebaseStore";
-import { colors, spacing, typography } from "../styles/tokens";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import {
   createGroupConversation,
   updateGroupConversation,
@@ -26,49 +25,25 @@ import {
 import { getAvatarColor, getInitials } from "../utils/helpers";
 
 export default function CreateGroupScreen({ navigation }) {
+  const { colors } = useTheme();
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const users = useFirebaseStore((state) => state.users);
-  const setUsers = useFirebaseStore((state) => state.setUsers);
+  const usersLoading = useFirebaseStore((state) => state.usersLoading);
+  // Filter out current user from the list
+  const visibleUsers = users.filter((user) => user.userId !== currentUser.uid);
 
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [groupPhoto, setGroupPhoto] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Fetch all users from Firestore
-  useEffect(() => {
-    const usersRef = collection(db, "users");
-
-    const unsubscribe = onSnapshot(
-      usersRef,
-      (snapshot) => {
-        const usersData = snapshot.docs.map((doc) => ({
-          userId: doc.id,
-          ...doc.data(),
-        }));
-
-        setUsers(usersData);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching users:", error);
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [setUsers]);
-
   // Toggle user selection
   const toggleUserSelection = (userId) => {
-    setSelectedUsers((prev) => {
-      if (prev.includes(userId)) {
-        return prev.filter((id) => id !== userId);
-      } else {
-        return [...prev, userId];
-      }
-    });
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
   };
 
   // Pick group photo (Task 27)
@@ -81,7 +56,7 @@ export default function CreateGroupScreen({ navigation }) {
       if (status !== "granted") {
         Alert.alert(
           "Permission Required",
-          "Please allow access to your photo library to select a group photo."
+          "Please allow access to your photo library to select a group photo.",
         );
         return;
       }
@@ -114,7 +89,7 @@ export default function CreateGroupScreen({ navigation }) {
     if (selectedUsers.length < 2) {
       Alert.alert(
         "Not Enough Participants",
-        "Please select at least 2 users to create a group."
+        "Please select at least 2 users to create a group.",
       );
       return;
     }
@@ -126,7 +101,7 @@ export default function CreateGroupScreen({ navigation }) {
       const conversationId = await createGroupConversation(
         groupName.trim(),
         selectedUsers,
-        null // No photo URL yet
+        null, // No photo URL yet
       );
 
       // Task 27: If group photo selected, update conversation with photo
@@ -141,7 +116,7 @@ export default function CreateGroupScreen({ navigation }) {
           // Continue without photo if upload fails
           Alert.alert(
             "Photo Upload Failed",
-            "Group was created but photo upload failed."
+            "Group was created but photo upload failed.",
           );
         }
       }
@@ -159,9 +134,150 @@ export default function CreateGroupScreen({ navigation }) {
     }
   };
 
-  // Filter out current user from the list
-  const availableUsers = users.filter(
-    (user) => user.userId !== currentUser.uid
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background },
+        loadingContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        },
+        loadingText: {
+          marginTop: spacing[4],
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+        },
+        scrollView: { flex: 1 },
+        section: {
+          marginBottom: spacing[6],
+          paddingHorizontal: spacing[4],
+          paddingTop: spacing[4],
+        },
+        sectionHeader: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: spacing[3],
+        },
+        sectionTitle: {
+          fontSize: typography.fontSize.lg,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text,
+        },
+        selectedCount: {
+          fontSize: typography.fontSize.sm,
+          color: tokenColors.primary.base,
+          fontWeight: typography.fontWeight.semibold,
+        },
+        input: {
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 8,
+          padding: spacing[3],
+          fontSize: typography.fontSize.base,
+          color: colors.text,
+          marginTop: spacing[2],
+        },
+        photoButton: {
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 8,
+          padding: spacing[4],
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        photoButtonText: {
+          fontSize: typography.fontSize.base,
+          color: colors.text,
+          marginBottom: spacing[1],
+        },
+        photoButtonSubtext: {
+          fontSize: typography.fontSize.sm,
+          color: colors.textSecondary,
+        },
+        groupPhotoPreview: {
+          width: 100,
+          height: 100,
+          borderRadius: 50,
+          backgroundColor: colors.skeleton,
+        },
+        userList: { marginTop: spacing[2] },
+        userItem: {
+          flexDirection: "row",
+          alignItems: "center",
+          padding: spacing[3],
+          backgroundColor: colors.surface,
+          borderRadius: 8,
+          marginBottom: spacing[2],
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        avatarContainer: { marginRight: spacing[3] },
+        avatar: {
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          backgroundColor: colors.skeleton,
+        },
+        avatarPlaceholder: {
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        avatarText: {
+          fontSize: typography.fontSize.lg,
+          fontWeight: typography.fontWeight.semibold,
+          color: tokenColors.neutral.white,
+        },
+        userInfo: { flex: 1, justifyContent: "center" },
+        displayName: {
+          fontSize: typography.fontSize.base,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text,
+          marginBottom: spacing[1],
+        },
+        username: {
+          fontSize: typography.fontSize.sm,
+          color: colors.textSecondary,
+        },
+        checkbox: {
+          width: 24,
+          height: 24,
+          borderRadius: 4,
+          borderWidth: 2,
+          borderColor: colors.border,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        checkboxSelected: {
+          backgroundColor: tokenColors.primary.base,
+          borderColor: tokenColors.primary.base,
+        },
+        checkmark: {
+          color: tokenColors.neutral.white,
+          fontSize: 16,
+          fontWeight: typography.fontWeight.bold,
+        },
+        emptyContainer: { padding: spacing[8], alignItems: "center" },
+        emptyText: {
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+          textAlign: "center",
+        },
+        buttonContainer: {
+          padding: spacing[4],
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+        },
+      }),
+    [colors],
   );
 
   // Check if user is selected
@@ -218,10 +334,10 @@ export default function CreateGroupScreen({ navigation }) {
     );
   };
 
-  if (isLoading) {
+  if (usersLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary.base} />
+        <ActivityIndicator size="large" color={tokenColors.primary.base} />
         <Text style={styles.loadingText}>Loading users...</Text>
       </View>
     );
@@ -243,7 +359,7 @@ export default function CreateGroupScreen({ navigation }) {
             value={groupName}
             onChangeText={setGroupName}
             maxLength={50}
-            placeholderTextColor={colors.text.tertiary}
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
@@ -281,13 +397,13 @@ export default function CreateGroupScreen({ navigation }) {
           </View>
 
           {/* User List */}
-          {availableUsers.length === 0 ? (
+          {visibleUsers.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No other users found</Text>
             </View>
           ) : (
             <FlatList
-              data={availableUsers}
+              data={visibleUsers}
               renderItem={renderUserItem}
               keyExtractor={(item) => item.userId}
               scrollEnabled={false}
@@ -311,160 +427,3 @@ export default function CreateGroupScreen({ navigation }) {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.default,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.background.default,
-  },
-  loadingText: {
-    marginTop: spacing[4],
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    marginBottom: spacing[6],
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[4],
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: spacing[3],
-  },
-  sectionTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-  },
-  selectedCount: {
-    fontSize: typography.fontSize.sm,
-    color: colors.primary.base,
-    fontWeight: typography.fontWeight.semibold,
-  },
-  input: {
-    backgroundColor: colors.background.paper,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    borderRadius: 8,
-    padding: spacing[3],
-    fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    marginTop: spacing[2],
-  },
-  photoButton: {
-    backgroundColor: colors.background.paper,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    borderRadius: 8,
-    padding: spacing[4],
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  photoButtonText: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    marginBottom: spacing[1],
-  },
-  photoButtonSubtext: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.tertiary,
-  },
-  groupPhotoPreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.neutral.lighter,
-  },
-  userList: {
-    marginTop: spacing[2],
-  },
-  userItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing[3],
-    backgroundColor: colors.background.paper,
-    borderRadius: 8,
-    marginBottom: spacing[2],
-    borderWidth: 1,
-    borderColor: colors.border.light,
-  },
-  avatarContainer: {
-    marginRight: spacing[3],
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.neutral.lighter,
-  },
-  avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.white,
-  },
-  userInfo: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  displayName: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-    marginBottom: spacing[1],
-  },
-  username: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: colors.neutral.medium,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkboxSelected: {
-    backgroundColor: colors.primary.base,
-    borderColor: colors.primary.base,
-  },
-  checkmark: {
-    color: colors.neutral.white,
-    fontSize: 16,
-    fontWeight: typography.fontWeight.bold,
-  },
-  emptyContainer: {
-    padding: spacing[8],
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-    textAlign: "center",
-  },
-  buttonContainer: {
-    padding: spacing[4],
-    backgroundColor: colors.background.paper,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.light,
-  },
-});

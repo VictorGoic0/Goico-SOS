@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -7,8 +7,9 @@ import {
   View,
 } from "react-native";
 import { Image } from "expo-image";
+import { useTheme } from "../contexts/ThemeContext";
 import usePresenceStore from "../stores/presenceStore";
-import { colors, spacing, typography } from "../styles/tokens";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import {
   formatLastSeen,
   formatTimestamp,
@@ -39,6 +40,7 @@ export default function UserListItem({
   lastMessageSenderId = null,
   currentUserId = null,
 }) {
+  const { colors } = useTheme();
   const isOnline = usePresenceStore((state) => state.isUserOnline(user.userId));
   const presenceData = usePresenceStore(
     (state) => state.presenceData[user.userId]
@@ -66,6 +68,99 @@ export default function UserListItem({
     const prefix = isSentByCurrentUser ? "You: " : "";
     messagePreview = `${prefix}${lastMessage}`;
   }
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flexDirection: "row",
+          alignItems: "center",
+          padding: spacing[4],
+          backgroundColor: colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        currentUserContainer: { opacity: 0.6 },
+        deletingContainer: { opacity: 0.5 },
+        avatarContainer: { position: "relative", marginRight: spacing[3] },
+        avatar: {
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: colors.skeleton,
+        },
+        avatarPlaceholder: {
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        avatarText: {
+          fontSize: typography.fontSize.xl,
+          fontWeight: typography.fontWeight.semibold,
+          color: tokenColors.neutral.white,
+        },
+        onlineIndicator: {
+          position: "absolute",
+          bottom: 2,
+          right: 2,
+          width: 14,
+          height: 14,
+          borderRadius: 7,
+          borderWidth: 2,
+          borderColor: colors.surface,
+        },
+        userInfo: { flex: 1, justifyContent: "center" },
+        nameRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: spacing[1],
+        },
+        displayName: {
+          fontSize: typography.fontSize.base,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text,
+          flex: 1,
+        },
+        youBadge: {
+          marginLeft: spacing[2],
+          fontSize: typography.fontSize.xs,
+          fontWeight: typography.fontWeight.semibold,
+          color: tokenColors.primary.base,
+          backgroundColor: tokenColors.primary.lighter,
+          paddingHorizontal: spacing[2],
+          paddingVertical: spacing[1],
+          borderRadius: 8,
+        },
+        timestamp: {
+          fontSize: typography.fontSize.xs,
+          color: colors.textSecondary,
+          marginLeft: spacing[2],
+        },
+        username: {
+          fontSize: typography.fontSize.sm,
+          color: colors.textSecondary,
+          marginBottom: spacing[0],
+        },
+        lastMessageText: {
+          fontSize: typography.fontSize.sm,
+          color: colors.textSecondary,
+          marginTop: spacing[1],
+        },
+        lastSeen: {
+          fontSize: typography.fontSize.xs,
+          color: colors.textSecondary,
+          marginTop: spacing[1],
+        },
+        status: {
+          fontSize: typography.fontSize.xs,
+          color: colors.statusAvailable,
+          marginTop: spacing[1],
+        },
+      }),
+    [colors]
+  );
 
   return (
     <TouchableOpacity
@@ -102,8 +197,8 @@ export default function UserListItem({
             styles.onlineIndicator,
             {
               backgroundColor: isOnline
-                ? colors.success.main
-                : colors.neutral.mediumLight,
+                ? colors.statusAvailable
+                : colors.textDisabled,
             },
           ]}
         />
@@ -155,107 +250,8 @@ export default function UserListItem({
 
       {/* Loading indicator when deleting */}
       {isDeleting && (
-        <ActivityIndicator size="small" color={colors.primary.base} />
+        <ActivityIndicator size="small" color={tokenColors.primary.base} />
       )}
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing[4],
-    backgroundColor: colors.background.paper,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  currentUserContainer: {
-    opacity: 0.6,
-  },
-  deletingContainer: {
-    opacity: 0.5,
-  },
-  avatarContainer: {
-    position: "relative",
-    marginRight: spacing[3],
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.neutral.lighter,
-  },
-  avatarPlaceholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.white,
-  },
-  onlineIndicator: {
-    position: "absolute",
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: colors.background.paper,
-  },
-  userInfo: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing[1],
-  },
-  displayName: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-    flex: 1,
-  },
-  youBadge: {
-    marginLeft: spacing[2],
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.base,
-    backgroundColor: colors.primary.lighter,
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
-    borderRadius: 8,
-  },
-  timestamp: {
-    fontSize: typography.fontSize.xs,
-    color: colors.text.tertiary,
-    marginLeft: spacing[2],
-  },
-  username: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-    marginBottom: spacing[0],
-  },
-  lastMessageText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-    marginTop: spacing[1],
-  },
-  lastSeen: {
-    fontSize: typography.fontSize.xs,
-    color: colors.text.tertiary,
-    marginTop: spacing[1],
-  },
-  status: {
-    fontSize: typography.fontSize.xs,
-    color: colors.success.main,
-    marginTop: spacing[1],
-  },
-});

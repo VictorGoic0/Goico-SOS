@@ -4,7 +4,7 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { onAuthStateChanged } from "firebase/auth";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   AppState,
@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { auth } from "../config/firebase";
+import { useTheme } from "../contexts/ThemeContext";
 import useFirebaseStore from "../stores/firebaseStore";
 
 // Auth Screens
@@ -33,7 +34,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 // Utils
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { colors, spacing, typography } from "../styles/tokens";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 import { listenToConversations } from "../utils/conversation";
 import { registerForPushNotifications } from "../utils/notifications";
 import { updatePresence } from "../utils/presence";
@@ -52,6 +53,7 @@ const Stack = createNativeStackNavigator();
 export const navigationRef = createNavigationContainerRef();
 
 export default function AppNavigator() {
+  const { colors } = useTheme();
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const setCurrentUser = useFirebaseStore((state) => state.setCurrentUser);
   const [isCheckingProfile, setIsCheckingProfile] = useState(true);
@@ -70,7 +72,7 @@ export default function AppNavigator() {
     } else if (currentUser && !currentUser.username) {
       setHasUsername(false);
     }
-  }, [currentUser?.username]);
+  }, [currentUser?.username, currentUser]);
 
   // Listen to auth state changes and check for username
   useEffect(() => {
@@ -110,14 +112,19 @@ export default function AppNavigator() {
     return unsubscribe;
   }, [setCurrentUser]);
 
-  // Listen to conversations for current user
+  // Listen to conversations and users for current user
   useEffect(() => {
     if (!currentUser?.uid || !hasUsername) {
       return;
     }
 
-    const unsubscribe = listenToConversations(currentUser.uid);
-    return unsubscribe;
+    const unsubConversations = listenToConversations(currentUser.uid);
+    useFirebaseStore.getState().subscribeToUsers();
+
+    return () => {
+      unsubConversations();
+      useFirebaseStore.getState().unsubscribeUsers();
+    };
   }, [currentUser?.uid, hasUsername]);
 
   // Handle app state changes (foreground/background)
@@ -166,12 +173,30 @@ export default function AppNavigator() {
     registerNotifications();
   }, [currentUser?.uid, hasUsername]);
 
+  const loadingStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        loadingContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        },
+        loadingText: {
+          marginTop: spacing[4],
+          fontSize: typography.fontSize.base,
+          color: colors.textSecondary,
+        },
+      }),
+    [colors]
+  );
+
   // Show loading screen while checking profile
   if (currentUser && isCheckingProfile) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary.base} />
-        <Text style={styles.loadingText}>Loading...</Text>
+      <View style={loadingStyles.loadingContainer}>
+        <ActivityIndicator size="large" color={tokenColors.primary.base} />
+        <Text style={loadingStyles.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -188,9 +213,9 @@ export default function AppNavigator() {
             <Stack.Navigator
               screenOptions={{
                 headerStyle: {
-                  backgroundColor: colors.primary.mediumDark,
+                  backgroundColor: colors.headerBackground,
                 },
-                headerTintColor: colors.neutral.white,
+                headerTintColor: colors.text,
                 headerTitleStyle: {
                   fontWeight: typography.fontWeight.semibold,
                 },
@@ -232,13 +257,19 @@ export default function AppNavigator() {
               />
               <Stack.Screen
                 name="GroupInfo"
-                component={GroupInfoScreen}
                 options={{
                   title: "Group Info",
                   headerShown: true,
                   headerBackTitle: "Back",
                 }}
-              />
+              >
+                {(props) => (
+                  <GroupInfoScreen
+                    key={props.route.params?.conversationId ?? "group-info"}
+                    {...props}
+                  />
+                )}
+              </Stack.Screen>
               <Stack.Screen
                 name="ActionItems"
                 component={ActionItemsScreen}
@@ -295,17 +326,3 @@ export default function AppNavigator() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.background.default,
-  },
-  loadingText: {
-    marginTop: spacing[4],
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-  },
-});

@@ -1,10 +1,18 @@
 import { generateText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { openai } from '@/lib/openai-provider';
 import { NextResponse } from 'next/server';
 import { firebaseAdmin, FirebaseMessage } from '@/lib/firebase-admin';
+import { authenticate } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    try {
+      await authenticate(req);
+    } catch (e) {
+      if (e instanceof Response) return e;
+      throw e;
+    }
+
     const { conversationId, messageCount = 50 } = await req.json();
 
     // Validate input
@@ -31,7 +39,7 @@ export async function POST(req: Request) {
     // Create prompt
     const conversationText = messages
       .reverse() // Chronological order
-      .map(m => `${m.senderUsername}: ${m.text}`)
+      .map(message => `${message.senderUsername}: ${message.text}`)
       .join('\n');
 
     const prompt = `Summarize this conversation thread in 2-3 bullet points. Focus on key topics, decisions, and action items:

@@ -1,0 +1,478 @@
+# Messaging App - Implementation Task List (Part 3)
+
+## PR #17: Dark Mode & Message Reactions
+
+**Goal**: Implement dark mode theme system and message reactions for enhanced user experience
+
+### Why This Matters
+
+Dark mode is a standard expectation for modern apps and provides better usability in low-light conditions. Message reactions add engagement and quick feedback without cluttering the chat.
+
+### Subtasks
+
+**Implement Dark Mode:**
+
+- [x] File: `mobile-app/src/styles/tokens.js`: add `themeColors` export with `light` and `dark` objects (background, surface, text, border, messageBubble, userBubble, status colors, etc.). Keep existing `colors` as primitive palette; `themeColors` is the semantic theme layer.
+- [x] File: `src/contexts/ThemeContext.js`: create theme context with AsyncStorage persistence and system preference:
+  - Use `useColorScheme()` from React Native for system theme
+  - State: `themeMode` — `'light' | 'dark' | 'system'`
+  - Load saved theme from AsyncStorage on mount
+  - Expose `setTheme(mode)` that saves to AsyncStorage and updates state
+  - Compute `isDark` from `themeMode === 'system' ? systemColorScheme : themeMode`
+  - Expose `colors` from `themeColors.light` or `themeColors.dark` based on `isDark`
+- [x] Wrap app in `ThemeProvider` in `App.js`; render `AppNavigator` and `StatusBar style="auto"` inside
+- [x] In Profile screen: add "Appearance" section with theme selector — Light / System / Dark (TouchableOpacity per option, call `setTheme`)
+- [x] Apply theme to all screens: use `useTheme()` and apply `colors` (theme semantic tokens) in HomeScreen, ChatScreen, ProfileScreen, GroupInfoScreen, CreateGroupScreen, ThreadSummaryModal, ActionItemsScreen, DecisionsScreen, and any agent/chat screens
+
+**Update All Components for Dark Mode:**
+
+- [x] File: `src/screens/ChatScreen.js`
+- [x] File: `src/screens/HomeScreen.js`
+- [x] File: `src/screens/ProfileScreen.js`
+- [x] File: `src/components/MessageBubble.js`
+- [x] File: `src/components/UserListItem.js`
+- [x] All AI feature screens
+- [x] Use theme colors instead of hardcoded colors
+
+**Implement Message Reactions:**
+
+- [x] File: `src/utils/reactions.js`
+- [x] Function: `addReaction(conversationId, messageId, userId, emoji)`
+
+  - Add reaction to message document in Firestore
+  - Use `arrayUnion` to add reaction object
+  - Structure: `{ userId, emoji, timestamp }` — use client `Timestamp.now()` (Firestore does not allow `serverTimestamp()` inside `arrayUnion()`)
+
+- [x] Function: `removeReaction(conversationId, messageId, userId, emoji)`
+
+  - Remove specific reaction from message
+  - Use `arrayRemove` to remove reaction object (read doc first to get exact object for removal)
+
+- [x] Function: `listenToReactions(conversationId, messageId, onReactionsUpdate)`
+  - Listen to message document changes
+  - Return reactions array
+  - Return unsubscribe function
+
+**Create Reaction UI:**
+
+- [x] File: `src/components/MessageReactions.js`
+- [x] Display reactions below message
+- [x] Show emoji with count (👍 3)
+- [x] Tap reaction to add/remove
+- [x] Long-press to see who reacted
+- [x] Available emojis: 👍 ❤️ 😂 🎉 😮 😢
+
+**Add Reaction Picker:**
+
+- [x] File: `src/components/ReactionPicker.js`
+- [x] Modal with emoji grid
+- [x] Tap emoji to add reaction
+- [x] Close on tap outside
+- [x] Position near message
+
+**Update MessageBubble:**
+
+- [x] File: `src/components/MessageBubble.js`
+- [x] Add long-press handler to show reaction picker
+- [x] Display MessageReactions component
+- [x] Handle reaction tap events
+
+**Update Message Schema:**
+
+- [x] File: `src/utils/conversation.js`
+- [x] Add reactions field to message creation (initial empty array). When adding a reaction via `arrayUnion`, use client `Timestamp.now()` — not `serverTimestamp()`, which cannot be used inside `arrayUnion()`:
+  ```javascript
+  // New message:
+  { text: "...", reactions: [], ... }
+
+  // Reaction object (in arrayUnion):
+  { userId: "user1", emoji: "👍", timestamp: Timestamp.now() }
+  ```
+
+**Test Dark Mode:**
+
+- [x] Toggle dark mode in Profile settings
+- [x] Verify theme updates immediately across all screens
+- [x] Check status colors are brighter in dark mode
+- [x] Verify text contrast is readable (WCAG AA)
+- [x] Test theme persistence (close app, reopen)
+- [x] Test with all AI features
+
+**Test Message Reactions:**
+
+- [x] Long-press message → reaction picker appears
+- [x] Tap emoji → reaction added to message
+- [x] Tap existing reaction → removes reaction
+- [x] Multiple users can react to same message
+- [x] Reactions sync in real-time across devices
+- [x] Long-press reaction → shows who reacted
+
+**Files Created:**
+
+- `src/contexts/ThemeContext.js`
+- `src/components/MessageReactions.js`
+- `src/components/ReactionPicker.js`
+- `src/utils/reactions.js`
+
+**Files Modified:**
+
+- All screen components (dark mode support)
+- `src/components/MessageBubble.js` (reactions)
+- `src/screens/ProfileScreen.js` (theme toggle)
+- `src/utils/conversation.js` (reactions schema)
+
+**Test Before Merge:**
+
+- [x] Dark mode works across all screens
+- [x] Theme persistence works correctly
+- [x] Text contrast meets accessibility standards
+- [x] Message reactions work in real-time
+- [x] Reaction picker appears on long-press
+- [x] Multiple users can react simultaneously
+- [x] Reactions display correctly in both themes
+
+---
+
+## PR #18: AI Features Polish & Integration (completed items)
+
+**Goal**: Polish all AI features — expo-image, push/PC behavior, Android deployment (completed and tested)
+
+### Subtasks
+
+**Implement expo-image for Production-Quality Image Caching:**
+
+**Note:** Using `expo-image` instead of `react-native-fast-image` because FastImage requires native code and doesn't work with Expo Go. expo-image provides similar benefits (disk caching, smooth scrolling, memory efficiency) while maintaining fast development workflow.
+
+- [x] 16. Install expo-image:
+
+  ```bash
+  cd mobile-app
+  npx expo install expo-image
+  ```
+
+- [x] 17. Update `MessageBubble.js` to use expo-image:
+
+  ```javascript
+  // Change import from:
+  import { Image } from "react-native";
+  // To:
+  import { Image } from "expo-image";
+
+  // Replace sender avatar Image (around line 56)
+  {sender?.imageURL ? (
+    <Image
+      source={{ uri: sender.imageURL }}
+      style={styles.senderAvatar}
+      contentFit="cover"
+      priority="normal"
+      cachePolicy="memory-disk"
+    />
+  ) : (
+    // ... existing placeholder code
+  )}
+
+  // Replace mini avatars Image (around line 156)
+  <Image
+    key={userId}
+    source={{ uri: user.imageURL }}
+    style={[
+      styles.miniAvatar,
+      index > 0 && styles.miniAvatarOverlap,
+    ]}
+    contentFit="cover"
+    priority="normal"
+    cachePolicy="memory-disk"
+  />
+  ```
+
+- [x] 18. Update `UserListItem.js` to use expo-image:
+
+  ```javascript
+  // Change import from:
+  import { Image } from "react-native";
+  // To:
+  import { Image } from "expo-image";
+
+  // Replace user avatar Image (around line 85)
+  {user.imageURL ? (
+    <Image
+      source={{ uri: user.imageURL }}
+      style={styles.avatar}
+      contentFit="cover"
+      priority="high"  // High priority for user list
+      cachePolicy="memory-disk"
+    />
+  ) : (
+    // ... existing placeholder code
+  )}
+  ```
+
+- [x] 19. Update `ChatScreen.js` header to use expo-image:
+
+  ```javascript
+  // Change import from:
+  import { Image } from "react-native";
+  // To:
+  import { Image } from "expo-image";
+
+  // Replace header avatars (around line 330 and 348)
+
+  // Group avatar:
+  {conversation?.groupImageURL ? (
+    <Image
+      source={{ uri: conversation.groupImageURL }}
+      style={styles.headerAvatar}
+      contentFit="cover"
+      priority="high"
+      cachePolicy="memory-disk"
+    />
+  ) : (
+    // ... existing placeholder code
+  )}
+
+  // 1-on-1 avatar:
+  {otherUser?.imageURL ? (
+    <Image
+      source={{ uri: otherUser.imageURL }}
+      style={styles.headerAvatar}
+      contentFit="cover"
+      priority="high"
+      cachePolicy="memory-disk"
+    />
+  ) : (
+    // ... existing placeholder code
+  )}
+  ```
+
+- [x] 20. Update any other Image components for profile pictures:
+
+  - ✅ `GroupInfoScreen.js` - Updated participant avatars and group photo (2 Image components)
+  - ✅ `ProfileScreen.js` - Updated profile photo (1 Image component)
+  - ✅ `CreateGroupScreen.js` - Updated participant avatars and group photo preview (2 Image components)
+  - ✅ `HomeScreen.js` - Updated header profile photo and group conversation avatars (2 Image components)
+  - ✅ All profile image `Image` components now use expo-image with proper caching props
+
+  **Note**: expo-image automatically handles pre-loading efficiently. Manual Image.prefetch() is optional and not needed for this app.
+
+**Why This Matters for Production:**
+
+- **Persistent Disk Caching**: Images cached between app sessions (not just in memory)
+- **60fps Scrolling**: Background decoding keeps UI smooth
+- **Memory Efficient**: Auto-downsampling to display size (reduces RAM usage significantly)
+- **Request Deduplication**: Same image URL = single network request
+- **Instant Loading**: Cached images appear in <100ms vs 500-2000ms
+- **Reduced Data Usage**: Critical for users on limited data plans
+- **Expo-managed**: Works with Expo Go, no native build required
+- **Modern API**: Clean interface with contentFit, priority, cachePolicy props
+
+**Fix Push Notifications on PC (Windows/Mac Desktop):**
+
+- [x] 25. Investigate why push notifications don't work on PC:
+
+  - ✅ Expo notifications require different setup for web (VAPID keys)
+  - ✅ Web push uses Web Push Protocol (different from mobile APNs/FCM)
+  - ✅ This is expected behavior - web and mobile use different push systems
+  - ✅ Findings documented below
+
+- [x] 26. ~~If desktop push notifications are supported~~ (Skipped - web push requires VAPID)
+
+  - N/A - Web push requires VAPID configuration and service workers
+  - Not needed for MVP - mobile push is the priority
+  - Can be added later if web push becomes a requirement
+
+- [x] 27. Desktop push notifications are NOT supported (documented):
+  - ✅ Added platform check to gracefully skip web platform
+  - ✅ Web users can still use app fully (Firebase real-time listeners work)
+  - ✅ Console message explains why push notifications are skipped
+  - ✅ No error thrown - graceful degradation implemented
+  - 📝 **Result**: Web app works perfectly, just no push notifications banner
+  - 📝 **Alternative**: Users on web still get real-time message updates via Firebase
+  - 📝 **Future Enhancement**: Could add VAPID setup for web push if needed
+
+**Fix Android Deployed Build Issues:**
+
+- [x] 28. Investigate Android deployment breaking:
+
+  - ✅ **Root Cause #1**: Missing `android.package` in `app.json`
+  - ✅ **Root Cause #2**: `newArchEnabled: true` was forcing custom dev builds
+  - ✅ **Root Cause #3**: `expo-dev-client` package was installed (requires custom builds)
+  - ✅ **Root Cause #4**: Notification registration blocking Android emulator
+  - ✅ **Solution**: Removed blockers and added platform-aware checks
+
+- [x] 29. Applied Android build fixes:
+
+  - ✅ Added `android.package: "com.victormgoico.messagingapp"` to `app.json`
+  - ✅ Removed `newArchEnabled: true` from `app.json` (not needed for Expo Go)
+  - ✅ Removed `expo-dev-client` package from `package.json`
+  - ✅ Updated notification registration to be platform-aware:
+    - iOS simulator: blocked (no APNs support)
+    - Android emulator: allowed (works with Expo Go)
+    - Web: blocked (requires VAPID keys)
+
+- [x] 30. Test Android deployment:
+
+  - ✅ App opens on Android emulator via `npx expo start` + press `a`
+  - ✅ Push notifications work on Android emulator
+  - ✅ All features work correctly (messaging, profiles, groups)
+  - ✅ Cache clearing: Must clear from emulator settings (terminal cache clear doesn't work)
+  - 📝 **Note**: Using Expo Go (no custom build needed)
+
+- [x] 31. Document Android deployment process:
+  - ✅ Updated README with Android emulator setup steps
+  - ✅ Documented cache clearing process for emulator
+  - ✅ Added platform check explanations
+  - ✅ Noted that Expo Go works for all features with platform-aware checks
+
+**Files Modified (PR #18 completed work):**
+
+- `mobile-app/src/components/MessageBubble.js` (expo-image for avatars)
+- `mobile-app/src/components/UserListItem.js` (expo-image for user list)
+- `mobile-app/src/screens/ChatScreen.js` (expo-image)
+- `mobile-app/src/screens/GroupInfoScreen.js` (expo-image for group photos)
+- `mobile-app/src/screens/ProfileScreen.js` (expo-image)
+- `mobile-app/src/screens/CreateGroupScreen.js` (expo-image for participant selection)
+- `mobile-app/src/screens/HomeScreen.js` (expo-image)
+- `app.json` (Android package, notification platform checks)
+
+**Test Before Merge (tested ✅):**
+
+- [x] 53. expo-image installed and working across all profile images
+- [x] 54. Message bubbles load profile pictures instantly on repeated views
+- [x] 55. Group chat avatars load smoothly without staggered appearance
+- [x] 56. Scrolling remains smooth (60fps) while images load
+- [x] 57. Images persist in cache after app restart
+- [x] 59. Push notifications resolved for PC (or documented as unsupported)
+- [x] 60. Android build successfully deploys and runs
+- [x] 61. All features work correctly on Android device
+
+---
+
+## PR #19: AI Features Polish & Integration (remaining work)
+
+**Goal**: Error handler, health check, and optional push notification profile photos
+
+### Subtasks
+
+**Add Error Handling Improvements:**
+
+- [ ] 1. File: `backend/lib/error-handler.ts`
+- [ ] 2. Create centralized error handler:
+
+  ```typescript
+  export class AIServiceError extends Error {
+    constructor(
+      message: string,
+      public statusCode: number = 500,
+      public code?: string
+    ) {
+      super(message);
+      this.name = "AIServiceError";
+    }
+  }
+
+  export function handleAPIError(error: unknown) {
+    console.error("API Error:", error);
+
+    if (error instanceof AIServiceError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.statusCode }
+      );
+    }
+
+    // OpenAI specific errors
+    if (error.message?.includes("rate_limit")) {
+      return NextResponse.json(
+        { error: "AI service rate limit reached. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    // Generic error
+    return NextResponse.json(
+      { error: "An unexpected error occurred. Please try again." },
+      { status: 500 }
+    );
+  }
+  ```
+
+**Create Backend Health Check:**
+
+- [ ] 3. File: `backend/app/api/health/route.ts`
+- [ ] 4. Implement health check endpoint:
+
+  ```typescript
+  import { NextResponse } from "next/server";
+  import { db } from "@/lib/firebase-admin";
+
+  export async function GET() {
+    try {
+      // Test Firebase connection
+      await db.collection("_health").doc("check").get();
+
+      return NextResponse.json({
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        services: {
+          firebase: "ok",
+          openai: "ok",
+        },
+      });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          status: "unhealthy",
+          error: error.message,
+        },
+        { status: 503 }
+      );
+    }
+  }
+  ```
+
+**Push Notification Profile Photos (Nice-to-Have):**
+
+Note: Currently, profile photos are included in notification data but don't display in the notification banner. These are optional enhancements:
+
+- [ ] 5. **Option 1: iOS Notification Service Extension**
+
+  - Requires native Swift/Objective-C code
+  - Intercepts notification before display
+  - Downloads image from URL and attaches to notification
+  - Requires EAS Build or ejecting from Expo
+  - Most control, but highest complexity
+
+- [ ] 6. **Option 2: Android Native Configuration**
+
+  - Configure large icon support via Expo config plugins
+  - Easier than iOS implementation
+  - Still requires EAS Build (not Expo Go)
+  - Better Android notification appearance
+
+- [ ] 7. **Option 3: EAS Build + Config Plugin (Recommended)**
+
+  - Use Expo's build service instead of Expo Go
+  - Add notification config plugin to `app.json`
+  - Maintains most of Expo's managed workflow
+  - Example config:
+    ```json
+    {
+      "expo": {
+        "plugins": [
+          [
+            "expo-notifications",
+            {
+              "icon": "./assets/icon.png",
+              "sounds": ["./assets/notification-sound.wav"]
+            }
+          ]
+        ]
+      }
+    }
+    ```
+
+- [ ] 8. **Option 4: Eject to Bare React Native**
+  - Full native control over notifications
+  - Implement custom notification service extensions
+  - Lose Expo's managed workflow benefits
+  - Maximum flexibility, maximum complexity

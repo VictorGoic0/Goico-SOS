@@ -129,6 +129,57 @@ export const colors = {
 };
 
 // ============================================================================
+// THEME COLORS (semantic light/dark — use via useTheme())
+// ============================================================================
+
+export const themeColors = {
+  light: {
+    background: colors.neutral.lightest,
+    surface: colors.neutral.white,
+    surfaceElevated: colors.neutral.white,
+    text: colors.neutral.darkest,
+    textSecondary: colors.text.secondary,
+    textDisabled: colors.text.disabled,
+    border: colors.border.main,
+    inputBackground: colors.neutral.lighter,
+    messageBubble: "#F0F0F0",
+    userBubble: "#007AFF",
+    userBubbleText: colors.neutral.white,
+    headerBackground: colors.neutral.white,
+    statusAvailable: colors.success.main,
+    statusBusy: colors.error.main,
+    statusAway: colors.warning.main,
+    icon: colors.neutral.dark,
+    tabBar: colors.neutral.white,
+    skeleton: colors.neutral.light,
+    card: colors.neutral.white,
+    divider: colors.divider,
+  },
+  dark: {
+    background: "#000000",
+    surface: "#1C1C1E",
+    surfaceElevated: "#2C2C2E",
+    text: "#FFFFFF",
+    textSecondary: "rgba(255, 255, 255, 0.6)",
+    textDisabled: "rgba(255, 255, 255, 0.38)",
+    border: "#38383A",
+    inputBackground: "#1C1C1E",
+    messageBubble: "#1C1C1E",
+    userBubble: "#0A84FF",
+    userBubbleText: "#FFFFFF",
+    headerBackground: "#1C1C1E",
+    statusAvailable: "#30D158",
+    statusBusy: "#FF453A",
+    statusAway: "#FFD60A",
+    icon: "rgba(255, 255, 255, 0.8)",
+    tabBar: "#1C1C1E",
+    skeleton: "#2C2C2E",
+    card: "#1C1C1E",
+    divider: "rgba(255, 255, 255, 0.12)",
+  },
+};
+
+// ============================================================================
 // TYPOGRAPHY
 // ============================================================================
 
@@ -293,6 +344,7 @@ export const zIndex = {
 // Default export for convenience
 export default {
   colors,
+  themeColors,
   typography,
   spacing,
   borderRadius,

@@ -9,14 +9,13 @@ import { colors, typography } from "../styles/tokens";
  * @param {Object} style - Optional custom styles for the container
  * @param {Object} textStyle - Optional custom styles for the text
  */
-export default function MarkdownText({ children, style, textStyle }) {
-  // Combine default text styles with custom ones
-  const combinedTextStyle = {
-    ...(styles.body.fontSize && { fontSize: styles.body.fontSize }),
-    ...(styles.body.color && { color: styles.body.color }),
-    ...(styles.body.lineHeight && { lineHeight: styles.body.lineHeight }),
-    ...textStyle,
-  };
+export default function MarkdownText({ children, style: _style, textStyle }) {
+  // Combine default text styles with custom ones (no conditional object spread — see linting.mdc)
+  const baseTextStyle = {};
+  if (styles.body.fontSize) baseTextStyle.fontSize = styles.body.fontSize;
+  if (styles.body.color) baseTextStyle.color = styles.body.color;
+  if (styles.body.lineHeight) baseTextStyle.lineHeight = styles.body.lineHeight;
+  const combinedTextStyle = { ...baseTextStyle, ...textStyle };
 
   const markdownStyles = {
     body: combinedTextStyle,

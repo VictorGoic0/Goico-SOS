@@ -37,7 +37,7 @@
 ### Development Tools
 
 - **Package Manager**: npm
-- **Testing**: Manual testing only (no automated tests for MVP)
+- **Testing**: Manual testing for mobile MVP; **backend** uses Vitest for unit tests (`backend/`: `npm run test`, e.g. RAG message enrichment).
 - **Deployment**: Expo EAS Build for iOS and Android
 - **Version Control**: Git with GitHub
 
@@ -146,10 +146,18 @@ enableIndexedDbPersistence(db).catch((err) => {
 
 ## Project Structure
 
-### Directory Organization
+### Repo Layout
+
+- **MessageAI/** — monorepo root
+  - **mobile-app/** — React Native (Expo) app; run `npx expo start` from here
+  - **backend/** — Next.js API on Vercel (`/api/summarize`, `/api/search`, `/api/agent`, etc.)
+  - **docs/** — PRD.md, TDD_RAG_Pipeline.md, tasks-1.md through tasks-3.md, tasks-TDD.md
+  - **memory-bank/** — projectbrief, progress, activeContext, systemPatterns, techContext
+
+### Directory Organization (mobile-app)
 
 ```
-messaging-app/
+mobile-app/
 ├── src/
 │   ├── screens/           # Screen components
 │   │   ├── SignupScreen.js
@@ -186,13 +194,10 @@ messaging-app/
 │   │   └── AppNavigator.js
 │   └── styles/          # Design tokens and styles
 │       └── tokens.js
-├── functions/            # Firebase Cloud Functions
-│   └── index.js
-├── .env                 # Environment variables
-├── .gitignore
-├── app.json            # Expo configuration
+├── .env                 # EXPO_PUBLIC_* (Firebase, backend URL)
+├── app.json
 ├── package.json
-└── README.md
+└── ...
 ```
 
 ## Dependencies
@@ -338,6 +343,7 @@ eas build --platform android
 - **API Keys**: Store in .env file, never commit to version control
 - **Firebase Config**: Use environment variables for all sensitive data
 - **OpenAI Key**: Keep API key secure and monitor usage
+- **Backend (backend/.env.local)**: Firebase Admin (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`), Upstash Redis (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), optional `CORS_ORIGIN` for CORS. See `docs/auth-rate-limiter.md`.
 
 ### Data Privacy
 
@@ -385,6 +391,14 @@ eas build --platform android
 - **QR code not working**: Update Expo Go app
 - **Build failures**: Check EAS configuration
 - **Module not found**: Verify package installation
+
+## RAG Pipeline (docs/tasks-TDD.md) — implemented
+
+- **Pinecone** (free tier): Index `messages`, **512** dims, cosine (`text-embedding-3-small` with `dimensions: 512`).
+- **OpenAI text-embedding-3-small**: Embed messages and queries; one message = one vector; short-message enrichment (&lt;10 words → prepend previous).
+- **Flow**: If Pinecone has **no** vectors for `conversationId`, **`ensureConversationBackfilledForRag`** runs full `indexConversationMessages` (search + agent). Otherwise **incremental**: `POST /api/index-message` after send (`requestIndexMessageForRag` on mobile). Retrieval default **topK = 5**; agent merges recent Firestore messages.
+- **No new deployment**: Pinecone over HTTP from Vercel. See `docs/TDD_RAG_Pipeline.md` and `docs/tasks-TDD.md`.
+- **QA tracking**: All **Test Before Merge** checkboxes in `docs/tasks-TDD.md` are marked complete after manual/integration validation.
 
 ## Future Technical Considerations
 

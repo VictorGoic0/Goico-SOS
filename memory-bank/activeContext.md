@@ -2,11 +2,11 @@
 
 ## Current Work Focus
 
-### Project Status: **AI Search & Priority Features Complete**
+### Project Status: **AI + Dark Mode + Backend Auth & Rate Limiter Complete; RAG TDD PR #1–#8 Done; Message Reactions, PR #19 Next**
 
-The project has completed PRs #1-11 (all core messaging features including read receipts), PR #13 (Vercel Backend Setup), PR #14 (Thread Summarization & Action Items), and PR #15 (Smart Search & Priority Detection). The application now has fully functional 1-on-1 and group messaging with push notifications, read receipts, AI-powered thread analysis, semantic search, and automatic priority detection.
+The project has completed core messaging (PRs #1–#11), AI backend and features (PRs #13–#16: Vercel, summarization, action items, search, priority, decision tracking, multi-step agent), polish in PR #18 (expo-image, push-on-PC, Android), **PR #17 Dark Mode** (theme system, ThemeContext, Appearance selector, theme applied to all screens), and **Backend Auth & Rate Limiter** (Firebase ID token verification, Upstash Redis rate limiting, CORS). **RAG (tasks-TDD.md)**: PRs #1–#8 complete — **`ensureConversationBackfilledForRag`** (full backfill when Pinecone has no vectors for `conversationId`), **`POST /api/index-message`** + mobile **`requestIndexMessageForRag`** for incremental upserts, retrieval default **topK = 5**. Task lists: **tasks-1.md**, **tasks-2.md**, **tasks-3.md**, **tasks-TDD.md**.
 
-**Current Architecture**: React Native mobile app → Vercel serverless functions → OpenAI GPT-4o-mini (text) + text-embedding-3-small (embeddings) + Firebase Firestore
+**Current Architecture**: React Native (mobile-app/) → Vercel serverless (backend/) → OpenAI (GPT-4o-mini, text-embedding-3-small) + Firebase (Firestore, Realtime DB, Storage) + Pinecone (RAG index `messages`, 512 dims). All AI/RAG routes protected by `authenticate()`. **Next**: PR #19 polish / PR #17 reactions (see tasks-3.md).
 
 ### Completed PRs
 
@@ -24,8 +24,28 @@ The project has completed PRs #1-11 (all core messaging features including read 
 12. ✅ **PR #13**: Vercel Backend Setup & Test Function
 13. ✅ **PR #14**: Thread Summarization & Action Item Extraction
 14. ✅ **PR #15**: Smart Search & Priority Detection
+15. ✅ **PR #16**: Decision Tracking & Multi-Step Agent
+16. ✅ **PR #17 (Dark Mode)**: Theme system, ThemeContext, Appearance (Light/System/Dark), theme applied to all screens and navigator
 
-### Recently Completed: **PR #15 - Smart Search & Priority Detection**
+### Recently Completed: **Backend Auth & Rate Limiter**
+
+- ✅ **Auth**: `verifyToken(req)` in `backend/lib/auth.ts` — extracts Bearer token, verifies with Firebase Admin, returns decoded user (uid, email). All 7 API routes (agent, summarize, search, extract-actions, decisions, priority, send-notification) call `authenticate(req)` at top.
+- ✅ **Rate limiter**: `checkRateLimit(uid)` — Upstash Redis (HTTP), fixed window: 30 requests/user/24h, 1000 global/24h; prefixes `rate:user:sos`, `rate:global:sos`. 429 response includes `{ error, detail, retryAfter }`.
+- ✅ **Mobile**: `getAuthHeader()` in aiService and notifications — sends `Authorization: Bearer <idToken>` on every backend request; token from `auth.currentUser?.getIdToken()` (auto-refresh).
+- ✅ **CORS**: `next.config.ts` — headers for `/api/:path*`, `Authorization` in allowed headers, origin from `CORS_ORIGIN` env.
+- ✅ **Doc**: `docs/auth-rate-limiter.md` (or `docs/TDD-auth-rate-limiter.md`) — Phase 1 (auth) and Phase 2 (rate limiter) implemented and tested.
+
+### Previously: **PR #17 - Dark Mode**
+
+- ✅ **themeColors** in `tokens.js`: `light` and `dark` semantic palettes (background, surface, text, border, messageBubble, userBubble, status, etc.)
+- ✅ **ThemeContext**: AsyncStorage persistence, `themeMode` (light/dark/system), `setTheme()`, `useColorScheme()` for system
+- ✅ **App**: Wrapped in `ThemeProvider`; `StatusBar` follows theme
+- ✅ **ProfileScreen**: Appearance section with Light / System / Dark selector
+- ✅ **Screens themed**: HomeScreen, ChatScreen, ProfileScreen, GroupInfoScreen, CreateGroupScreen, ActionItemsScreen, DecisionsScreen, AgentChatScreen, ThreadSummaryModal
+- ✅ **Components themed**: MessageBubble, UserListItem, CompactInput; AppNavigator header and loading screen
+- ⏳ **PR #17 Message Reactions**: Not yet implemented (reactions UI, Firestore schema, picker)
+
+### Previously: **PR #15 - Smart Search & Priority Detection**
 
 **PR #15 Highlights:**
 
@@ -78,19 +98,50 @@ The project has completed PRs #1-11 (all core messaging features including read 
 
 ### Next Steps
 
-**AI Features Roadmap:**
+**From docs/tasks-3.md:**
 
-- ✅ PR #15: Smart Search & Priority Detection (COMPLETE)
-- ⏳ PR #16: AI Agent as a Conversation (unified conversational interface) - NEXT
-- PR #17: Decision Tracking & Multi-Step Agent
-- PR #18: AI Features Polish & Integration
+- ✅ PR #17 Dark Mode: theme system, Appearance selector, all screens/components themed — done and tested
+- ⏳ PR #17 Message Reactions: reactions utils, MessageReactions/ReactionPicker, schema (remaining)
+- ✅ PR #18: AI polish completed (expo-image, Push PC, Android) — done and tested
+- ⏳ PR #19: AI polish remaining (error handling, health check, read receipts, docs, optional push profile photos)
+
+**From docs/tasks-TDD.md (RAG pipeline):**
+
+- ✅ PR #1–#8 TDD: Backfill-if-empty, incremental index-message, topK 5, docs
+- ✅ All **Test Before Merge** items in `docs/tasks-TDD.md` marked done (manual / integration validation, including RAG search)
 
 **Completed Features:**
 
-- ✅ PRs #1-11: Core messaging, profiles, presence, group chats, push notifications, read receipts
-- ✅ PRs #13-15: AI backend setup + thread analysis + semantic search + priority detection
+- ✅ PRs #1–#11: Core messaging, profiles, presence, group chats, push notifications, read receipts
+- ✅ PRs #13–#16: AI backend (Vercel), summarization, action items, search, priority, decision tracking, multi-step agent
+- ✅ PR #17 Dark Mode: ThemeContext, themeColors, Appearance (Light/System/Dark), all screens and nav themed
+- ✅ PR #18: AI polish completed (expo-image, push-on-PC doc, Android deployment)
+- ✅ Backend Auth & Rate Limiter: Firebase token verification, Upstash Redis rate limits (30/user/24h, 1000 global/24h), mobile sends Bearer token, CORS configured
+
+**Documentation layout:** `docs/tasks-1.md` (PRs #1–#12), `docs/tasks-2.md` (PRs #13–#16), `docs/tasks-3.md` (PRs #17–#19), `docs/tasks-TDD.md` (RAG, 8 PRs). See `docs/PRD.md`, `docs/TDD_RAG_Pipeline.md`.
 
 ## Recent Changes
+
+### Backend Auth & Rate Limiter (Completed)
+
+**Implementation:** No Next.js middleware (Edge can't run firebase-admin). Shared helpers in `backend/lib/auth.ts` called at the top of each route:
+
+- **verifyToken(req)** — reads `Authorization: Bearer <token>`, verifies with Firebase Admin `auth.verifyIdToken()`, returns `DecodedIdToken` or throws 401.
+- **checkRateLimit(uid)** — Upstash Redis via `@upstash/ratelimit` + `@upstash/redis`; fixed window 30/user/24h and 1000 global/24h (prefixes `rate:user:sos`, `rate:global:sos`). Checks global first, then per-user. On limit exceeded throws 429 with JSON `{ error: "RateLimitExceeded", detail, retryAfter }`.
+- **authenticate(req)** — calls `verifyToken` then `checkRateLimit(user.uid)`, returns decoded user.
+
+**Routes:** All 7 protected routes use `authenticate(req)` (agent, summarize, search, extract-actions, decisions, priority, send-notification). Test route remains unauthenticated.
+
+**Mobile:** `mobile-app/src/services/aiService.js` and `mobile-app/src/utils/notifications.js` use `getAuthHeader()` (from `auth.currentUser?.getIdToken()`) and send `Authorization: Bearer <token>` on every backend request.
+
+**Config:** CORS in `backend/next.config.ts`; env vars: Firebase Admin (existing), `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, optional `CORS_ORIGIN`. Rate limiter tested and working.
+
+### Backend typed env (`lib/config.ts`)
+
+- **`backend/lib/config.ts`**: Zod-validated `config` (single `process.env` parse). Required: Firebase Admin, `OPENAI_API_KEY`, Upstash Redis, Pinecone; optional `CORS_ORIGIN`.
+- **`backend/lib/openai-provider.ts`**: `createOpenAI({ apiKey: config.OPENAI_API_KEY })` — AI routes and `embeddings.ts` import `openai` from here so the SDK does not read env implicitly.
+- **Oxlint**: `eslint-js/no-process-env` error; only `config.ts` uses `process.env` (with inline disable on that line).
+- **Consumers**: `firebase-admin.ts`, `pinecone.ts`, `next.config.ts`, `auth.ts` (explicit `Redis` URL/token), embeddings + agent/summarize/extract-actions/decisions/priority routes.
 
 ### PR #15: Smart Search & Priority Detection (Completed)
 

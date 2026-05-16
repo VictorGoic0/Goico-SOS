@@ -1,18 +1,22 @@
 # Progress: Mobile Messaging App
 
-## Current Status: **AI Search & Priority Complete - Agent Features Next**
+## Current Status: **Core + AI + Dark Mode + Backend Auth & Rate Limiter + RAG TDD Complete; Message Reactions, PR #19 Next**
 
-### Overall Progress: 82% Complete (14/17 PRs Done)
+### Task Files (docs/)
 
-- ✅ **Planning Phase**: 100% Complete
-- ✅ **Foundation Phase**: 100% Complete (PRs #1-2)
-- ✅ **Core Features**: 100% Complete (PRs #3-8)
-- ✅ **Advanced Features**: 100% Complete (PRs #9-11)
-- ✅ **AI Features (Phase 1)**: 100% Complete (PRs #13-15 done)
-- ⏳ **AI Features (Phase 2)**: 0% Complete (PRs #16-18 remaining)
-- ⏳ **Polish & Deployment**: 0% Complete
+- **tasks-1.md** — PRs #1–#12 (core app; many done)
+- **tasks-2.md** — PRs #13–#16 (AI backend & features; done)
+- **tasks-3.md** — PRs #17–#19 (dark mode, polish completed/remaining)
+- **tasks-TDD.md** — RAG pipeline, 8 PRs (**done**)
 
-**Current Focus**: Semantic search and priority detection complete. Next: AI Agent as a Conversation (PR #16), then decision tracking and final polish.
+### Overall Progress
+
+- ✅ **Foundation & Core**: PRs #1–#11 (setup, auth, profiles, messaging, groups, push, read receipts)
+- ✅ **AI Backend & Features**: PRs #13–#16 (Vercel, summarization, action items, search, priority, decision tracking, multi-step agent)
+- ✅ **Polish (completed)**: PR #17 Dark Mode (theme system, Appearance, all screens themed), PR #18 — expo-image, push-on-PC behavior, Android deployment
+- ✅ **Backend Auth & Rate Limiter**: Firebase token verification, Upstash Redis (30/user/24h, 1000 global/24h), all API routes protected, mobile sends Bearer token, CORS — implemented and tested
+- ⏳ **Polish (remaining)**: PR #17 Message Reactions, PR #19 (error handling, health check, read receipt settings, docs, optional items)
+- ✅ **RAG Pipeline** (`docs/tasks-TDD.md`): PRs #1–#8 — full backfill when no Pinecone vectors for a conversation, `POST /api/index-message` + mobile fire-and-forget after send, default retrieval topK **5**, README/TDD updated; every **Test Before Merge** row in that file is checked off after validation.
 
 ## What Works (Completed)
 
@@ -241,6 +245,33 @@
 - Priority factors: urgency indicators, deadlines, blockers, escalations
 - Priority stored in message document (prevents re-analysis)
 
+### Backend typed env & Oxlint ✅
+
+- ✅ `backend/lib/config.ts` — Zod `config`; `eslint-js/no-process-env` enforces no other `process.env` usage
+- ✅ `backend/lib/openai-provider.ts` — shared OpenAI provider from `config.OPENAI_API_KEY`
+- ✅ Firebase Admin, Pinecone, CORS headers, Upstash Redis, and all AI routes use `config` / `openai` provider
+
+### Backend Auth & Rate Limiter ✅ (Complete)
+
+- ✅ `backend/lib/auth.ts`: `verifyToken(req)`, `checkRateLimit(uid)`, `authenticate(req)`
+- ✅ Firebase Admin verifies ID token from `Authorization: Bearer` header
+- ✅ Upstash Redis rate limits: 30 requests/user/24h, 1000 global/24h (prefixes `rate:user:sos`, `rate:global:sos`)
+- ✅ All 7 API routes (agent, summarize, search, extract-actions, decisions, priority, send-notification) call `authenticate(req)` at top
+- ✅ Mobile: aiService and notifications send `Authorization: Bearer <idToken>` via `getAuthHeader()`
+- ✅ CORS in next.config.ts (Authorization in allowed headers, optional CORS_ORIGIN)
+- ✅ 429 response body: `{ error: "RateLimitExceeded", detail, retryAfter }` for client messaging
+- ✅ Doc: `docs/auth-rate-limiter.md` (or TDD-auth-rate-limiter.md). Rate limiter tested and working.
+
+### PR #17: Dark Mode ✅ (Complete)
+
+- ✅ `themeColors` in `tokens.js`: `light` and `dark` semantic palettes
+- ✅ ThemeContext with AsyncStorage persistence, `themeMode` (light/dark/system), `setTheme()`, `useColorScheme()`
+- ✅ App wrapped in ThemeProvider; StatusBar follows theme
+- ✅ ProfileScreen Appearance section: Light / System / Dark selector
+- ✅ All screens themed: HomeScreen, ChatScreen, ProfileScreen, GroupInfoScreen, CreateGroupScreen, ActionItemsScreen, DecisionsScreen, AgentChatScreen, ThreadSummaryModal
+- ✅ Components themed: MessageBubble, UserListItem, CompactInput; AppNavigator header and loading screen
+- ✅ Theme persistence and contrast verified
+
 ### PR #9: Group Chats ✅ (Complete)
 
 **Features Implemented:**
@@ -330,42 +361,30 @@
 - ✅ **Push Notifications**: Expo notifications with Vercel backend
 - ✅ **Read Receipts**: 1-on-1 and group chat read receipts with visual indicators
 
-### Phase 7: AI Features Implementation (PRs #13-18)
+### Phase 7: AI Features (docs/tasks-2.md — PRs #13–#16)
 
-**Status**: Phase 1 Complete (PRs #13-15)
+**Status**: ✅ Complete
 
 - ✅ **PR #13**: Vercel Backend Setup
-  - ✅ Next.js project with Vercel AI SDK
-  - ✅ Firebase Admin SDK integration
-  - ✅ Test endpoint deployed and verified
 - ✅ **PR #14**: Thread Summarization & Action Item Extraction
-  - ✅ Backend summarization endpoint (GPT-4o-mini)
-  - ✅ Backend action items endpoint with structured outputs
-  - ✅ Mobile UI integration (ThreadSummaryModal, ActionItemsScreen)
-  - ✅ ChatScreen integration with AI buttons
-  - ✅ Full end-to-end testing complete
 - ✅ **PR #15**: Smart Search & Priority Detection
-  - ✅ Hybrid semantic search (embeddings + keyword matching)
-  - ✅ Automatic priority detection for messages
-  - ✅ Search UI with responsive results container
-  - ✅ Priority display with red border and badge
-  - ✅ Configurable search parameters and threshold tuning
-- [ ] **PR #16**: AI Agent as a Conversation ⭐ NEXT
-  - AI agent as pinned conversation in HomeScreen
-  - Reuses existing ChatScreen for conversation UI
-  - Streaming responses in real-time
-  - Refactor Summary/Actions buttons to use agent with pre-filled prompts
-  - Complete transition to unified conversational AI interface
-- [ ] **PR #17**: Decision Tracking & Multi-Step Agent
-  - Decision extraction from conversations
-  - Advanced multi-step AI agent with tools
-  - Complex workflow execution (5+ steps)
-- [ ] **PR #18**: AI Features Polish & Integration
-  - Rate limiting and caching for all AI endpoints
-  - Error handling improvements and analytics
-  - Dark mode support for AI features
-  - Performance optimization
-  - Production readiness and monitoring
+- ✅ **PR #16**: Decision Tracking & Multi-Step Agent
+
+### Phase 8: Polish & UX (docs/tasks-3.md — PRs #17–#19)
+
+**Status**: Partial (PR #17 Dark Mode and PR #18 done; PR #17 Message Reactions and PR #19 remaining)
+
+- ✅ **PR #17 Dark Mode**: ThemeContext, themeColors, Appearance (Light/System/Dark), all screens/components/navigator themed; persistence via AsyncStorage
+- [ ] **PR #17 Message Reactions**: reactions utils, MessageReactions, ReactionPicker, Firestore schema
+- ✅ **PR #18**: AI polish completed — expo-image, push-on-PC doc, Android deployment (tested)
+- [ ] **PR #19**: AI polish remaining — error handling, health check, read receipt settings, backend README, deploy, optional push profile photos
+
+### Phase 9: RAG Pipeline (docs/tasks-TDD.md)
+
+**Status**: Complete — PRs #1–#8
+
+- Pinecone + embeddings + enrichment + `indexConversationMessages` + retrieval (`DEFAULT_TOP_K = 5`) + RAG search + agent `retrieveRelevantMessages` / `buildAgentRetrievalContext`.
+- PR #8: `ensureConversationBackfilledForRag` before search and agent retrieval; `POST /api/index-message` + `processIndexMessageAfterSend`; mobile `requestIndexMessageForRag` after `sendMessage`. Docs: `TDD_RAG_Pipeline.md`, `tasks-TDD.md`, `backend/README.md`.
 
 ### Phase 8: Final Polish (Day 7)
 
@@ -421,26 +440,14 @@
 
 ## Next Immediate Actions
 
-### Priority 1: Project Setup (PR #1)
+### From docs/tasks-3.md
 
-1. **Create Expo Project**: `npx create-expo-app messaging-app`
-2. **Install Dependencies**: Firebase, Zustand, React Navigation
-3. **Set up Firebase**: Create project and configure all services
-4. **Test Basic Setup**: Ensure app runs on device
+1. **PR #17 Message Reactions**: reactions utils, MessageReactions, ReactionPicker, Firestore schema (Dark Mode done).
+2. **PR #19**: Remaining polish — backend error handler, health check, README, deploy; mobile error handling, skeletons, read receipt settings; optional push profile photos; test-all-AI checklist.
 
-### Priority 2: Core Architecture (PR #2)
+### From docs/tasks-TDD.md
 
-1. **Create Zustand Stores**: Implement 3-store pattern
-2. **Set up Navigation**: Auth and main navigation stacks
-3. **Firebase Integration**: Test Firebase connection
-4. **Basic Authentication**: Implement signup/login flow
-
-### Priority 3: First Features (PR #3-5)
-
-1. **Profile Setup**: Complete user profile creation
-2. **User List**: Display all users with basic info
-3. **Presence Tracking**: Show online/offline status
-4. **Basic Testing**: Test on multiple devices
+3. ✅ **RAG PRs #1–#8**: Complete (see Phase 9 above).
 
 ## Success Metrics Tracking
 

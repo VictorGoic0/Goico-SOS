@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   View,
   FlatList,
@@ -8,13 +8,15 @@ import {
   ActivityIndicator,
   Text,
 } from "react-native";
-import { executeAgent } from "../services/aiService";
-import { colors, spacing, typography } from "../styles/tokens";
 import MessageBubble from "../components/MessageBubble";
 import CompactInput from "../components/CompactInput";
+import { useTheme } from "../contexts/ThemeContext";
+import { executeAgent } from "../services/aiService";
 import useFirebaseStore from "../stores/firebaseStore";
+import { colors as tokenColors, spacing, typography } from "../styles/tokens";
 
 export default function AgentChatScreen({ route }) {
+  const { colors } = useTheme();
   const { conversationId } = route.params;
   const currentUser = useFirebaseStore((state) => state.currentUser);
   const [query, setQuery] = useState("");
@@ -22,12 +24,68 @@ export default function AgentChatScreen({ route }) {
   const [processing, setProcessing] = useState(false);
   const flatListRef = useRef(null);
 
-  useEffect(() => {
-    // Scroll to bottom when new messages appear
-    if (messages.length > 0 && flatListRef.current) {
-      flatListRef.current.scrollToEnd({ animated: true });
-    }
-  }, [messages]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background },
+        messagesContent: {
+          padding: spacing[4],
+          flexGrow: 1,
+        },
+        emptyContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          paddingHorizontal: spacing[6],
+        },
+        emptyTitle: {
+          fontSize: 24,
+          fontWeight: typography.fontWeight.bold,
+          color: colors.text,
+          marginBottom: spacing[2],
+          textAlign: "center",
+        },
+        emptyText: {
+          fontSize: 16,
+          color: colors.textSecondary,
+          textAlign: "center",
+          marginBottom: spacing[4],
+        },
+        examplesContainer: {
+          alignSelf: "stretch",
+          backgroundColor: colors.surface,
+          borderRadius: 12,
+          padding: spacing[4],
+          marginTop: spacing[2],
+        },
+        examplePrompt: {
+          fontSize: 14,
+          color: tokenColors.primary.base,
+          fontStyle: "italic",
+          marginBottom: spacing[2],
+          textAlign: "center",
+        },
+        typingIndicator: {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: spacing[4],
+          paddingVertical: spacing[2],
+          backgroundColor: colors.background,
+        },
+        typingText: {
+          fontSize: 14,
+          color: colors.textSecondary,
+          fontStyle: "italic",
+          marginLeft: spacing[2],
+        },
+        inputContainer: {
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+        },
+      }),
+    [colors],
+  );
 
   const handleSubmit = async () => {
     if (!query.trim() || processing) {
@@ -161,7 +219,7 @@ export default function AgentChatScreen({ route }) {
       {/* Typing Indicator */}
       {processing && (
         <View style={styles.typingIndicator}>
-          <ActivityIndicator size="small" color={colors.primary.base} />
+          <ActivityIndicator size="small" color={tokenColors.primary.base} />
           <Text style={styles.typingText}>AI Agent is thinking...</Text>
         </View>
       )}
@@ -179,65 +237,3 @@ export default function AgentChatScreen({ route }) {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.default,
-  },
-  messagesContent: {
-    padding: spacing[4],
-    flexGrow: 1,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: spacing[6],
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
-    marginBottom: spacing[2],
-    textAlign: "center",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: colors.text.secondary,
-    textAlign: "center",
-    marginBottom: spacing[4],
-  },
-  examplesContainer: {
-    alignSelf: "stretch",
-    backgroundColor: colors.neutral.white,
-    borderRadius: 12,
-    padding: spacing[4],
-    marginTop: spacing[2],
-  },
-  examplePrompt: {
-    fontSize: 14,
-    color: colors.primary.base,
-    fontStyle: "italic",
-    marginBottom: spacing[2],
-    textAlign: "center",
-  },
-  typingIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    backgroundColor: colors.background.default,
-  },
-  typingText: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    fontStyle: "italic",
-    marginLeft: spacing[2],
-  },
-  inputContainer: {
-    backgroundColor: colors.background.paper,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.light,
-  },
-});

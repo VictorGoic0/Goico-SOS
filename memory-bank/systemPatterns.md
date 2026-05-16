@@ -310,14 +310,14 @@ AuthStack:
   - ProfileSetupScreen (first-time only)
 
 MainStack:
-  - HomeScreen (User List)
-  - ChatScreen
-  - ProfileScreen (current user)
-  - OtherUserProfileScreen
-  - CreateGroupScreen (post-MVP)
-  - GroupInfoScreen (post-MVP)
-  - AIChatScreen (post-MVP)
+  - HomeScreen (User List; AI agent as pinned conversation)
+  - ChatScreen (human and agent conversations)
+  - ProfileScreen, OtherUserProfileScreen
+  - CreateGroupScreen, GroupInfoScreen
+  - ActionItemsScreen, DecisionsScreen, etc.
 ```
+
+**Backend (Vercel):** Next.js API routes under `backend/app/api/` for summarize, extract-actions, search, priority, agent, send-notification. All protected by **auth + rate limiting**: no Edge middleware (firebase-admin is Node-only); shared helpers in `backend/lib/auth.ts` — `verifyToken(req)` (Firebase Admin), `checkRateLimit(uid)` (Upstash Redis: 30/user/24h, 1000 global/24h), `authenticate(req)` = verify then limit. Mobile sends `Authorization: Bearer <idToken>` on every request. See `docs/auth-rate-limiter.md`. **Planned:** RAG with Pinecone (see docs/tasks-TDD.md).
 
 ## State Management Patterns
 
