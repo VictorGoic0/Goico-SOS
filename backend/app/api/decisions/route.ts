@@ -2,8 +2,8 @@ import { generateObject } from 'ai';
 import { openai } from '@/lib/openai-provider';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { firebaseAdmin } from '@/lib/firebase/firebase-admin';
-import { auth } from '@/lib/auth/auth';
+import { firebaseAdmin } from '@/lib/firebase';
+import { auth } from '@/lib/auth';
 
 const DecisionSchema = z.object({
   decisions: z.array(

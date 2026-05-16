@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth/auth";
-import { ragPipeline } from "@/lib/rag/pipeline";
+import { auth } from "@/lib/auth";
+import { ragPipeline } from "@/lib/rag";
 
 export async function POST(request: Request) {
   try {

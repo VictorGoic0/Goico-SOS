@@ -2,7 +2,7 @@ import { generateObject } from "ai";
 import { openai } from "@/lib/openai-provider";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { auth } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth";
 
 // Define priority detection schema
 const PrioritySchema = z.object({

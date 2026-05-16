@@ -9,7 +9,8 @@
 
 import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { Timestamp } from "firebase-admin/firestore";
-import { firebaseAdmin, type FirebaseMessage, type MessageQueryOptions } from "./firebase/firebase-admin";
+import { firebaseAdmin } from "./firebase";
+import type { FirebaseMessage, MessageQueryOptions } from "./firebase";
 
 /** Message row for RAG indexing and metadata (timestamps as Unix ms). */
 export type ConversationMessageRecord = {

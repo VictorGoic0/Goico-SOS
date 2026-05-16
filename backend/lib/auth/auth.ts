@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { rateLimiter } from "../rate-limiter/rate-limiter";
+import { rateLimiter } from "../rate-limiter";
 
 class Auth {
   private auth: admin.auth.Auth;

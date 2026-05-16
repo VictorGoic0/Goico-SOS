@@ -5,8 +5,8 @@
  */
 
 import { embed, embedMany } from "ai";
-import type { FirebaseMessage } from "../firebase/firebase-admin";
-import { firebaseAdmin } from "../firebase/firebase-admin";
+import type { FirebaseMessage } from "../firebase";
+import { firebaseAdmin } from "../firebase";
 import type { ConversationMessageRecord } from "../firestore-messages";
 import {
   getConversationMessageRecordById,
@@ -20,8 +20,8 @@ import {
   parsePineconeMetadataToVectorMetadata,
   sortVectorMetadataByTimestampAsc,
 } from "../retrieve-messages-utils";
-import { pineconeClient } from "../pinecone/pinecone";
-import type { PineconeClient } from "../pinecone/pinecone";
+import { pineconeClient } from "../pinecone";
+import type { PineconeClient } from "../pinecone";
 import type { RecordMetadata, ScoredPineconeRecord } from "@pinecone-database/pinecone";
 import {
   AGENT_RECENT_FIRESTORE_LIMIT,

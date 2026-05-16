@@ -2,7 +2,7 @@ import admin from "firebase-admin";
 import { config } from "../config";
 import type { QuerySnapshot } from "firebase-admin/firestore";
 import type { Query } from "firebase-admin/firestore";
-import { FirebaseMessage, MessageQueryOptions } from "./types";
+import type { FirebaseMessage, MessageQueryOptions } from "./types";
 
 if (!admin.apps.length) {
   admin.initializeApp({

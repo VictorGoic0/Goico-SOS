@@ -1,5 +1,5 @@
 import type { RecordMetadata } from "@pinecone-database/pinecone";
-import type { MessageVectorMetadata } from "./rag/types";
+import type { MessageVectorMetadata } from "./rag";
 
 /**
  * Map Pinecone query match metadata to {@link MessageVectorMetadata}.

@@ -1,3 +1,8 @@
+export interface ScoredMetadataRow {
+  metadata: MessageVectorMetadata;
+  score: number;
+}
+
 export interface MessageVectorMetadata {
   messageId: string;
   conversationId: string;
@@ -8,21 +13,16 @@ export interface MessageVectorMetadata {
   timestamp: number;
 }
 
+export interface SearchHit extends MessageVectorMetadata {
+  similarity: number;
+}
+
 export interface IndexConversationResult {
   indexed: number;
   failed?: string[];
 }
 
 export type IndexMessageMode = "full" | "incremental";
-
-export interface SearchHit extends MessageVectorMetadata {
-  similarity: number;
-}
-
-export interface ScoredMetadataRow {
-  metadata: MessageVectorMetadata;
-  score: number;
-}
 
 export interface UnifiedLine {
   messageId: string;

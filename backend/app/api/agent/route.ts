@@ -1,9 +1,9 @@
 import { streamText, tool, stepCountIs } from 'ai';
 import { openai } from '@/lib/openai-provider';
 import { z } from 'zod';
-import { ragPipeline } from '@/lib/rag/pipeline';
+import { ragPipeline } from '@/lib/rag';
 import { searchMessages, groupBy, formatReport, getConversationMessages } from '@/lib/agent-tools';
-import { auth } from '@/lib/auth/auth';
+import { auth } from '@/lib/auth';
 
 // Define tools the agent can use
 const agentTools = {
