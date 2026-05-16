@@ -9,7 +9,7 @@
 
 import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { Timestamp } from "firebase-admin/firestore";
-import { firebaseAdmin, type FirebaseMessage } from "./firebase/firebase-admin";
+import { firebaseAdmin, type FirebaseMessage, type MessageQueryOptions } from "./firebase/firebase-admin";
 
 /** Message row for RAG indexing and metadata (timestamps as Unix ms). */
 export type ConversationMessageRecord = {
@@ -147,16 +147,12 @@ export async function getPreviousMessageForEnrichment(
   target: ConversationMessageRecord
 ): Promise<ConversationMessageRecord | null> {
   if (target.timestamp > 0) {
-    // last 1 to refactor
-    // we need queryBuilder to be more robust for this?
-    const snapshot = await db
-      .collection("conversations")
-      .doc(conversationId)
-      .collection("messages")
-      .where("timestamp", "<", Timestamp.fromMillis(target.timestamp))
-      .orderBy("timestamp", "desc")
-      .limit(1)
-      .get();
+    const options: MessageQueryOptions = {
+      where: [{ field: "timestamp", op: "<", value: Timestamp.fromMillis(target.timestamp) }],
+      orderBy: { field: "timestamp", direction: "desc" },
+      limit: 1,
+    }
+    const snapshot = await firebaseAdmin.getMessagesWithQuery(conversationId, options);
 
     if (snapshot.empty) {
       return null;

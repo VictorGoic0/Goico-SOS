@@ -1,6 +1,7 @@
 import admin from "firebase-admin";
 import { config } from "../config";
 import { QuerySnapshot } from "firebase-admin/firestore";
+import type { Query } from "firebase-admin/firestore";
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -21,6 +22,14 @@ export interface FirebaseMessage {
   readAt?: admin.firestore.Timestamp | null;
   readBy?: string[] | null;
   imageURL?: string | null;
+}
+
+export interface MessageQueryOptions {
+  where?: { field: string; op: FirebaseFirestore.WhereFilterOp; value: unknown }[];
+  orderBy?: { field: string; direction: "asc" | "desc" };
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 class FirebaseAdmin {
@@ -100,7 +109,7 @@ class FirebaseAdmin {
       keyword?: string;
     }
   ) {
-    const query: any = this.buildQuery(conversationId, filters)
+    const query = this.buildQuery(conversationId, filters)
 
     const snapshot = await query.get();
     const messages = this.snapshotToMessages(snapshot);
@@ -112,8 +121,13 @@ class FirebaseAdmin {
     return messages;
   }
 
-  private buildQuery(conversationId, options) {
-    let query: any = this.db
+  async getMessagesWithQuery(conversationId: string, options: MessageQueryOptions): Promise<QuerySnapshot> {
+    const query = this.buildQuery(conversationId, options);
+    return query.get();
+  }
+
+  private buildQuery(conversationId: string, options: MessageQueryOptions) {
+    let query: Query = this.db
       .collection("conversations")
       .doc(conversationId)
       .collection("messages");
@@ -124,6 +138,20 @@ class FirebaseAdmin {
 
     if (options.endDate) {
       query = query.where("timestamp", "<=", new Date(options.endDate));
+    }
+
+    if (options.where) {
+      for (const clause of options.where) {
+        query = query.where(clause.field, clause.op, clause.value);
+      }
+    }
+
+    if (options.orderBy) {
+      query = query.orderBy(options.orderBy.field, options.orderBy.direction);
+    }
+
+    if (options.limit !== undefined) {
+      query = query.limit(options.limit);
     }
 
     return query;
