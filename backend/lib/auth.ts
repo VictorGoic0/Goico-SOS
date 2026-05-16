@@ -1,7 +1,7 @@
 import type admin from 'firebase-admin';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import { auth } from './firebase-admin';
+import { firebaseAdmin } from './firebase-admin';
 import { config } from './config';
 
 const redis = new Redis({
@@ -47,7 +47,7 @@ export async function verifyToken(req: Request): Promise<admin.auth.DecodedIdTok
     throw new Response('Unauthorized', { status: 401 });
   }
   try {
-    const decoded = await auth.verifyIdToken(token);
+    const decoded = await firebaseAdmin.verifyAndDecodeToken(token);
     console.log('[auth] decoded token', decoded);
     return decoded;
   } catch {

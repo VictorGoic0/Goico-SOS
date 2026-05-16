@@ -1,4 +1,12 @@
-import type { MessageVectorMetadata } from "../rag-types";
+export interface MessageVectorMetadata {
+  messageId: string;
+  conversationId: string;
+  senderId: string;
+  senderUsername: string;
+  text: string;
+  /** Unix timestamp in milliseconds (for sorting after retrieval) */
+  timestamp: number;
+}
 
 export interface IndexConversationResult {
   indexed: number;

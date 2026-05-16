@@ -4,10 +4,7 @@
  * enrichment/utils helpers directly.
  */
 
-import type { Index, PineconeRecord, RecordMetadata } from "@pinecone-database/pinecone";
-import { Pinecone } from "@pinecone-database/pinecone";
 import { embed, embedMany } from "ai";
-import { config } from "../config";
 import type { FirebaseMessage } from "../firebase-admin";
 import { firebaseAdmin } from "../firebase-admin";
 import type { ConversationMessageRecord } from "../firestore-messages";
@@ -18,12 +15,13 @@ import {
 } from "../firestore-messages";
 import { buildEnrichedTextsForIndex, enrichMessageText } from "../message-enrichment";
 import { openai } from "../openai-provider";
-import type { MessageVectorMetadata } from "../rag-types";
 import {
   normalizeSimilarityScore,
   parsePineconeMetadataToVectorMetadata,
   sortVectorMetadataByTimestampAsc,
 } from "../retrieve-messages-utils";
+import { pineconeClient } from "../pinecone/pinecone";
+import type { PineconeClient } from "../pinecone/pinecone";
 import {
   AGENT_RECENT_FIRESTORE_LIMIT,
   DEFAULT_TOP_K,
@@ -35,18 +33,19 @@ import {
 import type {
   IndexConversationResult,
   IndexMessageMode,
+  MessageVectorMetadata,
   ScoredMetadataRow,
   SearchHit,
   UnifiedLine,
 } from "./types";
 
-export type { IndexConversationResult, IndexMessageMode, SearchHit };
+export type { IndexConversationResult, IndexMessageMode, SearchHit, MessageVectorMetadata };
 
 class RagPipeline {
-  private index: Index;
+  private pinecone: PineconeClient;
 
-  constructor(index: Index) {
-    this.index = index;
+  constructor(pinecone: PineconeClient) {
+    this.pinecone = pinecone;
   }
 
   async buildAgentRetrievalContext(conversationId: string, query: string): Promise<string> {
@@ -92,7 +91,7 @@ class RagPipeline {
 
   private async conversationIsIndexed(conversationId: string): Promise<boolean> {
     const vector = await this.embedText(".");
-    const response = await this.index.query({
+    const response = await this.pinecone.query({
       vector,
       topK: 1,
       includeMetadata: false,
@@ -126,14 +125,10 @@ class RagPipeline {
         continue;
       }
 
-      const records: PineconeRecord[] = batch.map((m, i) => ({
-        id: m.messageId,
-        values: vectors[i],
-        metadata: this.toMetadataRecord(m),
-      }));
-
       try {
-        await this.index.upsert({ records });
+        await this.pinecone.upsert(
+          batch.map((m, i) => ({ id: m.messageId, values: vectors[i], metadata: this.toMetadataRecord(m) }))
+        );
         indexed += batch.length;
       } catch {
         failed.push(...batch.map((m) => m.messageId));
@@ -166,19 +161,17 @@ class RagPipeline {
 
     if (vectors.length !== 1) return { indexed: 0, failed: [messageId] };
 
-    const records: PineconeRecord[] = [
-      { id: message.messageId, values: vectors[0], metadata: this.toMetadataRecord(message) },
-    ];
-
     try {
-      await this.index.upsert({ records });
+      await this.pinecone.upsert([
+        { id: message.messageId, values: vectors[0], metadata: this.toMetadataRecord(message) },
+      ]);
       return { indexed: 1 };
     } catch {
       return { indexed: 0, failed: [messageId] };
     }
   }
 
-  private toMetadataRecord(message: ConversationMessageRecord): RecordMetadata {
+  private toMetadataRecord(message: ConversationMessageRecord): Record<string, unknown> {
     return {
       messageId: message.messageId,
       conversationId: message.conversationId,
@@ -216,7 +209,7 @@ class RagPipeline {
     const vector = await this.embedText(queryText);
     const limit = this.clampTopK(topK);
 
-    const response = await this.index.query({
+    const response = await this.pinecone.query({
       vector,
       topK: limit,
       includeMetadata: true,
@@ -227,7 +220,7 @@ class RagPipeline {
     for (const match of response.matches ?? []) {
       const recordId = typeof match.id === "string" ? match.id : "";
       const metadata = parsePineconeMetadataToVectorMetadata(
-        match.metadata as RecordMetadata,
+        match.metadata,
         recordId,
         conversationId
       );
@@ -284,7 +277,4 @@ class RagPipeline {
   }
 }
 
-const pinecone = new Pinecone({ apiKey: config.PINECONE_API_KEY });
-const messagesIndex = pinecone.index({ name: config.PINECONE_INDEX_NAME });
-
-export const ragPipeline = new RagPipeline(messagesIndex);
+export const ragPipeline = new RagPipeline(pineconeClient);
