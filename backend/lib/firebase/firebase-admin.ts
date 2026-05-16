@@ -2,6 +2,7 @@ import admin from "firebase-admin";
 import { config } from "../config";
 import type { QuerySnapshot } from "firebase-admin/firestore";
 import type { Query } from "firebase-admin/firestore";
+import { FirebaseMessage, MessageQueryOptions } from "./types";
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -11,25 +12,6 @@ if (!admin.apps.length) {
       privateKey: config.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     }),
   });
-}
-export interface FirebaseMessage {
-  messageId: string;
-  senderId: string;
-  senderUsername: string;
-  text: string;
-  timestamp: admin.firestore.Timestamp;
-  status: string;
-  readAt?: admin.firestore.Timestamp | null;
-  readBy?: string[] | null;
-  imageURL?: string | null;
-}
-
-export interface MessageQueryOptions {
-  where?: { field: string; op: FirebaseFirestore.WhereFilterOp; value: unknown }[];
-  orderBy?: { field: string; direction: "asc" | "desc" };
-  limit?: number;
-  startDate?: string;
-  endDate?: string;
 }
 
 class FirebaseAdmin {
