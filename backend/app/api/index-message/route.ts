@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { authenticate } from "@/lib/auth";
-import { processIndexMessageAfterSend } from "@/lib/index-messages";
+import { ragPipeline } from "@/lib/rag/pipeline";
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await processIndexMessageAfterSend(conversationId, messageId);
+    const result = await ragPipeline.processAfterSend(conversationId, messageId);
 
     return NextResponse.json({
       conversationId,

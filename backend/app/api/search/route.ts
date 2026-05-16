@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { authenticate } from "@/lib/auth";
-import { ensureConversationBackfilledForRag } from "@/lib/index-messages";
-import { retrieveSearchHits } from "@/lib/retrieve-messages";
+import { ragPipeline } from "@/lib/rag/pipeline";
 
 export async function POST(req: Request) {
   try {
@@ -27,8 +26,8 @@ export async function POST(req: Request) {
       );
     }
 
-    await ensureConversationBackfilledForRag(conversationId);
-    const results = await retrieveSearchHits(conversationId, trimmedQuery);
+    await ragPipeline.ensureBackfilled(conversationId);
+    const results = await ragPipeline.retrieveSearchHits(conversationId, trimmedQuery);
 
     return NextResponse.json({
       results,

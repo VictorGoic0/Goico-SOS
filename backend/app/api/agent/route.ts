@@ -1,7 +1,7 @@
 import { streamText, tool, stepCountIs } from 'ai';
 import { openai } from '@/lib/openai-provider';
 import { z } from 'zod';
-import { buildAgentRetrievalContext } from '@/lib/agent-retrieval-context';
+import { ragPipeline } from '@/lib/rag/pipeline';
 import { searchMessages, groupBy, formatReport, getConversationMessages } from '@/lib/agent-tools';
 import { authenticate } from '@/lib/auth';
 
@@ -26,7 +26,7 @@ const agentTools = {
       query: z.string().describe('What to search for in meaning (e.g. "budget and deadlines", "what Sarah agreed to")'),
     }),
     execute: async ({ conversationId, query }) => {
-      return await buildAgentRetrievalContext(conversationId, query);
+      return await ragPipeline.buildAgentRetrievalContext(conversationId, query);
     },
   }),
 
