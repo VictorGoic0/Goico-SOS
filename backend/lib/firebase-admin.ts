@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { QuerySnapshot } from "firebase-admin/firestore";
+import { DocumentData, QuerySnapshot } from "firebase-admin/firestore";
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -31,12 +31,19 @@ class FirebaseAdmin {
     this.auth = adminInstance.auth();
   }
 
-    /**
-   * Helper function to fetch messages from a conversation
-   * @param conversationId - The ID of the conversation
-   * @param limit - Maximum number of messages to fetch (default: 50)
-   * @returns Array of messages with their data
-   */
+  async getUser(userId: string) {
+    const user = (await this.db.collection("users").doc(userId).get()).data()
+    return user
+  }
+
+  async getConversation(conversationId: string) {
+    const conversationRef = this.db
+      .collection("conversations")
+      .doc(conversationId);
+    const conversation = await conversationRef.get();
+    return conversation;
+  }
+
   async getMessagesFromFirebase(
     conversationId: string,
     limit: number = 50

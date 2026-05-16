@@ -11,11 +11,7 @@ export async function POST(req: Request) {
       messageText,
     } = await req.json();
 
-    // Get conversation to find recipients
-    const conversationRef = firebaseAdmin.db
-      .collection("conversations")
-      .doc(conversationId);
-    const conversation = await conversationRef.get();
+    const conversation = await firebaseAdmin.getConversation(conversationId)
 
     if (!conversation.exists) {
       return NextResponse.json(
@@ -28,9 +24,7 @@ export async function POST(req: Request) {
     const participants = conversationData?.participants || [];
     const recipients = participants.filter((id: string) => id !== senderId);
 
-    // Get sender's user data for display name and profile photo
-    const senderDoc = await firebaseAdmin.db.collection("users").doc(senderId).get();
-    const senderData = senderDoc.data();
+    const senderData = await firebaseAdmin.getUser(senderId)
     const senderDisplayName = senderData?.displayName || senderUsername;
     const senderImageURL = senderData?.imageURL || null;
 
@@ -52,8 +46,8 @@ export async function POST(req: Request) {
     // Get push tokens for recipients
     const pushTokens: string[] = [];
     for (const recipientId of recipients) {
-      const userDoc = await firebaseAdmin.db.collection("users").doc(recipientId).get();
-      const pushToken = userDoc.data()?.pushToken;
+      const recipient = await firebaseAdmin.getUser(recipientId);
+      const pushToken = recipient?.pushToken;
       if (pushToken) {
         pushTokens.push(pushToken);
       }
